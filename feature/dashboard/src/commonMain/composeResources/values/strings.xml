@@ -1,0 +1,18 @@
+<resources>
+    <string name="dashboard_title">Net Worth</string>
+    <string name="dashboard_net_worth_label">Your net worth</string>
+    <string name="dashboard_assets">Assets</string>
+    <string name="dashboard_liabilities">Liabilities</string>
+    <string name="dashboard_debt_ratio">%1$s of assets financed by debt</string>
+    <string name="dashboard_empty_title">Nothing here yet</string>
+    <string name="dashboard_empty_body">Add your first account to start tracking your net worth.</string>
+    <string name="dashboard_open_settings">Settings</string>
+    <string name="category_cash">Cash</string>
+    <string name="category_investments">Investments</string>
+    <string name="category_property">Property</string>
+    <string name="category_other_asset">Other asset</string>
+    <string name="category_mortgage">Mortgage</string>
+    <string name="category_loan">Loan</string>
+    <string name="category_credit_card">Credit card</string>
+    <string name="category_other_liability">Other liability</string>
+</resources>
