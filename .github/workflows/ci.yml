@@ -1,0 +1,154 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  # Validates the PR title follows Conventional Commits (it becomes the squash-merge commit message).
+  pr-title:
+    name: PR title (Conventional Commits)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-android:
+    name: Build · Android (debug + R8 release)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+        with:
+          google-services-json: ${{ secrets.GOOGLE_SERVICES_JSON }}
+      - name: Assemble
+        run: ./gradlew :androidApp:assembleDebug :androidApp:assembleRelease
+      - uses: actions/upload-artifact@v5
+        with:
+          name: android-apks
+          path: androidApp/build/outputs/apk/**/*.apk
+          retention-days: 7
+      - uses: actions/upload-artifact@v5
+        with:
+          name: r8-mapping
+          path: androidApp/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+
+  build-web:
+    name: Build · Web (Wasm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Wasm distribution
+        run: ./gradlew :composeApp:wasmJsBrowserDistribution
+      - uses: actions/upload-artifact@v5
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable
+          retention-days: 7
+
+  build-ios:
+    name: Build · iOS (simulator, unsigned)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Kotlin/Native caches
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: xcodebuild (runs :composeApp:embedAndSignAppleFrameworkForXcode via the Run Script phase)
+        run: |
+          xcodebuild build \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios-derived \
+            CODE_SIGNING_ALLOWED=NO
+
+  unit-tests:
+    name: Unit tests (commonTest on JVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Test
+        run: ./gradlew testDebugUnitTest --continue
+      - name: Publish test results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: test-results
+          path: "**/build/test-results/**/*.xml"
+          retention-days: 7
+
+  coverage:
+    name: Code coverage (Kover)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Coverage report + threshold
+        run: ./gradlew :koverXmlReport :koverHtmlReport :koverVerify :koverLog
+      - name: Coverage summary
+        if: always()
+        run: |
+          {
+            echo "### Coverage"
+            echo '```'
+            cat build/kover/coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: coverage
+          path: build/reports/kover
+          retention-days: 14
+
+  lint:
+    name: Lint (ktlint + Android lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: ktlint
+        run: ./gradlew ktlintCheck
+      - name: Android lint (app + all dependency modules)
+        run: ./gradlew :androidApp:lintDebug
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: lint-reports
+          path: |
+            androidApp/build/reports/lint-results-*.*
+            **/build/reports/ktlint/**
+          retention-days: 7
