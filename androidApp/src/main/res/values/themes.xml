@@ -1,0 +1,12 @@
+<resources>
+    <!-- Compose draws everything; the window theme only needs to be edge-to-edge friendly. -->
+    <style name="Theme.NetWorth" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/splash_background</item>
+    </style>
+
+    <style name="Theme.NetWorth.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.NetWorth</item>
+    </style>
+</resources>

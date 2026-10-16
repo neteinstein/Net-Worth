@@ -1,0 +1,35 @@
+name: Setup build environment
+description: JDK, Gradle (with caching) and the Firebase config the Android build needs.
+
+inputs:
+  google-services-json:
+    description: Real google-services.json contents (secret). Falls back to the committed placeholder.
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: "21"
+
+    - uses: gradle/actions/setup-gradle@v5
+      with:
+        cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+    # google-services.json is git-ignored. For build validation CI uses the committed placeholder;
+    # a real one is only injected when the secret is provided (e.g. release builds).
+    - name: Provide google-services.json
+      shell: bash
+      env:
+        GOOGLE_SERVICES_JSON: ${{ inputs.google-services-json }}
+      run: |
+        if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+          printf '%s' "$GOOGLE_SERVICES_JSON" > androidApp/google-services.json
+          echo "Using google-services.json from secrets"
+        else
+          cp androidApp/google-services.json.ci androidApp/google-services.json
+          echo "Using placeholder google-services.json.ci"
+        fi

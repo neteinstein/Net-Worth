@@ -1,0 +1,10 @@
+// Shared build settings for the hand-authored iosApp target.
+// Put your Apple Developer Team ID in iosApp/Configuration/Local.xcconfig (git-ignored):
+//   TEAM_ID = ABCDE12345
+TEAM_ID =
+BUNDLE_ID = com.neteinstein.networth
+APP_NAME = Net Worth
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+#include? "Local.xcconfig"
