@@ -1,0 +1,53 @@
+# Gradle / Kotlin
+.gradle/
+.kotlin/
+build/
+!**/src/**/build/
+local.properties
+*.hprof
+
+# IDEs
+.idea/
+*.iml
+.fleet/
+.vscode/
+*.swp
+.DS_Store
+
+# Android
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+.externalNativeBuild/
+.cxx/
+output-metadata.json
+
+# Signing material — never commit
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+keystore.properties
+
+# Platform secrets — real files are injected by CI secrets; *.ci placeholders ARE committed
+google-services.json
+GoogleService-Info.plist
+!*.ci
+
+# Xcode / iOS
+iosApp/build/
+xcuserdata/
+*.xcuserstate
+DerivedData/
+*.xcworkspace/xcuserdata/
+iosApp/Configuration/Local.xcconfig
+
+# Kotlin/JS & Wasm
+kotlin-js-store/
+node_modules/
+yarn-error.log
+
+# Claude Code local settings
+.claude/settings.local.json
