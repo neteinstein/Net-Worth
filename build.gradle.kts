@@ -39,6 +39,7 @@ dependencies {
     kover(projects.core.domain)
     kover(projects.core.google)
     kover(projects.feature.alerts)
+    kover(projects.feature.future)
     kover(projects.feature.importer)
     kover(projects.feature.manage)
     kover(projects.feature.onboarding)

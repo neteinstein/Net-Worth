@@ -1,7 +1,8 @@
 <resources>
-    <!-- Bottom bar of the artboards. Future joins it with the Future/Year ahead phase. -->
+    <!-- Bottom bar of the artboards. -->
     <string name="nav_overview">Overview</string>
     <string name="nav_spending">Spending</string>
     <string name="nav_import">Import extract</string>
     <string name="nav_alerts">Alerts</string>
+    <string name="nav_future">Future</string>
 </resources>
