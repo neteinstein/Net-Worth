@@ -1,8 +1,8 @@
 name: Release
 
-# Every push to main (and manual runs) builds a signed release and publishes it as a GitHub Release
-# tagged v1.0.<run number>: the APK, the App Bundle and R8's mapping file. When the Play Console
-# credentials secret exists, the bundle is also uploaded to the Play Console (internal track).
+# Every push to main (and manual runs) builds the signed "github" flavor and publishes it as a GitHub
+# Release tagged v1.0.<run number>: the APK and R8's mapping file. (Play Console publishing arrives
+# with a "playstore" flavor — see androidApp/build.gradle.kts and CI_CD.md.)
 on:
   push:
     branches: [main]
@@ -68,9 +68,7 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
 
-      # The APK is for direct installs from the GitHub Release; the App Bundle (.aab) is what the Play
-      # Console takes.
-      - name: Build signed release APK and AAB
+      - name: Build signed release APK (github flavor)
         env:
           KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -78,7 +76,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           APP_VERSION_CODE: ${{ github.run_number }}
           APP_VERSION_NAME: ${{ env.VERSION_NAME }}
-        run: ./gradlew :androidApp:assembleRelease :androidApp:bundleRelease --stacktrace
+        run: ./gradlew :androidApp:assembleGithubRelease --stacktrace
 
       # PR Checks runs this too, but a squash merge can land a shrinker change on main that was never
       # built as a release: re-check before anything reaches users.
@@ -90,21 +88,15 @@ jobs:
         run: |
           VERSION_UNDERSCORE="${VERSION_NAME//./_}"
 
-          APK_PATH="androidApp/build/outputs/apk/release/NetWorth_version${VERSION_UNDERSCORE}.apk"
-          mv androidApp/build/outputs/apk/release/androidApp-release.apk "$APK_PATH"
+          APK_PATH="androidApp/build/outputs/apk/github/release/NetWorth_version${VERSION_UNDERSCORE}-github.apk"
+          mv androidApp/build/outputs/apk/github/release/androidApp-github-release.apk "$APK_PATH"
           echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
           echo "apk_sha1=$(sha1sum "$APK_PATH" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
 
-          AAB_PATH="androidApp/build/outputs/bundle/release/NetWorth_version${VERSION_UNDERSCORE}.aab"
-          mv androidApp/build/outputs/bundle/release/androidApp-release.aab "$AAB_PATH"
-          echo "aab_path=$AAB_PATH" >> "$GITHUB_OUTPUT"
-          echo "aab_sha1=$(sha1sum "$AAB_PATH" | awk '{print $1}')" >> "$GITHUB_OUTPUT"
-
           # R8's rename table for this exact APK: without it a crash report from the build is
-          # unreadable, and every build produces a different one. Copied, not moved: removing an R8
-          # output would make Gradle re-run minification in the Play publish step below.
-          MAPPING_PATH="$RUNNER_TEMP/NetWorth_version${VERSION_UNDERSCORE}-mapping.txt"
-          cp androidApp/build/outputs/mapping/release/mapping.txt "$MAPPING_PATH"
+          # unreadable, and every build produces a different one.
+          MAPPING_PATH="$RUNNER_TEMP/NetWorth_version${VERSION_UNDERSCORE}-github-mapping.txt"
+          cp androidApp/build/outputs/mapping/githubRelease/mapping.txt "$MAPPING_PATH"
           echo "mapping_path=$MAPPING_PATH" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release
@@ -112,51 +104,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APK_PATH: ${{ steps.artifact.outputs.apk_path }}
           APK_SHA1: ${{ steps.artifact.outputs.apk_sha1 }}
-          AAB_PATH: ${{ steps.artifact.outputs.aab_path }}
-          AAB_SHA1: ${{ steps.artifact.outputs.aab_sha1 }}
           MAPPING_PATH: ${{ steps.artifact.outputs.mapping_path }}
         run: |
           gh release create "v${VERSION_NAME}" \
             "$APK_PATH" \
-            "$AAB_PATH" \
             "$MAPPING_PATH" \
             --title "v${VERSION_NAME}" \
-            --notes "**APK SHA-1:** \`${APK_SHA1}\`
-          **App Bundle (.aab) SHA-1:** \`${AAB_SHA1}\` - upload this by hand in the Play Console for the app's first release; after that the Play publish step below takes over.
+            --notes "**github flavor APK SHA-1:** \`${APK_SHA1}\`
 
           \`*-mapping.txt\` is R8's rename table for this release's APK. A stack trace from it only becomes readable through the matching file (\`retrace <mapping.txt> <trace.txt>\`)." \
             --generate-notes
-
-      # The `secrets` context isn't allowed in step-level `if:`, so check presence here and pass it on.
-      - name: Check Play publisher credentials
-        id: play_creds
-        env:
-          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
-        run: echo "has_credentials=${{ env.ANDROID_PUBLISHER_CREDENTIALS != '' }}" >> "$GITHUB_OUTPUT"
-
-      # Optional: uploads the signed App Bundle to the Play Console's "internal" track (or PLAY_TRACK,
-      # a repo variable) with Gradle Play Publisher (androidApp/build.gradle.kts). Skipped until the
-      # service-account secret exists, so the workflow still produces GitHub Releases without it.
-      - name: Publish to Play Store
-        id: publish_play
-        if: steps.play_creds.outputs.has_credentials == 'true'
-        env:
-          ANDROID_PUBLISHER_CREDENTIALS: ${{ secrets.ANDROID_PUBLISHER_CREDENTIALS }}
-          PLAY_TRACK: ${{ vars.PLAY_TRACK }}
-          KEYSTORE_FILE: ${{ runner.temp }}/release.keystore
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          APP_VERSION_CODE: ${{ github.run_number }}
-          APP_VERSION_NAME: ${{ env.VERSION_NAME }}
-        run: ./gradlew :androidApp:publishReleaseBundle --stacktrace
-
-      # A 403 here is almost always the service account's standing in the Play Console, not this repo.
-      - name: Play Store publish failure hint
-        if: failure() && steps.publish_play.outcome == 'failure'
-        run: |
-          echo "::error::publishReleaseBundle failed. For a 403/PERMISSION_DENIED see 'Troubleshooting a Play 403' in CI_CD.md: it is almost always the service account's app access/permissions, a missing first manual release, or the Android Publisher API not being enabled."
-
-      - name: Skip Play Store publish
-        if: steps.play_creds.outputs.has_credentials != 'true'
-        run: echo "::notice::ANDROID_PUBLISHER_CREDENTIALS secret not set - skipping Play Store publish. See CI_CD.md."

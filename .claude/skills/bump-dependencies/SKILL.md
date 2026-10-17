@@ -38,7 +38,7 @@ Read `maven-metadata.xml` and ignore `alpha|beta|rc|dev|eap|-M` versions:
 ## 3. Apply and verify
 
 1. Edit the catalog (and wrapper: `./gradlew wrapper --gradle-version <v>` twice).
-2. `./gradlew testDebugUnitTest ktlintCheck :androidApp:lintDebug :koverVerify :androidApp:assembleRelease compileKotlinWasmJs`.
+2. `./gradlew testDebugUnitTest ktlintCheck :androidApp:lintGithubDebug :koverVerify :androidApp:assembleGithubRelease compileKotlinWasmJs`.
 3. iOS can only be verified on macOS — rely on the `build-ios` CI job and say so in the PR.
 4. Commit as `build(deps): bump <thing> to <version>` (one logical bump per commit when practical) and
    update the stack table in AGENTS.md if a headline version changed.
