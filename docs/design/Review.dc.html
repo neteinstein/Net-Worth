@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Review and learn</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1260px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 16px; padding: 56px 20px 24px">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="Import.dc.html" aria-label="Back to import" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; border: 1px solid #D5D9E1; color: #141B2D; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<h1 style="margin: 0; flex: 1; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em">Review &amp; learn</h1>
+<span style="font-size: 13px; font-weight: 600; color: #5A6275">{{doneLabel}}</span>
+</div>
+
+<div style="background: #141B2D; color: #FFFFFF; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#B9C9FA" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-4 10.5V17h8v-3.5A6 6 0 0 0 12 3z"></path><path d="M9 21h6"></path></svg>
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #DCE2EE">Net Worth already knows <strong style="color: #FFFFFF">146 merchants</strong>. Each choice here teaches it one more, so next month’s import needs less of you.</p>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span style="font-size: 14px; color: #5A6275">Showing 4 of 18</span>
+<button type="button" onClick="{{acceptAll}}" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #D5D9E1; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; color: #141B2D">Accept all suggestions</button>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{items}}" as="it" hint-placeholder-count="4">
+<article style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; gap: 12px">
+<div style="min-width: 0; display: flex; flex-direction: column; gap: 3px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{it.raw}}</span>
+<span style="font-size: 12px; color: #5A6275">{{it.date}} · {{it.hint}}</span>
+</div>
+<span style="font-size: 15px; font-weight: 700; white-space: nowrap">{{it.amount}}</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{it.chips}}" as="ch" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{ch.pressed}}" onClick="{{ch.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; font-family: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; background: {{ch.bg}}; color: {{ch.fg}}; border: 1px {{ch.bs}} {{ch.bc}}">{{ch.label}}</button>
+</sc-for>
+</div>
+<sc-if value="{{it.needsNote}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="note-{{it.id}}" style="font-size: 12px; font-weight: 600; color: #5A6275">Note (no merchant name on MB WAY)</label>
+<input id="note-{{it.id}}" type="text" placeholder="e.g. Swimming fees, Inês" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D; background: #FFFFFF">
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid #EEF0F4; padding-top: 4px">
+<input id="rem-{{it.id}}" type="checkbox" checked="{{it.remember}}" onChange="{{it.toggle}}" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}">
+<label for="rem-{{it.id}}" style="font-size: 13px; flex: 1">{{it.rememberLabel}}</label>
+</div>
+</article>
+</sc-for>
+</div>
+
+</main>
+
+<div style="background: #FFFFFF; border-top: 1px solid #E3E6EC; padding: 14px 20px 28px; display: flex; flex-direction: column; gap: 8px">
+<a href="Main.dc.html" style="height: 52px; border-radius: 26px; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">{{saveLabel}}</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"$preview":{"width":390,"height":1260}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picks: { d1: null, d2: null, d3: null, d4: null }, remember: { d1: true, d2: false, d3: true, d4: true } };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#2D55D6';
+    var data = [
+      { id: 'd1', raw: 'COMPRA 4417 DECATHLON MATOSINHOS', date: '12 Sep', amount: '−€86.40', hint: 'Sports shop · 3 of 4 past visits were Kids’ activities', suggest: 'Kids’ activities', chips: ['Kids’ activities', 'Clothes', 'Other'], rememberLabel: 'Always file DECATHLON this way' },
+      { id: 'd2', raw: 'MB WAY P/ 9** *** 412', date: '14 Sep', amount: '−€35.00', hint: 'Phone transfer', suggest: null, chips: ['Kids’ activities', 'Gifts', 'Dining & leisure', 'Other'], needsNote: true, rememberLabel: 'Remember for this phone number' },
+      { id: 'd3', raw: 'TRF ASSOC PAIS ESC BASICA', date: '3 Sep', amount: '−€45.00', hint: 'Parents’ association', suggest: 'School', chips: ['School', 'Kids’ activities', 'Other'], rememberLabel: 'Always file ASSOC PAIS this way' },
+      { id: 'd4', raw: 'WORTEN MAR SHOPPING', date: '20 Sep', amount: '−€129.99', hint: 'Electronics · could be school kit', suggest: 'Housing', chips: ['Housing', 'School', 'Leisure', 'Other'], rememberLabel: 'Always file WORTEN this way' }
+    ];
+    var picks = this.state.picks;
+    var done = 0;
+    var items = data.map(function (d) {
+      var chosen = picks[d.id] || d.suggest;
+      if (picks[d.id]) done++;
+      return {
+        id: d.id, raw: d.raw, date: d.date, amount: d.amount, hint: d.hint, needsNote: !!d.needsNote,
+        remember: !!self.state.remember[d.id], rememberLabel: d.rememberLabel,
+        toggle: function () { var r = Object.assign({}, self.state.remember); r[d.id] = !r[d.id]; self.setState({ remember: r }); },
+        chips: d.chips.map(function (c) {
+          var on = c === chosen;
+          var confirmed = on && picks[d.id] === c;
+          var bg = confirmed ? accent : on ? '#E6ECFB' : '#FFFFFF';
+          var fg = confirmed ? '#FFFFFF' : on ? '#1E3FA8' : '#141B2D';
+          var bs = on && !confirmed ? 'dashed' : 'solid';
+          var bc = on ? accent : '#D5D9E1';
+          return {
+            label: on && !confirmed ? c + ' · suggested' : c,
+            pressed: confirmed ? 'true' : 'false',
+            bg: bg, fg: fg, bs: bs, bc: bc,
+            pick: function () { var p = Object.assign({}, self.state.picks); p[d.id] = c; self.setState({ picks: p }); }
+          };
+        })
+      };
+    });
+    var acceptAll = function () {
+      var p = Object.assign({}, self.state.picks);
+      data.forEach(function (d) { if (!p[d.id] && d.suggest) p[d.id] = d.suggest; });
+      self.setState({ picks: p });
+    };
+    return {
+      accent: accent, items: items, acceptAll: acceptAll,
+      doneLabel: done + ' of 18 done',
+      saveLabel: done > 0 ? 'Save ' + done + ' & learn' : 'Save & learn'
+    };
+  }
+}
+</script>
+</body>
+</html>

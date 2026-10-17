@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Year ahead forecast</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1300px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 56px 20px 24px">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="Future.dc.html" aria-label="Back to Future" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; border: 1px solid #D5D9E1; color: #141B2D; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em">Year ahead</h1>
+<span style="font-size: 13px; color: #5A6275">Nov 2026 – Oct 2027 · following your patterns</span>
+</div>
+</div>
+
+<div role="group" aria-label="Filter by account" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -20px; padding: 0 20px">
+<sc-for list="{{accounts}}" as="a" hint-placeholder-count="3">
+<button type="button" aria-pressed="{{a.pressed}}" onClick="{{a.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; flex: none; font-family: inherit; font-size: 13px; font-weight: 600; background: {{a.bg}}; color: {{a.fg}}; border: 1px solid {{a.bc}}">{{a.label}}</button>
+</sc-for>
+</div>
+
+<section style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="background: #141B2D; color: #FFFFFF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; color: #B9C1D3">Predicted spending</span>
+<span style="font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 28px; font-weight: 700">{{yearSpend}}</span>
+<span style="font-size: 12px; color: #DCE2EE">{{yearSpendDelta}}</span>
+</div>
+<div style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 12px; color: #5A6275">{{yearSaveLabel}}</span>
+<span style="font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 28px; font-weight: 700">{{yearSave}}</span>
+<span style="font-size: 12px; color: #5A6275">{{yearSaveNote}}</span>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: baseline">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Month by month</h2>
+<sc-if value="{{showIncome}}" hint-placeholder-val="{{ true }}"><span style="font-size: 12px; color: #5A6275; display: flex; align-items: center; gap: 6px"><span style="width: 16px; border-top: 2px dashed #141B2D"></span>Income €4,850</span></sc-if>
+</div>
+<div style="position: relative; height: 160px; display: flex; align-items: flex-end; gap: 6px; border-bottom: 1px solid #E3E6EC">
+<sc-if value="{{showIncome}}" hint-placeholder-val="{{ true }}"><div style="position: absolute; left: 0; right: 0; bottom: 121px; border-top: 2px dashed #141B2D"></div></sc-if>
+<sc-for list="{{months}}" as="m" hint-placeholder-count="12">
+<div style="flex: 1; height: {{m.h}}px; border-radius: 5px 5px 1px 1px; background: {{m.color}}"></div>
+</sc-for>
+</div>
+<div style="display: flex; gap: 6px">
+<sc-for list="{{months}}" as="m" hint-placeholder-count="12">
+<span style="flex: 1; text-align: center; font-size: 11px; font-weight: 600; color: {{m.labelColor}}">{{m.l}}</span>
+</sc-for>
+</div>
+<div style="display: flex; gap: 14px; font-size: 12px; color: #5A6275">
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #D9652B"></span>Costs more than income</span>
+<span style="display: flex; align-items: center; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 3px; background: #9FB3EC"></span>Typical month</span>
+</div>
+</section>
+
+<section style="background: #FCEBDD; color: #6E2C0C; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 700">Expected peaks</h2>
+<sc-for list="{{peaks}}" as="p" hint-placeholder-count="3">
+<div style="display: flex; gap: 12px; align-items: baseline; font-size: 14px">
+<span style="width: 36px; font-weight: 700">{{p.m}}</span>
+<span style="flex: 1">{{p.why}}</span>
+<span style="font-weight: 700">{{p.v}}</span>
+</div>
+</sc-for>
+<p style="margin: 0; font-size: 13px; line-height: 1.45">Put aside €100 a month from now and Dec and Jul are covered without touching savings.</p>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 4px">
+<h2 style="margin: 0 0 8px; font-size: 16px; font-weight: 700">Year by year</h2>
+<div style="display: grid; grid-template-columns: 52px repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 12px; color: #5A6275; padding-bottom: 6px"><span>Year</span><span style="text-align: right">Spend</span><span style="text-align: right">Save</span><span style="text-align: right">Savings</span></div>
+<sc-for list="{{years}}" as="y" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: 52px repeat(3, minmax(0, 1fr)); gap: 8px; font-size: 14px; padding: 10px 0; border-top: 1px solid #EEF0F4">
+<span style="font-weight: 700">{{y.y}}</span>
+<span style="text-align: right">{{y.spend}}</span>
+<span style="text-align: right; font-weight: 600; color: {{y.saveColor}}">{{y.save}}</span>
+<span style="text-align: right; font-weight: 700">{{y.bal}}</span>
+</div>
+</sc-for>
+<p style="margin: 8px 0 0; font-size: 13px; line-height: 1.45; color: #5A6275">{{trendNote}}</p>
+</section>
+
+</main>
+
+<nav aria-label="Main" style="display: flex; justify-content: space-around; align-items: center; height: 86px; padding: 0 8px 18px; box-sizing: border-box; background: #FFFFFF; border-top: 1px solid #E3E6EC">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Overview</span></a>
+<a href="Spending.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg><span>Spending</span></a>
+<a href="Import.dc.html" aria-label="Import extract" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 26px; background: {{accent}}; color: #FFFFFF; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M5 20h14"></path></svg></a>
+<a href="Alerts.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg><span>Alerts</span></a>
+<a href="Future.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg><span>Future</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"incomeGrowth":{"editor":"range","default":2,"min":0,"max":6,"step":0.5,"unit":"%"},"priceRise":{"editor":"range","default":2.5,"min":0,"max":6,"step":0.5,"unit":"%"},"$preview":{"width":390,"height":1300}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { account: 'all' };
+  }
+  renderVals() {
+    var self = this;
+    var acc = this.state.account;
+    var share = { all: 1, a1: 0.625, a2: 0.375 }[acc];
+    var g = (this.props.incomeGrowth ?? 2) / 100;
+    var p = (this.props.priceRise ?? 2.5) / 100;
+    var fmt = function (v) { return '€' + (Math.round(v / 10) * 10).toLocaleString('en-US'); };
+    var fk = function (v) { return (v < 0 ? '−' : '') + '€' + (Math.abs(v) / 1000).toFixed(1) + 'k'; };
+    var raw = [['N', 4050], ['D', 5150], ['J', 4300], ['F', 3850], ['M', 3950], ['A', 4000], ['M', 4050], ['J', 4300], ['J', 5750], ['A', 4800], ['S', 4750], ['O', 4100]];
+    var income = 4850;
+    var months = raw.map(function (m) {
+      var v = m[1] * share;
+      var over = acc === 'all' && v > income;
+      return { l: m[0], h: Math.round(v / 6000 * 150), color: over ? '#D9652B' : '#9FB3EC', labelColor: over ? '#8A3510' : '#5A6275' };
+    });
+    var spend = 53050 * share;
+    var inc = 58200;
+    var mk = function (id, label) {
+      var on = acc === id;
+      return { label: label, pressed: on ? 'true' : 'false', bg: on ? '#141B2D' : '#FFFFFF', fg: on ? '#FFFFFF' : '#141B2D', bc: on ? '#141B2D' : '#D5D9E1', pick: function () { self.setState({ account: id }); } };
+    };
+    var years = [];
+    var bal = 18400;
+    for (var k = 0; k < 5; k++) {
+      var yi = inc * Math.pow(1 + g, k);
+      var ys = 53050 * Math.pow(1 + p, k);
+      var sv = yi - ys;
+      bal += sv;
+      years.push({ y: String(2027 + k), spend: fk(ys), save: fk(sv), bal: fk(bal), saveColor: sv < 0 ? '#B5481A' : '#2F6F63', sv: sv });
+    }
+    var drift = years[4].sv - years[0].sv;
+    var trendNote = Math.abs(drift) < 200
+      ? 'Income and prices grow at about the same rate, so yearly savings stay roughly flat.'
+      : drift < 0
+        ? 'Prices are set to rise faster than income: yearly savings shrink by about ' + fmt(-drift / 4) + ' each year.'
+        : 'Income grows faster than prices: yearly savings rise by about ' + fmt(drift / 4) + ' each year.';
+    return {
+      accent: this.props.accent ?? '#2D55D6',
+      accounts: [mk('all', 'All accounts'), mk('a1', 'Pedro'), mk('a2', '[Partner]')],
+      months: months, showIncome: acc === 'all',
+      yearSpend: fmt(spend),
+      yearSpendDelta: '+' + Math.round((53050 / 50880 - 1) * 100) + '% vs last 12 months',
+      yearSaveLabel: acc === 'all' ? 'Predicted savings' : 'Share of family spend',
+      yearSave: acc === 'all' ? fmt(inc - spend) : Math.round(share * 100) + '%',
+      yearSaveNote: acc === 'all' ? 'down from €7,320' : 'paid from this account',
+      peaks: [
+        { m: 'Dec', why: 'Christmas & gifts', v: fmt(5150 * share) },
+        { m: 'Jul', why: 'Summer holidays', v: fmt(5750 * share) },
+        { m: 'Sep', why: 'Back to school', v: fmt(4750 * share) }
+      ],
+      years: years, trendNote: trendNote
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,37 +1,34 @@
 package com.neteinstein.networth.core.designsystem.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
+import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 
-/** Large gradient card used for the headline figure of a screen. */
+/** The dark ink card that carries a screen's headline figure ("Saved in September €730"). */
 @Composable
 fun HeroCard(
     modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
-    val colors = MaterialTheme.colorScheme
-    val shape = MaterialTheme.shapes.extraLarge
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(elevation = 12.dp, shape = shape, ambientColor = colors.primary, spotColor = colors.primary)
-            .clip(shape)
-            .background(
-                Brush.linearGradient(
-                    listOf(colors.primary, colors.tertiary.copy(alpha = 0.85f), colors.primaryContainer),
-                ),
-            )
-            .padding(24.dp),
-        content = content,
-    )
+    val finance = NetWorthTheme.financeColors
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        color = finance.heroContainer,
+        contentColor = finance.onHeroContainer,
+    ) {
+        CompositionLocalProvider(LocalContentColor provides finance.onHeroContainer) {
+            Column(Modifier.padding(22.dp), verticalArrangement = Arrangement.spacedBy(18.dp), content = content)
+        }
+    }
 }

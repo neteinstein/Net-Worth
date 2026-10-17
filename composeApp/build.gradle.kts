@@ -29,14 +29,20 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            implementation(projects.core.database)
             implementation(projects.core.designsystem)
-            implementation(projects.feature.dashboard)
+            implementation(projects.core.domain)
+            implementation(projects.core.google)
+            implementation(projects.feature.manage)
+            implementation(projects.feature.onboarding)
+            implementation(projects.feature.overview)
             implementation(projects.feature.settings)
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.kotlinx.serialization.core)
         }
         commonTest.dependencies {
             implementation(libs.koin.test)
+            implementation(projects.core.testing)
         }
     }
 }

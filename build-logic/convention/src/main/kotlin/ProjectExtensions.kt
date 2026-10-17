@@ -15,7 +15,7 @@ internal fun VersionCatalog.library(alias: String) = findLibrary(alias).get()
 
 internal fun VersionCatalog.pluginId(alias: String): String = findPlugin(alias).get().get().pluginId
 
-/** `:feature:dashboard` -> `com.neteinstein.networth.feature.dashboard`, `:composeApp` -> `…networth.composeapp` */
+/** `:feature:overview` -> `com.neteinstein.networth.feature.overview`, `:composeApp` -> `…networth.composeapp` */
 internal val Project.derivedNamespace: String
     get() = BASE_PACKAGE + path.replace(':', '.').replace('-', '_').lowercase()
 

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Categories</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1240px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 56px 20px 32px; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="Manage.dc.html" aria-label="Back to Manage" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; border: 1px solid #D5D9E1; color: #141B2D; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<h1 style="margin: 0; flex: 1; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em">Categories</h1>
+<button type="button" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 0; background: {{accent}}; color: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>New</button>
+</div>
+
+<p style="margin: 0; font-size: 13px; line-height: 1.45; color: #5A6275">Rename, recolour, split into subcategories or merge. Changes re-file past transactions too, so your history stays comparable.</p>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 4px 16px; display: flex; flex-direction: column">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="10">
+<div style="display: flex; flex-direction: column; border-top: {{c.border}}">
+<button type="button" aria-expanded="{{c.expanded}}" onClick="{{c.toggle}}" style="display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0; border: 0; background: transparent; font-family: inherit; color: #141B2D; text-align: left">
+<span style="width: 14px; height: 14px; border-radius: 4px; background: {{c.color}}; flex: none"></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 15px; font-weight: 700">{{c.name}}</span><span style="font-size: 12px; color: #5A6275">{{c.meta}}</span></span>
+<span style="font-size: 13px; color: #5A6275">{{c.budget}}</span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6275" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="transform: rotate({{c.rot}}deg)"><path d="M9 6l6 6-6 6"></path></svg>
+</button>
+<sc-if value="{{c.open}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 14px; padding: 4px 0 18px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Colour</span>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{swatches}}" as="s" hint-placeholder-count="6">
+<button type="button" aria-label="{{s.label}}" aria-pressed="{{s.pressed}}" onClick="{{s.pick}}" style="width: 44px; height: 44px; border-radius: 22px; background: {{s.hex}}; border: 3px solid {{s.ring}}; box-shadow: inset 0 0 0 2px #FFFFFF"></button>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Subcategories</span>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{c.subs}}" as="sub" hint-placeholder-count="4">
+<span style="height: 36px; padding: 0 4px 0 12px; border-radius: 18px; background: #F3F4F6; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 2px">{{sub}}<button type="button" aria-label="Remove {{sub}}" style="width: 32px; height: 32px; border: 0; background: transparent; color: #5A6275; display: flex; align-items: center; justify-content: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></button></span>
+</sc-for>
+</div>
+<div style="display: flex; gap: 8px">
+<label for="new-sub" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">New subcategory</label>
+<input id="new-sub" type="text" placeholder="Add a subcategory" style="flex: 1; min-width: 0; height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D">
+<button type="button" style="height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #D5D9E1; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 600; color: #141B2D">Add</button>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="budget" style="font-size: 12px; font-weight: 700; color: #5A6275">Monthly budget</label>
+<input id="budget" type="text" inputmode="decimal" value="{{c.budgetValue}}" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="season" style="font-size: 12px; font-weight: 700; color: #5A6275">Seasonal peak</label>
+<select id="season" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 10px; font-family: inherit; font-size: 14px; color: #141B2D; background: #FFFFFF">
+<option>None</option>
+<option selected="{{c.isSep}}">September</option>
+<option selected="{{c.isJul}}">July</option>
+<option>December</option>
+</select>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px">
+<input id="spike" type="checkbox" checked="{{true}}" style="width: 22px; height: 22px; margin: 0; accent-color: {{accent}}">
+<label for="spike" style="font-size: 14px; flex: 1">Warn me about spikes in this category</label>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<a href="Manage.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D5D9E1; color: #141B2D; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center">{{c.rulesLabel}}</a>
+<button type="button" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D5D9E1; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #141B2D">Merge into…</button>
+<button type="button" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #E2B79B; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #8A3510">Delete</button>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"$preview":{"width":390,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'School', colors: {} };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var data = [
+      ['Housing', '#141B2D', ['Rent / mortgage', 'Condo fees', 'Electricity', 'Water', 'Gas', 'Internet & phone', 'Insurance'], 18, 1200, ''],
+      ['Groceries', '#2D55D6', ['Supermarket', 'Bakery & market', 'Household supplies'], 22, 950, ''],
+      ['School', '#D9652B', ['Books & materials', 'Canteen', 'Parents’ association', 'School trips', 'After-school (ATL)'], 12, 300, 'Sep'],
+      ['Transport', '#7D9BF2', ['Fuel', 'Tolls', 'Public transport', 'Parking', 'Car maintenance'], 15, 400, ''],
+      ['Clothes', '#A8487A', ['Adults', 'Kids', 'Shoes'], 9, 200, ''],
+      ['Kids’ activities', '#F0A964', ['Sports', 'Music', 'Camps'], 8, 250, ''],
+      ['Dining & leisure', '#6A4FC9', ['Restaurants', 'Takeaway', 'Outings', 'Subscriptions'], 24, 300, ''],
+      ['Health', '#3E8C7E', ['Pharmacy', 'Doctor & dentist', 'Optician'], 10, 150, ''],
+      ['Vacations', '#C9CFDA', ['Travel', 'Accommodation', 'Activities'], 6, 450, 'Jul'],
+      ['Other', '#A3ABBA', ['Gifts', 'Bank fees', 'Misc'], 22, 0, '']
+    ];
+    var palette = [['#D9652B', 'Orange'], ['#2D55D6', 'Blue'], ['#3E8C7E', 'Teal'], ['#A8487A', 'Plum'], ['#6A4FC9', 'Violet'], ['#141B2D', 'Ink']];
+    var openCat = data.filter(function (d) { return d[0] === st.open; })[0];
+    var openColor = openCat ? (st.colors[openCat[0]] || openCat[1]) : null;
+    var swatches = palette.map(function (p) {
+      var on = p[0] === openColor;
+      return { hex: p[0], label: p[1], pressed: on ? 'true' : 'false', ring: on ? '#141B2D' : 'transparent', pick: function () { var c = Object.assign({}, self.state.colors); c[st.open] = p[0]; self.setState({ colors: c }); } };
+    });
+    var cats = data.map(function (d, i) {
+      var open = d[0] === st.open;
+      return {
+        name: d[0], color: st.colors[d[0]] || d[1], subs: d[2], open: open, expanded: open ? 'true' : 'false', rot: open ? 90 : 0,
+        meta: d[2].length + ' subcategories · ' + d[3] + ' rules' + (d[5] ? ' · peaks in ' + d[5] : ''),
+        budget: d[4] ? '€' + d[4].toLocaleString('en-US') + '/mo' : 'No budget',
+        budgetValue: d[4] ? '€' + d[4] : '',
+        isSep: d[5] === 'Sep', isJul: d[5] === 'Jul',
+        rulesLabel: d[3] + ' merchant rules',
+        border: i === 0 ? '0' : '1px solid #EEF0F4',
+        toggle: function () { self.setState({ open: open ? null : d[0] }); }
+      };
+    });
+    return { accent: this.props.accent ?? '#2D55D6', cats: cats, swatches: swatches };
+  }
+}
+</script>
+</body>
+</html>

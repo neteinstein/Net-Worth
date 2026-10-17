@@ -12,3 +12,9 @@
 # Keep line numbers for readable Crashlytics/Play Console stack traces; hide source file names.
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Credential Manager loads its Play Services provider reflectively.
+-if class androidx.credentials.CredentialManager
+-keep class androidx.credentials.playservices.** {
+  *;
+}

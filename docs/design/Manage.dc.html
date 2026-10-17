@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Manage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@500;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1240px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 56px 20px 32px; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="Main.dc.html" aria-label="Back to Overview" style="width: 44px; height: 44px; border-radius: 22px; background: #FFFFFF; border: 1px solid #D5D9E1; color: #141B2D; display: flex; align-items: center; justify-content: center; flex: none"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></a>
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em">Manage</h1>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 44px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Accounts</h2>
+<button type="button" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D5D9E1; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #141B2D; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Add</button>
+</div>
+<sc-for list="{{accounts}}" as="a" hint-placeholder-count="6">
+<div style="display: flex; align-items: center; gap: 12px; min-height: 52px; border-top: 1px solid #EEF0F4">
+<span style="width: 34px; height: 34px; border-radius: 17px; background: {{a.bg}}; color: {{a.fg}}; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex: none">{{a.initial}}</span>
+<span style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 600">{{a.name}}</span><span style="font-size: 12px; color: #5A6275">{{a.kind}}</span></span>
+<span style="font-size: 14px; font-weight: 700">{{a.balance}}</span>
+<button type="button" aria-label="Edit {{a.name}}" style="width: 36px; height: 44px; border: 0; background: transparent; color: #5A6275; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 56px; border-top: 1px solid #EEF0F4; padding-top: 4px">
+<input id="ask-account" type="checkbox" checked="{{askAccount}}" onChange="{{toggleAsk}}" style="width: 22px; height: 22px; margin: 0; accent-color: {{accent}}">
+<label for="ask-account" style="flex: 1; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 14px; font-weight: 600">Ask which account on every import</span><span style="font-size: 12px; color: #5A6275">Pre-selected from the IBAN in the file</span></label>
+</div>
+</section>
+
+<a href="Categories.dc.html" style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #141B2D; min-height: 44px">
+<span style="display: flex; gap: 3px; flex: none"><span style="width: 8px; height: 26px; border-radius: 3px; background: #141B2D"></span><span style="width: 8px; height: 26px; border-radius: 3px; background: #2D55D6"></span><span style="width: 8px; height: 26px; border-radius: 3px; background: #D9652B"></span><span style="width: 8px; height: 26px; border-radius: 3px; background: #7D9BF2"></span></span>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">Categories</span><span style="font-size: 12px; color: #5A6275">10 categories · 39 subcategories</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6275" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: baseline; min-height: 36px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Merchant rules</h2>
+<span style="font-size: 12px; color: #5A6275">146 learned</span>
+</div>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="3">
+<div style="display: flex; align-items: center; gap: 10px; min-height: 48px; border-top: 1px solid #EEF0F4; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{r.match}}</span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5A6275" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="M13 6l6 6-6 6"></path></svg>
+<span style="display: flex; align-items: center; gap: 6px; font-weight: 600"><span style="width: 8px; height: 8px; border-radius: 2px; background: {{r.color}}"></span>{{r.cat}}</span>
+</div>
+</sc-for>
+<a href="Categories.dc.html" style="min-height: 44px; display: flex; align-items: center; border-top: 1px solid #EEF0F4; font-size: 14px; font-weight: 600; text-decoration: none">See and edit all rules</a>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; align-items: center; min-height: 44px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">Saved filters</h2>
+<a href="Filters.dc.html" style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #D5D9E1; color: #141B2D; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>New</a>
+</div>
+<sc-for list="{{filters}}" as="f" hint-placeholder-count="3">
+<a href="Filters.dc.html" style="display: flex; align-items: center; gap: 10px; min-height: 52px; border-top: 1px solid #EEF0F4; text-decoration: none; color: #141B2D">
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 14px; font-weight: 600">{{f.name}}</span><span style="font-size: 12px; color: #5A6275">{{f.desc}}</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6275" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+</sc-for>
+</section>
+
+<a href="Alerts.dc.html" style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 14px 16px; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #141B2D; min-height: 44px">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg>
+<span style="flex: 1; display: flex; flex-direction: column; gap: 1px"><span style="font-size: 16px; font-weight: 700">Alert rules</span><span style="font-size: 12px; color: #5A6275">Spike ≥ 40% · Single payment over €250 · New subscriptions</span></span>
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5A6275" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg>
+</a>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"$preview":{"width":390,"height":1240}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { askAccount: true };
+  }
+  renderVals() {
+    var self = this;
+    return {
+      accent: this.props.accent ?? '#2D55D6',
+      askAccount: this.state.askAccount,
+      toggleAsk: function () { self.setState({ askAccount: !self.state.askAccount }); },
+      accounts: [
+        { initial: 'P', name: 'Pedro', kind: 'Current account · personal', balance: '€2,140', bg: '#141B2D', fg: '#FFFFFF' },
+        { initial: 'P2', name: '[Partner]', kind: 'Current account · personal', balance: '€1,860', bg: '#141B2D', fg: '#FFFFFF' },
+        { initial: 'J', name: 'Joint savings', kind: 'Savings · both adults', balance: '€12,600', bg: '#E7F2EF', fg: '#1D4A41' },
+        { initial: 'C1', name: '[Child 1]', kind: 'Savings · child', balance: '€2,300', bg: '#FCEBDD', fg: '#6E2C0C' },
+        { initial: 'C2', name: '[Child 2]', kind: 'Savings · child', balance: '€1,950', bg: '#FCEBDD', fg: '#6E2C0C' },
+        { initial: 'C3', name: '[Child 3]', kind: 'Savings · child', balance: '€1,550', bg: '#FCEBDD', fg: '#6E2C0C' }
+      ],
+      rules: [
+        { match: 'CONTINENTE* / PINGO DOCE*', cat: 'Groceries', color: '#2D55D6' },
+        { match: 'DECATHLON*', cat: 'Kids’ activities', color: '#F0A964' },
+        { match: 'ASSOC PAIS*', cat: 'School', color: '#D9652B' }
+      ],
+      filters: [
+        { name: 'Kids’ costs', desc: 'School + Kids’ activities + Clothes · all accounts' },
+        { name: 'Pedro · car', desc: 'Transport · Pedro’s account' },
+        { name: 'Summer 2026', desc: 'Tag “holiday” · Jul–Aug' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

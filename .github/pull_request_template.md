@@ -1,4 +1,4 @@
-<!-- PR title must follow Conventional Commits, e.g. `feat(dashboard): show liabilities breakdown`. -->
+<!-- PR title must follow Conventional Commits, e.g. `feat(overview): show liabilities breakdown`. -->
 
 ## Summary
 
@@ -6,7 +6,7 @@
 
 ## Changes
 
-<!-- Bullet list of the notable changes, grouped by module (e.g. feature/dashboard, composeApp, androidApp, iosApp, CI). -->
+<!-- Bullet list of the notable changes, grouped by module (e.g. feature/overview, composeApp, androidApp, iosApp, CI). -->
 
 -
 

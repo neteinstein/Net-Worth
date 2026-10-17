@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Spending by category</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1120px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 56px 20px 24px">
+
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Spending</h1>
+<div style="display: flex; align-items: center; gap: 4px">
+<button type="button" aria-label="Previous month" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9E1; background: #FFFFFF; color: #141B2D; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"></path></svg></button>
+<span style="font-size: 14px; font-weight: 600; min-width: 74px; text-align: center">Sep 2026</span>
+<button type="button" aria-label="Next month" style="width: 44px; height: 44px; border-radius: 22px; border: 1px solid #D5D9E1; background: #FFFFFF; color: #141B2D; display: flex; align-items: center; justify-content: center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+
+<div role="group" aria-label="Period length" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #E3E6EC; border-radius: 14px">
+<button type="button" aria-pressed="false" style="height: 40px; border: 0; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #5A6275">Week</button>
+<button type="button" aria-pressed="true" style="height: 40px; border: 0; border-radius: 10px; background: #FFFFFF; font-family: inherit; font-size: 14px; font-weight: 700; color: #141B2D">Month</button>
+<button type="button" aria-pressed="false" style="height: 40px; border: 0; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #5A6275">Year</button>
+<button type="button" aria-pressed="false" style="height: 40px; border: 0; border-radius: 10px; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #5A6275">Custom</button>
+</div>
+
+<div role="group" aria-label="Filter by account" style="display: flex; gap: 8px; overflow-x: auto; margin: 0 -20px; padding: 0 20px">
+<a href="Filters.dc.html" aria-label="More filters" style="height: 40px; padding: 0 12px; border-radius: 20px; flex: none; border: 1px solid #D5D9E1; background: #FFFFFF; color: #141B2D; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 6px; box-sizing: border-box"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5h18l-7 8v6l-4 2v-8z"></path></svg>Filters</a>
+<sc-for list="{{accounts}}" as="a" hint-placeholder-count="5">
+<button type="button" aria-pressed="{{a.pressed}}" onClick="{{a.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; flex: none; font-family: inherit; font-size: 13px; font-weight: 600; background: {{a.bg}}; color: {{a.fg}}; border: 1px solid {{a.bc}}">{{a.label}}</button>
+</sc-for>
+</div>
+
+<section style="background: #141B2D; color: #FFFFFF; border-radius: 18px; padding: 18px 20px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 13px; color: #B9C1D3">{{scopeLabel}}</span>
+<span style="font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1">{{total}}</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; text-align: right">
+<span style="font-size: 13px; color: #B9C1D3">{{perPersonLabel}}</span>
+<span style="font-size: 18px; font-weight: 600">{{perPerson}}</span>
+</div>
+</section>
+
+<sc-if value="{{hasRows}}" hint-placeholder-val="{{ true }}">
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 6px 16px; display: flex; flex-direction: column">
+<div style="display: flex; justify-content: space-between; padding: 10px 0 6px; font-size: 12px; color: #5A6275"><span>Category</span><span>vs 12-month avg</span></div>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 0; border-top: 1px solid #EEF0F4">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 14px">
+<span style="width: 10px; height: 10px; border-radius: 3px; background: {{r.color}}; flex: none"></span>
+<span style="flex: 1; font-weight: 600">{{r.name}}</span>
+<span style="font-weight: 700; width: 64px; text-align: right">{{r.amount}}</span>
+<span style="width: 72px; text-align: right; font-size: 13px; font-weight: 600; color: {{r.deltaColor}}">{{r.delta}}</span>
+</div>
+<div style="height: 6px; border-radius: 3px; background: #EEF0F4; margin-left: 20px; overflow: hidden"><div style="height: 100%; width: {{r.w}}%; background: {{r.color}}; border-radius: 3px"></div></div>
+</div>
+</sc-for>
+</section>
+</sc-if>
+<sc-if value="{{isSavings}}" hint-placeholder-val="{{ false }}">
+<section style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 22px 18px; display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 16px; font-weight: 700">No spending from savings accounts</h2>
+<p style="margin: 0; font-size: 14px; line-height: 1.45; color: #5A6275">{{savingsNote}}</p>
+<a href="Future.dc.html" style="font-size: 14px; font-weight: 600; text-decoration: none; min-height: 44px; display: flex; align-items: center">See where these savings are heading</a>
+</section>
+</sc-if>
+
+<p style="margin: 0; font-size: 12px; line-height: 1.45; color: #5A6275">Transfers between your own accounts (e.g. to joint or kids’ savings) are not counted as spending.</p>
+
+</main>
+
+<nav aria-label="Main" style="display: flex; justify-content: space-around; align-items: center; height: 86px; padding: 0 8px 18px; box-sizing: border-box; background: #FFFFFF; border-top: 1px solid #E3E6EC">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Overview</span></a>
+<a href="Spending.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg><span>Spending</span></a>
+<a href="Import.dc.html" aria-label="Import extract" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 26px; background: {{accent}}; color: #FFFFFF; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M5 20h14"></path></svg></a>
+<a href="Alerts.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg><span>Alerts</span></a>
+<a href="Future.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg><span>Future</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"spikeThreshold":{"editor":"range","default":40,"min":10,"max":100,"step":5,"unit":"%"},"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { account: 'all' };
+  }
+  renderVals() {
+    var self = this;
+    var accent = this.props.accent ?? '#2D55D6';
+    var threshold = this.props.spikeThreshold ?? 40;
+    var acc = this.state.account;
+    // [name, color, adult1, adult2, 12-month avg (all accounts)]
+    var cats = [
+      ['Housing', '#141B2D', 1180, 0, 1170],
+      ['Groceries', '#2D55D6', 380, 540, 905],
+      ['School', '#D9652B', 250, 360, 285],
+      ['Transport', '#7D9BF2', 230, 165, 380],
+      ['Clothes', '#A8487A', 60, 225, 195],
+      ['Kids’ activities', '#F0A964', 240, 0, 230],
+      ['Dining & leisure', '#6A4FC9', 130, 100, 290],
+      ['Health', '#3E8C7E', 45, 100, 150],
+      ['Other', '#A3ABBA', 60, 55, 170],
+      ['Vacations', '#C9CFDA', 0, 0, 465]
+    ];
+    var list = [
+      { id: 'all', label: 'All accounts' },
+      { id: 'a1', label: 'Pedro' },
+      { id: 'a2', label: '[Partner]' },
+      { id: 'joint', label: 'Joint savings' },
+      { id: 'kids', label: 'Kids’ savings' }
+    ];
+    var accounts = list.map(function (a) {
+      var on = a.id === acc;
+      return { label: a.label, pressed: on ? 'true' : 'false', bg: on ? '#141B2D' : '#FFFFFF', fg: on ? '#FFFFFF' : '#141B2D', bc: on ? '#141B2D' : '#D5D9E1', pick: function () { self.setState({ account: a.id }); } };
+    });
+    var fmt = function (v) { return '€' + Math.round(v).toLocaleString('en-US'); };
+    var isSavings = acc === 'joint' || acc === 'kids';
+    var rows = [];
+    var total = 0;
+    if (!isSavings) {
+      var vals = cats.map(function (c) {
+        var v = acc === 'all' ? c[2] + c[3] : acc === 'a1' ? c[2] : c[3];
+        var share = (c[2] + c[3]) ? v / (c[2] + c[3]) : (acc === 'all' ? 1 : 0.5);
+        return { c: c, v: v, avg: c[4] * share };
+      }).filter(function (x) { return acc === 'all' || x.v > 0; });
+      var max = Math.max.apply(null, vals.map(function (x) { return x.v; }));
+      vals.forEach(function (x) { total += x.v; });
+      rows = vals.map(function (x) {
+        var d = x.avg ? Math.round((x.v - x.avg) / x.avg * 100) : 0;
+        var spike = d >= threshold;
+        return {
+          name: x.c[0], color: x.c[1], amount: fmt(x.v), w: Math.max(1, Math.round(x.v / max * 100)),
+          delta: (d > 0 ? '▲ +' + d : d < 0 ? '▼ −' + Math.abs(d) : '· 0') + '%' + (spike ? ' spike' : ''),
+          deltaColor: spike ? '#B5481A' : d < 0 ? '#2F6F63' : '#5A6275'
+        };
+      });
+    }
+    var scope = { all: 'All accounts · September', a1: 'Pedro’s account · September', a2: '[Partner]’s account · September', joint: 'Joint savings · September', kids: 'Kids’ savings · September' }[acc];
+    return {
+      accent: accent, accounts: accounts, rows: rows, hasRows: !isSavings, isSavings: isSavings,
+      scopeLabel: scope, total: fmt(total),
+      perPersonLabel: acc === 'all' ? 'Per person' : 'Share of family',
+      perPerson: acc === 'all' ? fmt(total / 5) : isSavings ? '—' : Math.round(total / 4120 * 100) + '%',
+      savingsNote: acc === 'joint' ? 'This month the joint savings account received €450 from your current accounts and paid out nothing.' : 'The three kids’ accounts received €90 in total this month (€30 each) and paid out nothing.'
+    };
+  }
+}
+</script>
+</body>
+</html>

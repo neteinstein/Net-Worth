@@ -10,8 +10,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.text.font.FontFamily
 
 private val LocalFinanceColors = staticCompositionLocalOf { LightFinanceColors }
+private val LocalMonoFamily = staticCompositionLocalOf<FontFamily> { FontFamily.Monospace }
 
 /**
  * App theme. [dynamicColor] uses the wallpaper-derived palette where the platform supports it
@@ -30,10 +32,11 @@ fun NetWorthTheme(
 
     CompositionLocalProvider(
         LocalFinanceColors provides if (darkTheme) DarkFinanceColors else LightFinanceColors,
+        LocalMonoFamily provides monoFamily(),
     ) {
         MaterialTheme(
             colorScheme = target.animated(),
-            typography = NetWorthTypography,
+            typography = netWorthTypography(),
             shapes = NetWorthShapes,
             content = content,
         )
@@ -46,6 +49,12 @@ object NetWorthTheme {
         @Composable
         @ReadOnlyComposable
         get() = LocalFinanceColors.current
+
+    /** Monospaced family for raw bank text, e.g. `COMPRA 4417 DECATHLON MATOSINHOS`. */
+    val monoFamily: FontFamily
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalMonoFamily.current
 }
 
 /** Cross-fades the key colours so switching light/dark feels smooth rather than abrupt. */

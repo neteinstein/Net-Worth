@@ -1,0 +1,36 @@
+<resources>
+    <string name="onboarding_app_name">Net Worth</string>
+    <string name="onboarding_tagline">Your family’s money in one place: what came in, where it went, and where it’s heading.</string>
+    <string name="onboarding_sign_in">Sign in with Google</string>
+    <string name="onboarding_privacy">Your data lives in one file in your own Google Drive. Net Worth can only see the files it creates or that you pick.</string>
+    <string name="onboarding_signed_in_as">Signed in as %1$s</string>
+    <string name="onboarding_use_another_account">Use another account</string>
+    <string name="onboarding_choose_title">Set up your family database</string>
+    <string name="onboarding_choose_body">Everyone in the family uses the same file, so you all see the same numbers.</string>
+    <string name="onboarding_start_fresh">Start fresh</string>
+    <string name="onboarding_start_fresh_body">Create a new database file in your Google Drive. You can share it with your partner afterwards.</string>
+    <string name="onboarding_open_file">Open a Google Drive file</string>
+    <string name="onboarding_open_file_body">Pick a database someone shared with you, or one you created on another device.</string>
+    <string name="onboarding_form_title">Start fresh</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_household_name">Family name</string>
+    <string name="onboarding_household_hint">e.g. The Vicentes</string>
+    <string name="onboarding_adults">Adults</string>
+    <string name="onboarding_children">Children</string>
+    <string name="onboarding_adult_name">Adult %1$d</string>
+    <string name="onboarding_child_name">Child %1$d</string>
+    <string name="onboarding_add_adult">Add adult</string>
+    <string name="onboarding_add_child">Add child</string>
+    <string name="onboarding_remove">Remove %1$s</string>
+    <string name="onboarding_currency">Currency</string>
+    <string name="onboarding_create_accounts">Create an account for each person</string>
+    <string name="onboarding_create_accounts_body">A current account per adult, joint savings, and a savings account per child. You can rename or add accounts later.</string>
+    <string name="onboarding_joint_savings">Joint savings</string>
+    <string name="onboarding_create">Create database</string>
+    <string name="onboarding_error_not_configured">Google sign-in isn’t set up in this build yet. See docs/google-cloud-setup.md.</string>
+    <string name="onboarding_error_sign_in">Couldn’t sign in with Google. Check your connection and try again.</string>
+    <string name="onboarding_error_not_a_database">That file isn’t a Net Worth database.</string>
+    <string name="onboarding_error_newer_schema">That database was saved by a newer version of Net Worth. Update the app to open it.</string>
+    <string name="onboarding_error_not_accessible">Couldn’t open that file. Ask its owner to share it with you, then pick it again.</string>
+    <string name="onboarding_error_network">Couldn’t reach Google Drive. Check your connection and try again.</string>
+</resources>
