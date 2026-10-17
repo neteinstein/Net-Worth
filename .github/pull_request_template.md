@@ -18,8 +18,8 @@ What you ran and what it showed. REQUIRED: also list what you could NOT run and 
 -->
 
 - [ ] `./gradlew testDebugUnitTest`
-- [ ] `./gradlew ktlintCheck :androidApp:lintDebug`
-- [ ] `./gradlew :androidApp:assembleDebug`
+- [ ] `./gradlew ktlintCheck :androidApp:lintGithubDebug`
+- [ ] `./gradlew :androidApp:assembleGithubDebug`
 - [ ] Manually verified on: <!-- device / simulator / browser, or "not run" -->
 
 **Not run (and why):**

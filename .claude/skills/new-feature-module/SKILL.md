@@ -33,6 +33,6 @@ Follow AGENTS.md conventions. Replace `<name>` (lowercase, e.g. `budgets`) and `
    to the root `build.gradle.kts`.
 7. **Tests** in `feature/<name>/src/commonTest/kotlin/...` with `kotlin.test`: use cases, repository, and
    ViewModel (setMain/resetMain + collect state in `backgroundScope`).
-8. **Verify:** `./gradlew :feature:<name>:testDebugUnitTest ktlintCheck :androidApp:lintDebug :koverVerify`
-   then `:androidApp:assembleDebug`. Note in the PR test plan what you could not run (e.g. iOS).
+8. **Verify:** `./gradlew :feature:<name>:testDebugUnitTest ktlintCheck :androidApp:lintGithubDebug :koverVerify`
+   then `:androidApp:assembleGithubDebug`. Note in the PR test plan what you could not run (e.g. iOS).
 9. Commit as `feat(<name>): …`.
