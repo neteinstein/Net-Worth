@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -87,7 +88,10 @@ fun ColumnBarChart(
 ) {
     val max = (bars.maxOfOrNull { it.value } ?: 0f).coerceAtLeast(average ?: 0f).coerceAtLeast(1f)
     val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val labelBackground = MaterialTheme.colorScheme.surface
     Column(modifier.semantics { if (description != null) contentDescription = description }) {
+        // Layers: bars, then the dashed average line over them, then the value labels on an opaque chip
+        // so the line never strikes through a figure.
         Box(Modifier.fillMaxWidth().height(chartHeight + 18.dp)) {
             Row(
                 Modifier.fillMaxWidth().height(chartHeight + 18.dp),
@@ -95,21 +99,13 @@ fun ColumnBarChart(
                 verticalAlignment = Alignment.Bottom,
             ) {
                 bars.forEach { bar ->
-                    Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            bar.valueLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                        )
-                        Box(
-                            Modifier
-                                .fillMaxWidth()
-                                .height(chartHeight * (bar.value / max))
-                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
-                                .background(if (bar.highlighted) highlight else muted),
-                        )
-                    }
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .height(chartHeight * (bar.value / max))
+                            .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
+                            .background(if (bar.highlighted) highlight else muted),
+                    )
                 }
             }
             if (average != null && average > 0f) {
@@ -122,6 +118,23 @@ fun ColumnBarChart(
                         strokeWidth = 1.5.dp.toPx(),
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx())),
                     )
+                }
+            }
+            Row(Modifier.fillMaxWidth().height(chartHeight + 18.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                bars.forEach { bar ->
+                    Box(Modifier.weight(1f).fillMaxHeight(), contentAlignment = Alignment.BottomCenter) {
+                        Text(
+                            bar.valueLabel,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            modifier = Modifier
+                                .padding(bottom = chartHeight * (bar.value / max))
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(labelBackground)
+                                .padding(horizontal = 3.dp),
+                        )
+                    }
                 }
             }
         }

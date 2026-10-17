@@ -412,7 +412,7 @@ internal fun CoverageCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val owners = row.account.ownerIds.mapNotNull { id -> members.firstOrNull { it.id == id }?.name }.joinToString(" & ")
                     Text(
-                        listOf(row.account.name, owners).filter { it.isNotEmpty() }.joinToString(" · "),
+                        listOf(row.account.name, owners).filter { it.isNotEmpty() }.distinct().joinToString(" · "),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                     )
@@ -490,7 +490,9 @@ internal fun HistoryCard(
                 Column(Modifier.weight(1f)) {
                     Text(periodLabel(record.periodStart, record.periodEnd), style = MaterialTheme.typography.titleSmall)
                     Text(
-                        listOf(stringResource(kind), line.accountName, line.owners).filter { it.isNotEmpty() }.joinToString(" · "),
+                        listOf(stringResource(kind), line.accountName, line.owners).filter {
+                            it.isNotEmpty()
+                        }.distinct().joinToString(" · "),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

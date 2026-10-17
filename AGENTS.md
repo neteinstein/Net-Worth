@@ -33,7 +33,7 @@ list to re-file and tag movements) and Alerts, with the artboards' bottom bar. P
 | Android | AGP 9.4, compileSdk/targetSdk 37, minSdk 32, R8 full mode on release |
 | iOS | `iosArm64` + `iosSimulatorArm64` only (no `iosX64`), static `ComposeApp.framework`, hand-authored Xcode project, iOS 17+ |
 | Web | `wasmJs` browser executable (in `composeApp`) |
-| Tests | `kotlin.test` in `commonTest`, `kotlinx-coroutines-test`; run on the JVM |
+| Tests | `kotlin.test` in `commonTest`, `kotlinx-coroutines-test`; run on the JVM; screenshot tests with Roborazzi + Robolectric |
 | Quality | ktlint (`.editorconfig`), Android lint (`checkDependencies = true`), Kover coverage (≥ 80 % gate) |
 | Build | Gradle 9.8 Kotlin DSL, convention plugins in `build-logic/`, versions only in `gradle/libs.versions.toml` |
 
@@ -56,8 +56,8 @@ core/google/           Google sign-in per platform (GoogleAuthPlatform actuals),
                        helpers, generated GoogleConfig (client ids from local.properties / env).
 core/designsystem/     Theme from the design (ink/blue palette, Bricolage Grotesque + Instrument Sans + IBM Plex
                        Mono, finance colours), components (HeroCard, SectionCard, chips, charts…), line icons.
-core/testing/          Fakes for feature tests (FakeDatabaseRepository, FakeAuthRepository, designFamily()).
-                       commonTest dependency only.
+core/testing/          Fakes for feature tests (FakeDatabaseRepository, FakeAuthRepository, designFamily()) and
+                       the screenshot() helper (androidMain). commonTest dependency only.
 feature/onboarding/    Sign in → Start fresh / Open a Google Drive file.
 feature/overview/      Overview artboard.
 feature/importer/      Import extract + Review & learn artboards: pure-Kotlin statement parsers (PDF incl. RC4/AES,
@@ -148,6 +148,12 @@ and its generated Compose resources class is `<namespace>.generated.resources.Re
   with the `TestScope` itself as that scope, so `advanceUntilIdle()` drives it.
 - Coverage excludes composables, theme, navigation and generated code (see root `build.gradle.kts`);
   everything else counts toward the 80 % Kover gate.
+- **Screenshot tests.** Every content composable is rendered on the JVM (Roborazzi + Robolectric native
+  graphics) in light and dark: `<feature>/src/androidHostTest/.../ScreenshotTest.kt` calls
+  `core:testing`'s `screenshot(name) { …Content(preview state) }`. `testDebugUnitTest` compares them with
+  the committed PNGs in `src/androidHostTest/screenshots/` (1 % tolerance). After an intended UI change run
+  `./gradlew testDebugUnitTest -PrecordScreenshots`, **look at the new PNGs** and commit them with the
+  change. Goldens are recorded on Linux (as in CI). A new screen gets a screenshot test with its previews.
 
 ### Commits & PRs
 
@@ -193,7 +199,9 @@ Agent containers frequently **cannot build the whole project**. Known limits:
   (`platforms;android-37.0`, `build-tools;37.0.0`), then `sdk.dir=…` in `local.properties`.
 - **Maven Central may rate-limit** (`429` from `repo.maven.apache.org`). Workaround used successfully:
   a *local, uncommitted* Gradle init script in `~/.gradle/init.d/` that rewrites that URL to
-  `https://maven-central.storage-download.googleapis.com/maven2/`. Never commit such mirrors.
+  `https://maven-central.storage-download.googleapis.com/maven2/`. Never commit such mirrors. Robolectric
+  downloads its `android-all` jars by itself: point it at the same mirror from that script with
+  `tasks.withType<Test>().configureEach { systemProperty("robolectric.dependency.repo.url", mirror) }`.
 - **`github.com` / `codeload.github.com` may be blocked**, so `wasmJsBrowserDistribution`/web tests fail
   while downloading Yarn/Binaryen/npm packages. `compileKotlinWasmJs` still works offline-from-GitHub.
 - **No macOS / Xcode / simulator / emulator.** Nothing can be run on a device, and Swift/`project.pbxproj`

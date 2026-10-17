@@ -17,13 +17,13 @@ internal object FutureFormat {
     }
 
     /**
-     * A round top for a chart axis: the next multiple of 2 × 10ⁿ⁻¹ whole units, where n is the number
-     * of digits (87,000 → 100,000; 3,000 → 4,000), as minor units. At least one step.
+     * A round top for a chart axis: the next multiple of 2 × 10ⁿ⁻² whole units, where n is the number
+     * of digits (110,000 → 120,000; 87,000 → 88,000; 3,100 → 3,200), as minor units. At least one step.
      */
     fun chartMax(minor: Long, fractionDigits: Int): Long {
         val factor = pow10(fractionDigits)
         val units = (minor / factor).coerceAtLeast(1)
-        val step = 2 * pow10(units.toString().length - 1)
+        val step = 2 * pow10((units.toString().length - 2).coerceAtLeast(0))
         return ((units + step - 1) / step).coerceAtLeast(1) * step * factor
     }
 

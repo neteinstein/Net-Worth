@@ -7,11 +7,11 @@
     <string name="future_scope_kids">Kids’ savings</string>
     <string name="future_years">%1$d years</string>
     <string name="future_when">In %1$d years (%2$d) at this pace</string>
-    <string name="future_if_earn">%1$s if savings earn %2$s%% a year</string>
+    <string name="future_if_earn">%1$s if savings earn %2$s% a year</string>
     <string name="future_chart_description">Projected savings over 10 years, with and without returns</string>
     <string name="future_chart_now">Now</string>
     <string name="future_chart_year">%1$dy</string>
-    <string name="future_legend_return">With %1$s%% return</string>
+    <string name="future_legend_return">With %1$s% return</string>
     <string name="future_legend_flat">Savings only</string>
     <string name="future_kid_now">%1$s · now %2$s</string>
     <string name="future_year_ahead">The year ahead, month by month</string>
@@ -30,7 +30,7 @@
     <string name="future_fund_progress">Joint savings %1$s of %2$s</string>
     <string name="future_fund_reached">Reached %1$s</string>
     <string name="future_spend_title">At this pace the family spends, over 10 years</string>
-    <string name="future_spend_prices">About %1$s if prices rise %2$s%% a year.</string>
+    <string name="future_spend_prices">About %1$s if prices rise %2$s% a year.</string>
     <string name="future_disclaimer">Estimates from your own history, not financial advice. Income and spending are assumed to stay at the last 12 months’ average.</string>
     <!-- Not on the artboard (flagged in the PR) -->
     <string name="future_year_ahead_plain">Following your patterns</string>
@@ -48,7 +48,7 @@
     <string name="forecast_all_accounts">All accounts</string>
     <string name="forecast_kids_savings">Kids’ savings</string>
     <string name="forecast_predicted_spending">Predicted spending</string>
-    <string name="forecast_vs_last_up">+%1$d%% vs last 12 months</string>
+    <string name="forecast_vs_last_up">+%1$d% vs last 12 months</string>
     <string name="forecast_predicted_savings">Predicted savings</string>
     <string name="forecast_down_from">down from %1$s</string>
     <string name="forecast_share">Share of family spend</string>
@@ -71,7 +71,7 @@
     <string name="forecast_trend_shrinking">Prices are set to rise faster than income: yearly savings shrink by about %1$s each year.</string>
     <string name="forecast_trend_growing">Income grows faster than prices: yearly savings rise by about %1$s each year.</string>
     <!-- Not on the artboard (flagged in the PR) -->
-    <string name="forecast_vs_last_down">−%1$d%% vs last 12 months</string>
+    <string name="forecast_vs_last_down">−%1$d% vs last 12 months</string>
     <string name="forecast_up_from">up from %1$s</string>
     <string name="forecast_peak_other">Busier than usual</string>
     <string name="forecast_chart_description">Predicted spending for each of the next 12 months</string>

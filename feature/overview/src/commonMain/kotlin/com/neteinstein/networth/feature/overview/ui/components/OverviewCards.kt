@@ -35,7 +35,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.monthName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthName
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -224,7 +224,7 @@ internal fun WhereItWentCard(overview: Overview, currency: CurrencyCode, modifie
 }
 
 @Composable
-private fun CategoryShare.color(): Color = colorHex?.let(::colorFromHex) ?: MaterialTheme.colorScheme.outline
+private fun CategoryShare.color(): Color = colorHex?.let { categoryColor(it) } ?: MaterialTheme.colorScheme.outline
 
 @Composable
 internal fun TrendCard(overview: Overview, currency: CurrencyCode, modifier: Modifier = Modifier) {

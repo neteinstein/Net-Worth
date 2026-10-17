@@ -1,8 +1,11 @@
 package com.neteinstein.networth.core.designsystem.ui.theme
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 
 // Palette from the "Net Worth — family finances" design canvas (docs/design/): ink, a cool grey
 // ground, white cards, one blue accent, warm orange for warnings and teal for good news. The dark
@@ -152,3 +155,17 @@ fun colorFromHex(hex: String): Color {
     val value = digits.toLongOrNull(16)?.takeIf { digits.length == 6 } ?: return Color(0xFFA3ABBA)
     return Color(0xFF000000 or value)
 }
+
+/**
+ * A category's colour as the current theme shows it. On a dark surface a colour too dark to see
+ * (the design's ink, Housing's default) is lifted to the muted text colour; light themes keep it.
+ */
+@Composable
+fun categoryColor(hex: String): Color {
+    val color = colorFromHex(hex)
+    val darkSurface = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    return if (darkSurface && color.luminance() < INVISIBLE_ON_DARK) MaterialTheme.colorScheme.onSurfaceVariant else color
+}
+
+/** Relative luminance below which a colour disappears on the dark surfaces (ink is about 0.01). */
+private const val INVISIBLE_ON_DARK = 0.03f

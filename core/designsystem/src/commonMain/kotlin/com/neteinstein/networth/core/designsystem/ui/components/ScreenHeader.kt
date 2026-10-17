@@ -1,4 +1,4 @@
-package com.neteinstein.networth.feature.manage.ui.components
+package com.neteinstein.networth.core.designsystem.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -15,20 +15,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 
 /** Round back button, big title and optional trailing actions — the artboards' screen header. */
 @Composable
-internal fun ScreenHeader(
+fun ScreenHeader(
     title: String,
     backLabel: String,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 20.dp,
     actions: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
-        modifier.fillMaxWidth().padding(horizontal = 20.dp),
+        modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

@@ -22,7 +22,7 @@ All jobs run in parallel; a new push to the same PR cancels the in-flight run.
 | `lint` | ubuntu | `ktlintCheck` + `:androidApp:lintGithubDebug` (`checkDependencies = true` → every module) | lint/ktlint reports |
 | `compile` | ubuntu | `:androidApp:assembleGithubDebug` | debug APK |
 | `minified-release` | ubuntu | `:androidApp:assembleGithubRelease` (R8 full mode, resource shrinking) + [`scripts/verify-obfuscation.sh`](scripts/verify-obfuscation.sh) | R8 `mapping.txt` |
-| `unit-tests` | ubuntu | `testDebugUnitTest` (all `commonTest` suites on the JVM); results published as a check + PR comment | JUnit XML |
+| `unit-tests` | ubuntu | `testDebugUnitTest` (all `commonTest` suites on the JVM, plus the screenshot tests compared with the committed PNGs); results published as a check + PR comment | JUnit XML; screenshot diffs on failure |
 | `coverage` | ubuntu | Kover merged report + `:koverVerify` (≥ 80 % of non-UI code); summary in the job summary; uploaded to Codecov (never fails the build) | XML + HTML report |
 | `compile-web` | ubuntu | `:composeApp:wasmJsBrowserDistribution` | web bundle |
 | `compile-ios` | macos | `xcodebuild` of `iosApp` for the simulator, unsigned (its Run Script builds `ComposeApp.framework` through Gradle) | — |
