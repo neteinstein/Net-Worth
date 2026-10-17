@@ -1,0 +1,80 @@
+<resources>
+    <!-- Spending (docs/design/Spending.dc.html) -->
+    <string name="spending_title">Spending</string>
+    <string name="spending_week">Week</string>
+    <string name="spending_month">Month</string>
+    <string name="spending_year">Year</string>
+    <string name="spending_custom">Custom</string>
+    <string name="spending_filters">Filters</string>
+    <string name="spending_filters_count">Filters · %1$d</string>
+    <string name="spending_all_accounts">All accounts</string>
+    <string name="spending_kids_savings">Kids’ savings</string>
+    <string name="spending_scope_period">%1$s · %2$s</string>
+    <string name="spending_per_person">Per person</string>
+    <string name="spending_share_of_family">Share of family</string>
+    <string name="spending_vs_average">Category vs 12-month avg</string>
+    <string name="spending_delta_up">▲ +%1$d%%</string>
+    <string name="spending_delta_down">▼ −%1$d%%</string>
+    <string name="spending_delta_flat">· 0%</string>
+    <string name="spending_spike">%1$s spike</string>
+    <string name="spending_no_savings_spending">No spending from savings accounts</string>
+    <string name="spending_transfers_note">Transfers between your own accounts (e.g. to joint or kids’ savings) are not counted as spending.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="spending_savings_flow">In %1$s %2$s received %3$s and paid out %4$s.</string>
+    <string name="spending_uncategorised">Not categorised yet</string>
+    <string name="spending_no_history">No average yet</string>
+    <string name="spending_previous">Previous period</string>
+    <string name="spending_next">Next period</string>
+    <string name="spending_empty_title">Nothing spent in this period</string>
+    <string name="spending_empty_body">Import an extract that covers it, or pick another period.</string>
+    <string name="spending_pick_range">Choose dates</string>
+    <string name="spending_ok">OK</string>
+    <string name="spending_cancel">Cancel</string>
+
+    <!-- Filters (docs/design/Filters.dc.html) -->
+    <string name="filters_title">Filters</string>
+    <string name="filters_reset">Reset</string>
+    <string name="filters_accounts">Accounts</string>
+    <string name="filters_categories">Categories</string>
+    <string name="filters_tagged_for">Tagged for</string>
+    <string name="filters_everyone">Everyone</string>
+    <string name="filters_adults">Adults</string>
+    <string name="filters_type">Type</string>
+    <string name="filters_expenses">Expenses</string>
+    <string name="filters_income">Income</string>
+    <string name="filters_both">Both</string>
+    <string name="filters_include_transfers">Include transfers between our own accounts</string>
+    <string name="filters_min">Min amount</string>
+    <string name="filters_max">Max amount</string>
+    <string name="filters_text">Merchant or description contains</string>
+    <string name="filters_save">Save filter</string>
+    <plurals name="filters_show">
+        <item quantity="one">Show %1$d transaction</item>
+        <item quantity="other">Show %1$d transactions</item>
+    </plurals>
+    <!-- Not on the artboard -->
+    <string name="filters_saved">Saved filters</string>
+    <string name="filters_save_title">Save filter</string>
+    <string name="filters_name">Name</string>
+    <string name="filters_invalid_amount">Not an amount</string>
+    <string name="filters_back">Back</string>
+
+    <!-- Transactions list (not on the artboards; flagged in the PR) -->
+    <string name="transactions_title">Transactions</string>
+    <plurals name="transactions_summary">
+        <item quantity="one">%1$d transaction · %2$s</item>
+        <item quantity="other">%1$d transactions · %2$s</item>
+    </plurals>
+    <string name="transactions_empty_title">No transactions</string>
+    <string name="transactions_empty_body">Nothing matches. Try other filters or another period.</string>
+    <string name="transactions_edit">Edit transaction</string>
+    <string name="transactions_category">Category</string>
+    <string name="transactions_subcategory">Subcategory</string>
+    <string name="transactions_none">None</string>
+    <string name="transactions_tagged_for">Tagged for</string>
+    <string name="transactions_note">Note</string>
+    <string name="transactions_internal">Transfer between our own accounts</string>
+    <string name="transactions_internal_label">Internal transfer</string>
+    <string name="transactions_save">Save</string>
+    <string name="transactions_cancel">Cancel</string>
+</resources>

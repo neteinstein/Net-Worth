@@ -2,8 +2,8 @@ package com.neteinstein.networth.feature.importer.domain
 
 import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
-import com.neteinstein.networth.feature.importer.domain.parse.DescriptionInfo
-import com.neteinstein.networth.feature.importer.domain.parse.Descriptions
+import com.neteinstein.networth.core.domain.text.DescriptionInfo
+import com.neteinstein.networth.core.domain.text.Descriptions
 
 /**
  * Merchant rules: what "Always file DECATHLON this way" turns into.
@@ -35,11 +35,10 @@ object Rules {
     ): MerchantRule? = rules.filter { matches(it, description, info) }.maxByOrNull { it.pattern.length }
 
     /** The rule to learn from a choice on [info], or null when there's nothing to key it on. */
-    fun learn(info: DescriptionInfo): Pair<String, RuleMatch>? =
-        when {
-            info.phone != null -> info.phone to RuleMatch.PHONE
-            info.merchant != null -> Descriptions.keyOf(info.merchant.uppercase()) to RuleMatch.PREFIX
-            info.counterparty != null -> info.counterparty.uppercase() to RuleMatch.PHONE
-            else -> null
-        }
+    fun learn(info: DescriptionInfo): Pair<String, RuleMatch>? {
+        info.phone?.let { return it to RuleMatch.PHONE }
+        info.merchant?.let { return Descriptions.keyOf(it.uppercase()) to RuleMatch.PREFIX }
+        info.counterparty?.let { return it.uppercase() to RuleMatch.PHONE }
+        return null
+    }
 }

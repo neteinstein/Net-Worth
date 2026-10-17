@@ -16,8 +16,8 @@ file) or **Open a Google Drive file** (Google Picker). Setup of the Google Cloud
 
 Delivery is phased: phase 1 = Drive database + sync, onboarding, Overview, Manage, Categories, Settings.
 Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Best statements, account owners,
-months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Next: Spending/Filters/Alerts, then
-Future/Year ahead.
+months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Phase 3 = Spending, Filters (+ a transaction
+list to re-file and tag movements) and Alerts, with the artboards' bottom bar. Next: Future/Year ahead.
 
 ## Stack
 
@@ -46,7 +46,8 @@ composeApp/            KMP library (com.android.kotlin.multiplatform.library) â€
                        iosMain/MainViewController.kt, wasmJsMain/Main.kt (web entry point + index.html).
                        Produces the iOS framework `ComposeApp` and the web bundle.
 core/domain/           Pure Kotlin: FamilyDatabase models, Money/MoneyFormatter/MoneyParser, CalendarMonth,
-                       calculators (totals, averages, spikes, balances, projections), repository interfaces
+                       calculators (totals, averages, spikes, balances, projections), bank description
+                       normaliser (text/Descriptions: merchant keys, movement kinds), repository interfaces
                        (FamilyDatabaseRepository, AuthRepository, LocalStore, AppClock), shared use cases, seeds.
 core/database/         The Drive-backed FamilyDatabaseRepository: JSON schema (schema/SchemaV1.kt), codec,
                        record-level merger, local cache; expect/actual LocalStore (files / localStorage).
@@ -61,6 +62,10 @@ feature/overview/      Overview artboard.
 feature/importer/      Import extract + Review & learn artboards: pure-Kotlin statement parsers (PDF incl. RC4/AES,
                        XLSX, OFX, CSV) with bank profiles, the import planner (dedupe, transfers, rules, snapshots,
                        owners), month coverage, the review queue, and a file picker per platform.
+feature/spending/      Spending + Filters artboards and the transaction list (re-file, tag for a person, mark as
+                       transfer). The filter being edited lives in an in-memory ActiveFilterRepository.
+feature/alerts/        Alerts artboard: spikes (subcategories, accounts, last year, seasonal toggle), new recurring
+                       payments, 3-month rises, large payments, and what went well.
 feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, categories).
 feature/settings/      Appearance (device-local), database file, sharing, household members, sign out.
 iosApp/                Hand-authored Xcode project wrapping ComposeApp.framework (SwiftUI host).

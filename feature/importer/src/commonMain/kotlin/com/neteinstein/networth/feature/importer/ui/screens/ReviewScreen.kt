@@ -48,9 +48,9 @@ import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Transaction
+import com.neteinstein.networth.core.domain.text.Descriptions
+import com.neteinstein.networth.core.domain.text.MovementKind
 import com.neteinstein.networth.feature.importer.domain.model.ReviewItem
-import com.neteinstein.networth.feature.importer.domain.parse.Descriptions
-import com.neteinstein.networth.feature.importer.domain.parse.MovementKind
 import com.neteinstein.networth.feature.importer.generated.resources.Res
 import com.neteinstein.networth.feature.importer.generated.resources.importer_back
 import com.neteinstein.networth.feature.importer.generated.resources.review_accept_all
