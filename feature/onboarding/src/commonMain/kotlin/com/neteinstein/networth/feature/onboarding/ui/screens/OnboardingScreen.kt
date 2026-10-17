@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
@@ -51,6 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
+import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -269,16 +269,12 @@ private fun ChoiceCard(title: String, body: String, enabled: Boolean, onClick: (
 @Composable
 private fun StartFreshStep(form: HouseholdForm, busy: Boolean, actions: OnboardingActions) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(onClick = actions.onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.onboarding_back))
-            }
-            Text(
-                stringResource(Res.string.onboarding_form_title),
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.semantics { heading() },
-            )
-        }
+        ScreenHeader(
+            stringResource(Res.string.onboarding_form_title),
+            stringResource(Res.string.onboarding_back),
+            actions.onBack,
+            horizontalPadding = 0.dp,
+        )
         OutlinedTextField(
             value = form.householdName,
             onValueChange = actions.onHouseholdNameChange,

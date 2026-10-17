@@ -16,7 +16,7 @@
     <string name="overview_scope_children">Kids’ savings</string>
     <string name="overview_saved_in">Saved in %1$s</string>
     <string name="overview_overspent_in">Spent more than came in, %1$s</string>
-    <string name="overview_percent_of_income">%1$d%% of income</string>
+    <string name="overview_percent_of_income">%1$d% of income</string>
     <string name="overview_income">Income</string>
     <string name="overview_spent">Spent</string>
     <string name="overview_spike_title">Spending spike: %1$s</string>

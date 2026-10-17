@@ -13,8 +13,8 @@
     <string name="spending_per_person">Per person</string>
     <string name="spending_share_of_family">Share of family</string>
     <string name="spending_vs_average">Category vs 12-month avg</string>
-    <string name="spending_delta_up">▲ +%1$d%%</string>
-    <string name="spending_delta_down">▼ −%1$d%%</string>
+    <string name="spending_delta_up">▲ +%1$d%</string>
+    <string name="spending_delta_down">▼ −%1$d%</string>
     <string name="spending_delta_flat">· 0%</string>
     <string name="spending_spike">%1$s spike</string>
     <string name="spending_no_savings_spending">No spending from savings accounts</string>

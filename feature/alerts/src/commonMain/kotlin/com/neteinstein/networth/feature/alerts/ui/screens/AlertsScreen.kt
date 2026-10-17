@@ -44,7 +44,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.monthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -222,7 +222,7 @@ private fun SpikeCard(
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(0.45f),
                         )
-                        ProportionBar(amount.toFloat() / max, colorFromHex(spike.colorHex), Modifier.weight(0.4f))
+                        ProportionBar(amount.toFloat() / max, categoryColor(spike.colorHex), Modifier.weight(0.4f))
                         Spacer(Modifier.width(8.dp))
                         Text(MoneyFormatter.whole(amount, currency), style = MaterialTheme.typography.labelMedium)
                     }

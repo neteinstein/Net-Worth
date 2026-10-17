@@ -34,8 +34,9 @@ class KmpLibraryConventionPlugin : Plugin<Project> {
                 compileSdk = libs.version("android-compileSdk").toInt()
                 minSdk = libs.version("android-minSdk").toInt()
                 compilerOptions { jvmTarget.set(JvmTarget.JVM_17) }
-                // Runs commonTest on the JVM (task: testAndroidHostTest) — no emulator needed.
-                withHostTest { }
+                // Runs commonTest on the JVM (task: testAndroidHostTest) — no emulator needed. Android
+                // resources are included so Robolectric screenshot tests can load Compose resources.
+                withHostTest { isIncludeAndroidResources = true }
             }
 
             iosArm64()

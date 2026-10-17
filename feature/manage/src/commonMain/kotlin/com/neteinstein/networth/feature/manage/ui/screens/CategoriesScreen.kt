@@ -66,10 +66,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
+import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.monthName
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -111,7 +112,6 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_season
 import com.neteinstein.networth.feature.manage.generated.resources.manage_subcategories
 import com.neteinstein.networth.feature.manage.generated.resources.manage_subcategory_count
 import com.neteinstein.networth.feature.manage.generated.resources.manage_warn_spikes
-import com.neteinstein.networth.feature.manage.ui.components.ScreenHeader
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -277,7 +277,7 @@ private fun CategoryRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            ColorKey(colorFromHex(category.colorHex), size = 14.dp)
+            ColorKey(categoryColor(category.colorHex), size = 14.dp)
             Column(Modifier.weight(1f)) {
                 Text(category.name, style = MaterialTheme.typography.titleSmall)
                 Text(metaLine(item), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -318,7 +318,7 @@ private fun CategoryRow(
                                 .size(44.dp)
                                 .border(3.dp, if (selected) MaterialTheme.colorScheme.onSurface else Color.Transparent, CircleShape)
                                 .padding(5.dp)
-                                .background(colorFromHex(hex), CircleShape)
+                                .background(categoryColor(hex), CircleShape)
                                 .selectable(selected = selected, role = Role.RadioButton) { actions.onColorSelected(category.id, hex) }
                                 .semantics { contentDescription = label },
                         )
@@ -496,7 +496,7 @@ private fun MergeDialog(source: Category, targets: List<Category>, onPick: (Stri
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
-                        ColorKey(colorFromHex(target.colorHex), size = 12.dp)
+                        ColorKey(categoryColor(target.colorHex), size = 12.dp)
                         Text(target.name, style = MaterialTheme.typography.bodyLarge)
                     }
                 }

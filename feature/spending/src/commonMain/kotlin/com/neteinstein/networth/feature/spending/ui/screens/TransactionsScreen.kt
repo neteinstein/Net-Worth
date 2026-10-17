@@ -50,7 +50,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -193,7 +193,7 @@ private fun LineRow(
         Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ColorKey(line.category?.colorHex?.let(::colorFromHex) ?: NetWorthTheme.financeColors.chartMuted)
+        ColorKey(line.category?.colorHex?.let { categoryColor(it) } ?: NetWorthTheme.financeColors.chartMuted)
         Spacer(Modifier.width(10.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(

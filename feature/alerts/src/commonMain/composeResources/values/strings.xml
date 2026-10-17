@@ -1,10 +1,10 @@
 <resources>
     <!-- Alerts (docs/design/Alerts.dc.html) -->
     <string name="alerts_title">Alerts</string>
-    <string name="alerts_threshold">Alert when +%1$d%%</string>
+    <string name="alerts_threshold">Alert when +%1$d%</string>
     <string name="alerts_spikes_in">Spikes in %1$s</string>
     <string name="alerts_spike_title">%1$s %2$s</string>
-    <string name="alerts_spike_vs_avg">▲ +%1$d%% vs avg %2$s</string>
+    <string name="alerts_spike_vs_avg">▲ +%1$d% vs avg %2$s</string>
     <string name="alerts_mostly_personal">mostly %1$s’s account</string>
     <string name="alerts_both_current">both current accounts</string>
     <string name="alerts_repeats">Last %1$s was %2$s — this repeats every year.</string>
@@ -22,7 +22,7 @@
     <string name="alerts_rising_title">%1$s up 3 months running</string>
     <string name="alerts_rising_body">%1$s (%2$s–%3$s).</string>
     <string name="alerts_going_well">Going well</string>
-    <string name="alerts_under_average">%1$s ▼ −%2$d%% · %3$s under avg</string>
+    <string name="alerts_under_average">%1$s ▼ −%2$d% · %3$s under avg</string>
     <string name="alerts_streak_each">Kids’ savings +%1$s each, %2$d months in a row</string>
     <!-- Not on the artboard (flagged in the PR) -->
     <string name="alerts_mostly">mostly %1$s</string>
@@ -35,7 +35,7 @@
     <string name="alerts_large_payment">Large payment</string>
     <string name="alerts_large_body">%1$s %2$s on %3$s, %4$s.</string>
     <string name="alerts_other">Other</string>
-    <string name="alerts_no_spikes">No spikes in %1$s — every category is within %2$d%% of its average.</string>
+    <string name="alerts_no_spikes">No spikes in %1$s — every category is within %2$d% of its average.</string>
     <string name="alerts_empty_title">No alerts yet</string>
     <string name="alerts_empty_body">Import a few months of statements and spending spikes, new subscriptions and trends will show up here.</string>
 </resources>

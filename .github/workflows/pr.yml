@@ -116,6 +116,14 @@ jobs:
           name: unit-test-results
           path: "**/build/test-results/**/*.xml"
           retention-days: 7
+      # Screenshot tests compare every screen with the PNGs in src/androidHostTest/screenshots. On a
+      # mismatch Roborazzi writes *_compare.png (reference | diff | new) here: download and look.
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: screenshot-diffs
+          path: "**/build/outputs/roborazzi/**"
+          retention-days: 7
       # Posts a results check and a PR comment. Skipped on forks, whose token can't write checks.
       - name: Publish unit test results
         if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)

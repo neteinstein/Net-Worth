@@ -46,7 +46,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.SavedFilter
@@ -207,7 +207,7 @@ fun FiltersContent(
                                 category.name,
                                 selected = category.id in filter.categoryIds,
                                 onClick = { actions.onCategory(category.id) },
-                                leading = { ColorKey(colorFromHex(category.colorHex)) },
+                                leading = { ColorKey(categoryColor(category.colorHex)) },
                             )
                         }
                     }

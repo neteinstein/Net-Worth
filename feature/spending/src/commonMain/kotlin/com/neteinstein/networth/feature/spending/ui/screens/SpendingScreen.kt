@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,7 +53,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.monthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.calc.AccountScope
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.CurrencyCode
@@ -332,11 +333,12 @@ private fun CategoriesCard(
         CardTitle(stringResource(Res.string.spending_vs_average))
         val max = spending.maxRowMinor.coerceAtLeast(1)
         spending.rows.forEach { row ->
-            val color = row.colorHex?.let(::colorFromHex) ?: finance.chartMuted
+            val color = row.colorHex?.let { categoryColor(it) } ?: finance.chartMuted
             Column(
                 Modifier.fillMaxWidth().clickable { onRow(row) }.heightIn(min = 44.dp).padding(vertical = 4.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+                // As on the artboard: name, amount and change on one line; the bar spans the row below.
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     ColorKey(color)
                     Spacer(Modifier.width(8.dp))
@@ -346,9 +348,6 @@ private fun CategoriesCard(
                         modifier = Modifier.weight(1f),
                     )
                     Text(MoneyFormatter.whole(row.amountMinor, currency), style = MaterialTheme.typography.titleSmall)
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ProportionBar(row.amountMinor.toFloat() / max, color, Modifier.weight(1f))
                     Spacer(Modifier.width(10.dp))
                     val delta = row.deltaPercent
                     val text =
@@ -361,15 +360,20 @@ private fun CategoriesCard(
                     Text(
                         if (row.isSpike) stringResource(Res.string.spending_spike, text) else text,
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = if (row.isSpike) FontWeight.Bold else FontWeight.Normal,
+                        fontWeight = if (row.isSpike) FontWeight.Bold else FontWeight.SemiBold,
+                        textAlign = TextAlign.End,
                         color =
                             when {
                                 row.isSpike -> finance.negative
                                 (delta ?: 0) < 0 -> finance.positive
                                 else -> MaterialTheme.colorScheme.onSurfaceVariant
                             },
+                        maxLines = 1,
+                        // Fixed, as on the artboard, so the amounts line up in a column.
+                        modifier = Modifier.width(104.dp),
                     )
                 }
+                ProportionBar(row.amountMinor.toFloat() / max, color, Modifier.padding(start = 18.dp))
             }
         }
     }

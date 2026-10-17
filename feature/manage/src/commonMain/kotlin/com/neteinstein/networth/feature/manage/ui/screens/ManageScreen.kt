@@ -47,10 +47,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.CardTitle
 import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
+import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
-import com.neteinstein.networth.core.designsystem.ui.theme.colorFromHex
+import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
@@ -82,7 +83,6 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_settin
 import com.neteinstein.networth.feature.manage.generated.resources.manage_title
 import com.neteinstein.networth.feature.manage.ui.components.AccountEditorDialog
 import com.neteinstein.networth.feature.manage.ui.components.AlertRulesDialog
-import com.neteinstein.networth.feature.manage.ui.components.ScreenHeader
 import com.neteinstein.networth.feature.manage.ui.components.label
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -310,7 +310,8 @@ private fun accountKind(account: Account, isChild: Boolean, members: List<Member
             } -> stringResource(Res.string.manage_owner_both_adults)
         else -> owners.joinToString(", ") { it.name }
     }
-    val parts = listOfNotNull(stringResource(account.type.label), who.takeIf { it.isNotEmpty() }, account.bank)
+    // An account named after its owner ("Pedro") doesn't repeat the name.
+    val parts = listOfNotNull(stringResource(account.type.label), who.takeIf { it.isNotEmpty() && it != account.name }, account.bank)
     return parts.joinToString(" · ")
 }
 
@@ -326,7 +327,7 @@ private fun CategoriesLink(state: ManageUiState, onClick: () -> Unit, modifier: 
         Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Box(Modifier.size(40.dp)) {
                 state.categoryColors.forEachIndexed { i, hex ->
-                    ColorKey(colorFromHex(hex), Modifier.offset(x = (i % 2 * 20).dp, y = (i / 2 * 20).dp), size = 18.dp)
+                    ColorKey(categoryColor(hex), Modifier.offset(x = (i % 2 * 20).dp, y = (i / 2 * 20).dp), size = 18.dp)
                 }
             }
             Column(Modifier.weight(1f)) {
@@ -370,7 +371,7 @@ private fun RulesCard(state: ManageUiState, onDelete: (String) -> Unit, modifier
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                ColorKey(colorFromHex(rule.colorHex), size = 8.dp)
+                ColorKey(categoryColor(rule.colorHex), size = 8.dp)
                 Text(rule.categoryName, style = MaterialTheme.typography.labelMedium)
                 IconButton(onClick = { onDelete(rule.id) }) {
                     Icon(

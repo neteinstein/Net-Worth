@@ -22,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
+import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
@@ -44,7 +45,6 @@ import com.neteinstein.networth.feature.importer.ui.components.CoverageCard
 import com.neteinstein.networth.feature.importer.ui.components.ErrorCard
 import com.neteinstein.networth.feature.importer.ui.components.HistoryCard
 import com.neteinstein.networth.feature.importer.ui.components.PickFileCard
-import com.neteinstein.networth.feature.importer.ui.components.ScreenHeader
 import com.neteinstein.networth.feature.importer.ui.components.SectionCardContent
 import com.neteinstein.networth.feature.importer.ui.components.SummaryCard
 import com.neteinstein.networth.feature.importer.ui.components.rememberStatementPicker

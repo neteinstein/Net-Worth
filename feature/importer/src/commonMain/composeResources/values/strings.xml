@@ -8,7 +8,7 @@
     <string name="importer_which_account">Which account is this extract from?</string>
     <string name="importer_preselected">Pre-selected from the IBAN in the file — check it before importing.</string>
     <string name="importer_categorised">Categorised automatically</string>
-    <string name="importer_categorised_value">%1$d of %2$d · %3$d%%</string>
+    <string name="importer_categorised_value">%1$d of %2$d · %3$d%</string>
     <plurals name="importer_rows_read">
         <item quantity="one">%1$d row read</item>
         <item quantity="other">%1$d rows read</item>

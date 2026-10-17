@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
+import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
@@ -77,7 +78,6 @@ import com.neteinstein.networth.feature.importer.generated.resources.review_save
 import com.neteinstein.networth.feature.importer.generated.resources.review_showing
 import com.neteinstein.networth.feature.importer.generated.resources.review_suggested
 import com.neteinstein.networth.feature.importer.generated.resources.review_title
-import com.neteinstein.networth.feature.importer.ui.components.ScreenHeader
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
 import org.jetbrains.compose.resources.pluralStringResource

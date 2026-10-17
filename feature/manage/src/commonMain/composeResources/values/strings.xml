@@ -19,9 +19,9 @@
     <string name="manage_delete_rule">Delete rule %1$s</string>
     <string name="manage_saved_filters">Saved filters</string>
     <string name="manage_alert_rules">Alert rules</string>
-    <string name="manage_alert_rules_summary">Spike ≥ %1$d%% · Single payment over %2$s</string>
+    <string name="manage_alert_rules_summary">Spike ≥ %1$d% · Single payment over %2$s</string>
     <string name="manage_alert_rules_subscriptions">%1$s · New subscriptions</string>
-    <string name="manage_spike_threshold">Warn when a category is %1$d%% above its average</string>
+    <string name="manage_spike_threshold">Warn when a category is %1$d% above its average</string>
     <string name="manage_large_payment">Warn about single payments over</string>
     <string name="manage_new_subscriptions">Warn about new subscriptions</string>
     <string name="manage_save">Save</string>
