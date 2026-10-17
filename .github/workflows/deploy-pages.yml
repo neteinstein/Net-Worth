@@ -1,0 +1,53 @@
+name: Deploy Web (GitHub Pages)
+
+# Publishes the Wasm production bundle to GitHub Pages on every push to main. Requires repo
+# Settings → Pages → Build and deployment → Source = "GitHub Actions". For Google sign-in to work on
+# the deployed site, add its origin (https://<owner>.github.io) to the Web OAuth client's authorised
+# JavaScript origins (docs/google-cloud-setup.md).
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  build:
+    name: Build Wasm distribution
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      NETWORTH_GOOGLE_WEB_CLIENT_ID: ${{ secrets.NETWORTH_GOOGLE_WEB_CLIENT_ID }}
+      NETWORTH_GOOGLE_API_KEY: ${{ secrets.NETWORTH_GOOGLE_API_KEY }}
+      NETWORTH_GOOGLE_PROJECT_NUMBER: ${{ secrets.NETWORTH_GOOGLE_PROJECT_NUMBER }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Wasm production distribution
+        run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: composeApp/build/dist/wasmJs/productionExecutable
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

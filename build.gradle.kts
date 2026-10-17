@@ -14,6 +14,7 @@ plugins {
     alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.google.services) apply false
+    alias(libs.plugins.play.publisher) apply false
     alias(libs.plugins.ktlint) apply false
     alias(libs.plugins.kover)
 }
