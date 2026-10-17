@@ -1,0 +1,204 @@
+name: PR Checks
+
+# Every check a pull request must pass. Pushes to main are covered by release.yml (which re-runs lint
+# and tests on the exact merged commit before releasing) and deploy-pages.yml.
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.daemon=false
+
+jobs:
+  # ─── PR title ──────────────────────────────────────────────────────────────
+  # The title becomes the squash-merge commit message, so it must follow Conventional Commits.
+  pr-title:
+    name: PR title (Conventional Commits)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── Lint ──────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint (ktlint + Android lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: ktlint
+        run: ./gradlew ktlintCheck --console=plain --stacktrace
+      - name: Android lint (app + all dependency modules)
+        run: ./gradlew :androidApp:lintDebug --stacktrace
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: lint-reports
+          path: |
+            androidApp/build/reports/lint-results-*.*
+            **/build/reports/ktlint/**
+          retention-days: 7
+
+  # ─── Compile (debug) ───────────────────────────────────────────────────────
+  compile:
+    name: Compile · Android debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Assemble debug
+        run: ./gradlew :androidApp:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v5
+        with:
+          name: android-debug-apk
+          path: androidApp/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+  # ─── Minified release ──────────────────────────────────────────────────────
+  # assembleDebug never runs R8, so a broken keep rule in androidApp/proguard-rules.pro would only
+  # surface in release.yml after the merge. This builds the same minified, obfuscated,
+  # resource-shrunk APK the release does and asserts on R8's mapping that obfuscation happened and
+  # that the reflectively-loaded names survived (scripts/verify-obfuscation.sh). No signing secrets
+  # needed: without KEYSTORE_FILE the release build falls back to debug signing.
+  minified-release:
+    name: Minified release (R8)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Build minified release APK
+        run: ./gradlew :androidApp:assembleRelease --stacktrace
+      - name: Verify obfuscation
+        run: ./scripts/verify-obfuscation.sh
+      # The mapping is what a reviewer needs to see what R8 renamed or removed on this PR.
+      - name: Upload R8 mapping
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: r8-mapping
+          path: androidApp/build/outputs/mapping/release/
+          if-no-files-found: warn
+          retention-days: 30
+
+  # ─── Unit tests ────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit tests (commonTest on JVM)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Test
+        run: ./gradlew testDebugUnitTest --continue --stacktrace
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: unit-test-results
+          path: "**/build/test-results/**/*.xml"
+          retention-days: 7
+      # Posts a results check and a PR comment. Skipped on forks, whose token can't write checks.
+      - name: Publish unit test results
+        if: always() && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          files: "**/build/test-results/**/*.xml"
+          comment_title: "🧪 Unit Test Results"
+
+  # ─── Code coverage ─────────────────────────────────────────────────────────
+  coverage:
+    name: Code coverage (Kover)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Coverage report + 80 % gate
+        run: ./gradlew :koverXmlReport :koverHtmlReport :koverVerify :koverLog --stacktrace
+      - name: Coverage summary
+        if: always()
+        run: |
+          {
+            echo "### Coverage"
+            echo '```'
+            cat build/kover/coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: coverage
+          path: build/reports/kover
+          retention-days: 14
+      # Optional: needs no token for public repos; set CODECOV_TOKEN if the repo is private.
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v6
+        with:
+          files: build/reports/kover/report.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # ─── Web (Wasm) ────────────────────────────────────────────────────────────
+  # deploy-pages.yml builds the same bundle after the merge; this catches a broken web build first.
+  compile-web:
+    name: Compile · Web (Wasm)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Wasm production distribution
+        run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
+      - uses: actions/upload-artifact@v5
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable
+          retention-days: 7
+
+  # ─── iOS ───────────────────────────────────────────────────────────────────
+  # Builds the real app: xcodebuild runs the "Compile Kotlin Framework" Run Script, which builds
+  # ComposeApp.framework through Gradle, then compiles and links the SwiftUI host. Unsigned.
+  compile-ios:
+    name: Compile · iOS (simulator, unsigned)
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup
+      - name: Kotlin/Native caches
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: xcodebuild
+        run: |
+          xcodebuild build \
+            -project iosApp/iosApp.xcodeproj \
+            -scheme iosApp \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/ios-derived \
+            CODE_SIGNING_ALLOWED=NO

@@ -163,7 +163,8 @@ cp androidApp/google-services.json.ci androidApp/google-services.json   # once; 
 ./gradlew :androidApp:lintDebug             # Android lint incl. all library modules
 ./gradlew :koverLog :koverVerify            # merged coverage + 80 % gate (report: :koverHtmlReport)
 ./gradlew :androidApp:assembleDebug         # debug APK
-./gradlew :androidApp:assembleRelease       # R8-minified release APK (unsigned unless signing env vars are set)
+./gradlew :androidApp:assembleRelease       # R8-minified release APK (debug-signed unless KEYSTORE_* env vars are set)
+./scripts/verify-obfuscation.sh             # asserts R8 obfuscated the app and kept reflective names
 ./gradlew :composeApp:wasmJsBrowserDevelopmentRun   # web dev server
 ./gradlew :composeApp:wasmJsBrowserDistribution     # web bundle → composeApp/build/dist/wasmJs/productionExecutable
 open iosApp/iosApp.xcodeproj                # iOS (macOS + Xcode only); the Run Script builds the framework
@@ -237,7 +238,9 @@ plan exactly which of these you ran.
    CI does the same, or writes the `GOOGLE_SERVICES_JSON` secret. Never commit real Firebase configs or
    `GoogleService-Info.plist`.
 10. **R8:** release is minified + resource-shrunk. If you add reflection/serialization-by-name, add keep
-    rules to `androidApp/proguard-rules.pro` and verify with `:androidApp:assembleRelease`.
+    rules to `androidApp/proguard-rules.pro`, add the kept class to `scripts/verify-obfuscation.sh`, and
+    verify with `:androidApp:assembleRelease && ./scripts/verify-obfuscation.sh` (CI runs both).
+    Releases (signing, versioning, Play upload) are described in [CI_CD.md](CI_CD.md).
 11. `w: KLIB loader: The same 'unique_name=…' found in more than one library` during metadata compilation
     is upstream noise (JetBrains vs. Google KMP artifacts) — not something to fix here.
 12. ktlint ignores generated sources (`**/generated/**`, `build/`); composables are exempt from

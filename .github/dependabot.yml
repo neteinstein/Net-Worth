@@ -1,0 +1,17 @@
+# Weekly dependency PRs. Kotlin/Compose Multiplatform/AGP bumps must stay mutually compatible:
+# check them against .claude/skills/bump-dependencies before merging.
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "build(deps)"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "ci(deps)"

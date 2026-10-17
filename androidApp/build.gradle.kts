@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.networth.android.application)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.play.publisher)
 }
 
 android {
@@ -8,20 +9,23 @@ android {
 
     defaultConfig {
         applicationId = "com.neteinstein.networth"
-        versionCode = 1
-        versionName = "0.1.0"
+        // .github/workflows/release.yml sets these from the Actions run number, so every release gets a
+        // unique, increasing versionCode without editing this file. Local builds use the defaults.
+        versionCode = providers.environmentVariable("APP_VERSION_CODE").orNull?.toIntOrNull() ?: 1
+        versionName = providers.environmentVariable("APP_VERSION_NAME").orNull ?: "0.1.0"
     }
 
-    // Release signing comes from CI secrets (see CI_CD.md). Without them the release build is
-    // produced unsigned, which is enough to validate R8/minification on every PR.
-    val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+    // Release signing comes from CI secrets (KEYSTORE_BASE64 decoded to KEYSTORE_FILE, plus
+    // KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD — see CI_CD.md). Without them the release build
+    // falls back to debug signing so `assembleRelease` still works (and installs) on any machine.
+    val keystoreFile = providers.environmentVariable("KEYSTORE_FILE").orNull
     signingConfigs {
-        if (keystorePath != null) {
+        if (keystoreFile != null) {
             create("release") {
-                storeFile = file(keystorePath)
-                storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").get()
-                keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").get()
-                keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").get()
+                storeFile = file(keystoreFile)
+                storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("KEY_PASSWORD").get()
             }
         }
     }
@@ -34,7 +38,7 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.findByName("release")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 
@@ -47,6 +51,15 @@ android {
         abortOnError = true
         warningsAsErrors = false
     }
+}
+
+// Gradle Play Publisher: `publishReleaseBundle` uploads the signed release App Bundle to the Play
+// Console (run by release.yml only when the ANDROID_PUBLISHER_CREDENTIALS secret — the JSON key of a
+// Play Console service account — is set; GPP reads that env var itself). Goes to the "internal" track
+// unless PLAY_TRACK overrides it, so nothing reaches production without a manual promotion.
+play {
+    track.set(providers.environmentVariable("PLAY_TRACK").orNull?.takeIf { it.isNotBlank() } ?: "internal")
+    defaultToAppBundles.set(true)
 }
 
 dependencies {
