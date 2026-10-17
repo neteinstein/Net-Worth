@@ -186,7 +186,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - name: Kotlin/Native caches
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
