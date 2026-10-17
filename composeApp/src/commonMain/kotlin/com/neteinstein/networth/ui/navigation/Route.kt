@@ -42,4 +42,10 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object Alerts : Route
+
+    @Serializable
+    data object Future : Route
+
+    @Serializable
+    data object YearAhead : Route
 }

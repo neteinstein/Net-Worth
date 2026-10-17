@@ -1,0 +1,78 @@
+<resources>
+    <!-- Future (docs/design/Future.dc.html) -->
+    <string name="future_title">Future</string>
+    <string name="future_subtitle">If the coming years look like the last 12 months: you save %1$s a month on average.</string>
+    <string name="future_scope_all">All savings</string>
+    <string name="future_scope_joint">Joint savings</string>
+    <string name="future_scope_kids">Kids’ savings</string>
+    <string name="future_years">%1$d years</string>
+    <string name="future_when">In %1$d years (%2$d) at this pace</string>
+    <string name="future_if_earn">%1$s if savings earn %2$s%% a year</string>
+    <string name="future_chart_description">Projected savings over 10 years, with and without returns</string>
+    <string name="future_chart_now">Now</string>
+    <string name="future_chart_year">%1$dy</string>
+    <string name="future_legend_return">With %1$s%% return</string>
+    <string name="future_legend_flat">Savings only</string>
+    <string name="future_kid_now">%1$s · now %2$s</string>
+    <string name="future_year_ahead">The year ahead, month by month</string>
+    <string name="future_year_ahead_peaks">Following your patterns · peaks in %1$s</string>
+    <string name="future_what_if">What if…</string>
+    <string name="future_cut_dining">Dining &amp; leisure −20%</string>
+    <string name="future_cut_dining_body">%1$s more saved each month</string>
+    <string name="future_extra">Move %1$s more to joint savings</string>
+    <string name="future_extra_body">Automatic transfer on payday</string>
+    <string name="future_set_aside">Set aside %1$s/month for %2$s</string>
+    <string name="future_fund_title">Emergency fund</string>
+    <plurals name="future_fund_months">
+        <item quantity="one">%1$d month of spending</item>
+        <item quantity="other">%1$d months of spending</item>
+    </plurals>
+    <string name="future_fund_progress">Joint savings %1$s of %2$s</string>
+    <string name="future_fund_reached">Reached %1$s</string>
+    <string name="future_spend_title">At this pace the family spends, over 10 years</string>
+    <string name="future_spend_prices">About %1$s if prices rise %2$s%% a year.</string>
+    <string name="future_disclaimer">Estimates from your own history, not financial advice. Income and spending are assumed to stay at the last 12 months’ average.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="future_year_ahead_plain">Following your patterns</string>
+    <string name="future_set_aside_body">Smooths the %1$s spike</string>
+    <string name="future_fund_covered">Already covered</string>
+    <string name="future_fund_never">Not reached at this pace</string>
+    <string name="future_empty_title">Nothing to project yet</string>
+    <string name="future_empty_body">Import a few months of extracts and Future shows where your savings are heading.</string>
+    <string name="future_and">%1$s and %2$s</string>
+
+    <!-- Year ahead (docs/design/Forecast.dc.html) -->
+    <string name="forecast_title">Year ahead</string>
+    <string name="forecast_back">Back to Future</string>
+    <string name="forecast_subtitle">%1$s – %2$s · following your patterns</string>
+    <string name="forecast_all_accounts">All accounts</string>
+    <string name="forecast_kids_savings">Kids’ savings</string>
+    <string name="forecast_predicted_spending">Predicted spending</string>
+    <string name="forecast_vs_last_up">+%1$d%% vs last 12 months</string>
+    <string name="forecast_predicted_savings">Predicted savings</string>
+    <string name="forecast_down_from">down from %1$s</string>
+    <string name="forecast_share">Share of family spend</string>
+    <string name="forecast_share_note">paid from this account</string>
+    <string name="forecast_month_by_month">Month by month</string>
+    <string name="forecast_income">Income %1$s</string>
+    <string name="forecast_over_income">Costs more than income</string>
+    <string name="forecast_typical">Typical month</string>
+    <string name="forecast_peaks">Expected peaks</string>
+    <plurals name="forecast_set_aside">
+        <item quantity="one">Put aside %1$s a month from now and %2$s is covered without touching savings.</item>
+        <item quantity="other">Put aside %1$s a month from now and %2$s are covered without touching savings.</item>
+    </plurals>
+    <string name="forecast_year_by_year">Year by year</string>
+    <string name="forecast_year">Year</string>
+    <string name="forecast_spend">Spend</string>
+    <string name="forecast_save">Save</string>
+    <string name="forecast_savings">Savings</string>
+    <string name="forecast_trend_flat">Income and prices grow at about the same rate, so yearly savings stay roughly flat.</string>
+    <string name="forecast_trend_shrinking">Prices are set to rise faster than income: yearly savings shrink by about %1$s each year.</string>
+    <string name="forecast_trend_growing">Income grows faster than prices: yearly savings rise by about %1$s each year.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="forecast_vs_last_down">−%1$d%% vs last 12 months</string>
+    <string name="forecast_up_from">up from %1$s</string>
+    <string name="forecast_peak_other">Busier than usual</string>
+    <string name="forecast_chart_description">Predicted spending for each of the next 12 months</string>
+</resources>

@@ -17,7 +17,8 @@ file) or **Open a Google Drive file** (Google Picker). Setup of the Google Cloud
 Delivery is phased: phase 1 = Drive database + sync, onboarding, Overview, Manage, Categories, Settings.
 Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Best statements, account owners,
 months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Phase 3 = Spending, Filters (+ a transaction
-list to re-file and tag movements) and Alerts, with the artboards' bottom bar. Next: Future/Year ahead.
+list to re-file and tag movements) and Alerts, with the artboards' bottom bar. Phase 4 = Future + Year ahead
+(projections, what-ifs, emergency fund, 12-month forecast, 5-year table). All 10 artboards are now implemented.
 
 ## Stack
 
@@ -66,6 +67,9 @@ feature/spending/      Spending + Filters artboards and the transaction list (re
                        transfer). The filter being edited lives in an in-memory ActiveFilterRepository.
 feature/alerts/        Alerts artboard: spikes (subcategories, accounts, last year, seasonal toggle), new recurring
                        payments, 3-month rises, large payments, and what went well.
+feature/future/        Future + Year ahead artboards: savings projections (all / joint / kids, 2–10 years, with and
+                       without return), what-ifs, emergency fund, 10-year spend; 12-month forecast from last year's
+                       months × price rise, expected peaks, and a 5-year table from the household's assumptions.
 feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, categories).
 feature/settings/      Appearance (device-local), database file, sharing, household members, sign out.
 iosApp/                Hand-authored Xcode project wrapping ComposeApp.framework (SwiftUI host).

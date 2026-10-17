@@ -14,6 +14,8 @@ import com.neteinstein.networth.core.google.DriveClient
 import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.di.appModule
 import com.neteinstein.networth.feature.alerts.domain.usecase.BuildAlertsUseCase
+import com.neteinstein.networth.feature.future.domain.usecase.BuildForecastUseCase
+import com.neteinstein.networth.feature.future.domain.usecase.BuildFutureUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
@@ -90,6 +92,8 @@ class AppModuleTest {
         assertNotNull(koin.get<SaveFilterUseCase>())
         assertNotNull(koin.get<UpdateTransactionUseCase>())
         assertNotNull(koin.get<BuildAlertsUseCase>())
+        assertNotNull(koin.get<BuildFutureUseCase>())
+        assertNotNull(koin.get<BuildForecastUseCase>())
         assertSame(koin.get<ActiveFilterRepository>(), koin.get<ActiveFilterRepository>())
         assertSame(koin.get<AuthRepository>(), koin.get<AuthRepository>())
         assertSame(koin.get<FamilyDatabaseRepository>(), koin.get<FamilyDatabaseRepository>())

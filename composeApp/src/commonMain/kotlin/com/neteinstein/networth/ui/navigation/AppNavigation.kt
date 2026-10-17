@@ -29,11 +29,14 @@ import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
 import com.neteinstein.networth.composeapp.generated.resources.Res
 import com.neteinstein.networth.composeapp.generated.resources.nav_alerts
+import com.neteinstein.networth.composeapp.generated.resources.nav_future
 import com.neteinstein.networth.composeapp.generated.resources.nav_import
 import com.neteinstein.networth.composeapp.generated.resources.nav_overview
 import com.neteinstein.networth.composeapp.generated.resources.nav_spending
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.feature.alerts.ui.screens.AlertsScreen
+import com.neteinstein.networth.feature.future.ui.screens.FutureScreen
+import com.neteinstein.networth.feature.future.ui.screens.YearAheadScreen
 import com.neteinstein.networth.feature.importer.ui.screens.ImportScreen
 import com.neteinstein.networth.feature.importer.ui.screens.ReviewScreen
 import com.neteinstein.networth.feature.manage.ui.screens.CategoriesScreen
@@ -66,6 +69,8 @@ internal val navSavedStateConfiguration = SavedStateConfiguration {
             subclass(Route.Filters::class, Route.Filters.serializer())
             subclass(Route.Transactions::class, Route.Transactions.serializer())
             subclass(Route.Alerts::class, Route.Alerts.serializer())
+            subclass(Route.Future::class, Route.Future.serializer())
+            subclass(Route.YearAhead::class, Route.YearAhead.serializer())
         }
     }
 }
@@ -106,6 +111,7 @@ fun AppNavigation() {
                         onOpenManage = { backStack.add(Route.Manage) },
                         onOpenImport = { backStack.add(Route.Import) },
                         onOpenReview = { backStack.add(Route.Review) },
+                        onOpenFuture = { selectTab(Route.Future) },
                     )
                 }
                 entry<Route.Manage> {
@@ -149,12 +155,18 @@ fun AppNavigation() {
                         },
                     )
                 }
+                entry<Route.Future> {
+                    FutureScreen(onOpenYearAhead = { backStack.add(Route.YearAhead) })
+                }
+                entry<Route.YearAhead> {
+                    YearAheadScreen(onBack = back)
+                }
             },
         )
     }
 }
 
-private val TABS = setOf(Route.Overview, Route.Spending, Route.Alerts)
+private val TABS = setOf(Route.Overview, Route.Spending, Route.Alerts, Route.Future)
 
 private fun Route.Transactions.toRequest() =
     TransactionsRequest(
@@ -165,7 +177,7 @@ private fun Route.Transactions.toRequest() =
         fromFilters = fromFilters,
     )
 
-/** The artboards' bottom bar: Overview, Spending, the Import action in the middle, Alerts. */
+/** The artboards' bottom bar: Overview, Spending, the Import action in the middle, Alerts, Future. */
 @Composable
 private fun BottomBar(
     current: Route,
@@ -207,6 +219,12 @@ private fun BottomBar(
             onClick = { onSelect(Route.Alerts) },
             icon = { Icon(NetWorthIcons.Bell, contentDescription = null) },
             label = { Text(stringResource(Res.string.nav_alerts)) },
+        )
+        NavigationBarItem(
+            selected = current == Route.Future,
+            onClick = { onSelect(Route.Future) },
+            icon = { Icon(NetWorthIcons.TrendUp, contentDescription = null) },
+            label = { Text(stringResource(Res.string.nav_future)) },
         )
     }
 }

@@ -251,7 +251,7 @@ internal fun TrendCard(overview: Overview, currency: CurrencyCode, modifier: Mod
 }
 
 @Composable
-internal fun NetWorthCard(overview: Overview, currency: CurrencyCode, modifier: Modifier = Modifier) {
+internal fun NetWorthCard(overview: Overview, currency: CurrencyCode, onOpenFuture: () -> Unit, modifier: Modifier = Modifier) {
     SectionCard(modifier, spacing = 10) {
         CardTitle(stringResource(Res.string.overview_net_worth))
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -273,15 +273,24 @@ internal fun NetWorthCard(overview: Overview, currency: CurrencyCode, modifier: 
         overview.accounts.forEach { AccountRow(it, currency) }
         overview.projectedSavingsMinor?.let {
             Surface(
+                onClick = onOpenFuture,
                 shape = MaterialTheme.shapes.small,
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
             ) {
-                Text(
-                    stringResource(Res.string.overview_projection, MoneyFormatter.whole(it, currency), Overview.PROJECTION_YEARS),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
-                )
+                Row(Modifier.padding(horizontal = 14.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        stringResource(Res.string.overview_projection, MoneyFormatter.whole(it, currency), Overview.PROJECTION_YEARS),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Icon(
+                        NetWorthIcons.ChevronRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
         }
     }

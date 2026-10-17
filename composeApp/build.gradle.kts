@@ -34,6 +34,7 @@ kotlin {
             implementation(projects.core.domain)
             implementation(projects.core.google)
             implementation(projects.feature.alerts)
+            implementation(projects.feature.future)
             implementation(projects.feature.importer)
             implementation(projects.feature.manage)
             implementation(projects.feature.onboarding)

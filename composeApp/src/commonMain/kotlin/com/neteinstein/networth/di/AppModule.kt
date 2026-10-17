@@ -28,6 +28,10 @@ import com.neteinstein.networth.core.google.googleAuthPlatform
 import com.neteinstein.networth.core.google.googleHttpClient
 import com.neteinstein.networth.feature.alerts.domain.usecase.BuildAlertsUseCase
 import com.neteinstein.networth.feature.alerts.ui.screens.AlertsViewModel
+import com.neteinstein.networth.feature.future.domain.usecase.BuildForecastUseCase
+import com.neteinstein.networth.feature.future.domain.usecase.BuildFutureUseCase
+import com.neteinstein.networth.feature.future.ui.screens.FutureViewModel
+import com.neteinstein.networth.feature.future.ui.screens.YearAheadViewModel
 import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
@@ -154,6 +158,10 @@ val appModule = module {
     // Alerts
     factoryOf(::BuildAlertsUseCase)
 
+    // Future
+    factoryOf(::BuildFutureUseCase)
+    factoryOf(::BuildForecastUseCase)
+
     // Manage
     factoryOf(::SaveAccountUseCase)
     factoryOf(::DeleteAccountUseCase)
@@ -186,6 +194,8 @@ val appModule = module {
     viewModelOf(::FiltersViewModel)
     viewModelOf(::TransactionsViewModel)
     viewModelOf(::AlertsViewModel)
+    viewModelOf(::FutureViewModel)
+    viewModelOf(::YearAheadViewModel)
     viewModelOf(::ManageViewModel)
     viewModelOf(::CategoriesViewModel)
     viewModel {

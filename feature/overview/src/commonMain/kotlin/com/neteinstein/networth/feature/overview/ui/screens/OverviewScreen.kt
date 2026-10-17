@@ -71,6 +71,7 @@ fun OverviewScreen(
     onOpenManage: () -> Unit,
     onOpenImport: () -> Unit,
     onOpenReview: () -> Unit,
+    onOpenFuture: () -> Unit,
     viewModel: OverviewViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -83,6 +84,7 @@ fun OverviewScreen(
         onOpenManage = onOpenManage,
         onOpenImport = onOpenImport,
         onOpenReview = onOpenReview,
+        onOpenFuture = onOpenFuture,
     )
 }
 
@@ -97,6 +99,7 @@ fun OverviewContent(
     modifier: Modifier = Modifier,
     onOpenImport: () -> Unit = {},
     onOpenReview: () -> Unit = {},
+    onOpenFuture: () -> Unit = {},
 ) {
     Scaffold(modifier = modifier) { padding ->
         val overview = state.overview
@@ -137,7 +140,7 @@ fun OverviewContent(
                 } else {
                     item { EmptyHistoryCard(onOpenImport, cards) }
                 }
-                item { NetWorthCard(overview, currency, cards) }
+                item { NetWorthCard(overview, currency, onOpenFuture, cards) }
             }
         }
     }
