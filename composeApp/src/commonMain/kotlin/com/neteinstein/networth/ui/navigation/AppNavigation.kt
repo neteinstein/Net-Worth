@@ -14,7 +14,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
-import com.neteinstein.networth.feature.dashboard.ui.screens.DashboardScreen
+import com.neteinstein.networth.feature.manage.ui.screens.CategoriesScreen
+import com.neteinstein.networth.feature.manage.ui.screens.ManageScreen
+import com.neteinstein.networth.feature.overview.ui.screens.OverviewScreen
 import com.neteinstein.networth.feature.settings.ui.screens.SettingsScreen
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
@@ -26,7 +28,9 @@ import kotlinx.serialization.modules.polymorphic
 internal val navSavedStateConfiguration = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            subclass(Route.Dashboard::class, Route.Dashboard.serializer())
+            subclass(Route.Overview::class, Route.Overview.serializer())
+            subclass(Route.Manage::class, Route.Manage.serializer())
+            subclass(Route.Categories::class, Route.Categories.serializer())
             subclass(Route.Settings::class, Route.Settings.serializer())
         }
     }
@@ -34,20 +38,31 @@ internal val navSavedStateConfiguration = SavedStateConfiguration {
 
 @Composable
 fun AppNavigation() {
-    val backStack = rememberNavBackStack(navSavedStateConfiguration, Route.Dashboard)
+    val backStack = rememberNavBackStack(navSavedStateConfiguration, Route.Overview)
+    val back: () -> Unit = { backStack.removeLastOrNull() }
 
     NavDisplay(
         backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
+        onBack = back,
         transitionSpec = { forward() },
         popTransitionSpec = { backward() },
         predictivePopTransitionSpec = { backward() },
         entryProvider = entryProvider {
-            entry<Route.Dashboard> {
-                DashboardScreen(onOpenSettings = { backStack.add(Route.Settings) })
+            entry<Route.Overview> {
+                OverviewScreen(onOpenManage = { backStack.add(Route.Manage) })
+            }
+            entry<Route.Manage> {
+                ManageScreen(
+                    onBack = back,
+                    onOpenCategories = { backStack.add(Route.Categories) },
+                    onOpenSettings = { backStack.add(Route.Settings) },
+                )
+            }
+            entry<Route.Categories> {
+                CategoriesScreen(onBack = back)
             }
             entry<Route.Settings> {
-                SettingsScreen(onBack = { backStack.removeLastOrNull() })
+                SettingsScreen(onBack = back)
             }
         },
     )

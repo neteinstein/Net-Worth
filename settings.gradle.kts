@@ -70,7 +70,13 @@ include(":composeApp")
 
 // Shared core
 include(":core:designsystem")
+include(":core:domain")
+include(":core:database")
+include(":core:google")
+include(":core:testing")
 
 // Features — one module per feature
-include(":feature:dashboard")
+include(":feature:onboarding")
+include(":feature:manage")
+include(":feature:overview")
 include(":feature:settings")

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Filters</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1180px; box-sizing: border-box; display: flex; flex-direction: column; background: #FFFFFF; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 20px; padding: 56px 20px 20px">
+
+<div style="display: flex; align-items: center; gap: 8px">
+<a href="Spending.dc.html" aria-label="Close filters" style="width: 44px; height: 44px; border-radius: 22px; background: #F3F4F6; color: #141B2D; display: flex; align-items: center; justify-content: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg></a>
+<h1 style="margin: 0; flex: 1; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.02em">Filters</h1>
+<button type="button" onClick="{{reset}}" style="height: 44px; padding: 0 14px; border: 0; background: transparent; font-family: inherit; font-size: 14px; font-weight: 600; color: #2D55D6">Reset</button>
+</div>
+
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Accounts</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{accounts}}" as="a" hint-placeholder-count="6">
+<button type="button" aria-pressed="{{a.pressed}}" onClick="{{a.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; font-family: inherit; font-size: 13px; font-weight: 600; background: {{a.bg}}; color: {{a.fg}}; border: 1px solid {{a.bc}}">{{a.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Categories</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="10">
+<button type="button" aria-pressed="{{c.pressed}}" onClick="{{c.pick}}" style="height: 40px; padding: 0 14px 0 10px; border-radius: 20px; font-family: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; background: {{c.bg}}; color: {{c.fg}}; border: 1px solid {{c.bc}}"><span style="width: 10px; height: 10px; border-radius: 3px; background: {{c.color}}; box-shadow: 0 0 0 1.5px #FFFFFF"></span>{{c.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Tagged for</legend>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{people}}" as="p" hint-placeholder-count="5">
+<button type="button" aria-pressed="{{p.pressed}}" onClick="{{p.pick}}" style="height: 40px; padding: 0 14px; border-radius: 20px; font-family: inherit; font-size: 13px; font-weight: 600; background: {{p.bg}}; color: {{p.fg}}; border: 1px solid {{p.bc}}">{{p.label}}</button>
+</sc-for>
+</div>
+</fieldset>
+
+<fieldset style="border: 0; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px">
+<legend style="padding: 0; margin-bottom: 10px; font-size: 12px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Type</legend>
+<div style="display: flex; gap: 18px">
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px"><input id="t-exp" name="type" type="radio" checked="{{true}}" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}"><label for="t-exp" style="font-size: 14px">Expenses</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px"><input id="t-inc" name="type" type="radio" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}"><label for="t-inc" style="font-size: 14px">Income</label></div>
+<div style="display: flex; align-items: center; gap: 8px; min-height: 44px"><input id="t-both" name="type" type="radio" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}"><label for="t-both" style="font-size: 14px">Both</label></div>
+</div>
+<div style="display: flex; align-items: center; gap: 10px; min-height: 44px">
+<input id="t-transfers" type="checkbox" style="width: 20px; height: 20px; margin: 0; accent-color: {{accent}}">
+<label for="t-transfers" style="font-size: 14px">Include transfers between our own accounts</label>
+</div>
+</fieldset>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="amt-min" style="font-size: 12px; font-weight: 700; color: #5A6275">Min amount</label>
+<input id="amt-min" type="text" inputmode="decimal" placeholder="€0" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D">
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="amt-max" style="font-size: 12px; font-weight: 700; color: #5A6275">Max amount</label>
+<input id="amt-max" type="text" inputmode="decimal" placeholder="Any" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D">
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<label for="merchant" style="font-size: 12px; font-weight: 700; color: #5A6275">Merchant or description contains</label>
+<input id="merchant" type="search" placeholder="e.g. Continente" style="height: 44px; border-radius: 10px; border: 1px solid #D5D9E1; padding: 0 12px; font-family: inherit; font-size: 14px; color: #141B2D">
+</div>
+
+</main>
+
+<div style="border-top: 1px solid #E3E6EC; padding: 14px 20px 28px; display: flex; gap: 10px">
+<a href="Manage.dc.html" style="height: 52px; padding: 0 18px; border-radius: 26px; border: 1px solid #D5D9E1; color: #141B2D; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center">Save filter</a>
+<a href="Spending.dc.html" style="flex: 1; height: 52px; border-radius: 26px; background: {{accent}}; color: #FFFFFF; font-size: 15px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center">{{showLabel}}</a>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"$preview":{"width":390,"height":1180}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { acc: { a1: true, a2: true }, cats: { 'School': true, 'Kids’ activities': true, 'Clothes': true }, people: { all: true } };
+  }
+  renderVals() {
+    var self = this;
+    var st = this.state;
+    var chip = function (on) { return { pressed: on ? 'true' : 'false', bg: on ? '#141B2D' : '#FFFFFF', fg: on ? '#FFFFFF' : '#141B2D', bc: on ? '#141B2D' : '#D5D9E1' }; };
+    var flip = function (key, id) { return function () { var o = Object.assign({}, self.state[key]); o[id] = !o[id]; var s = {}; s[key] = o; self.setState(s); }; };
+    var accList = [['a1', 'Pedro', 0.55], ['a2', '[Partner]', 0.45], ['joint', 'Joint savings', 0], ['c1', '[Child 1]', 0], ['c2', '[Child 2]', 0], ['c3', '[Child 3]', 0]];
+    var catList = [['Housing', '#141B2D', 14], ['Groceries', '#2D55D6', 62], ['School', '#D9652B', 19], ['Transport', '#7D9BF2', 31], ['Clothes', '#A8487A', 9], ['Kids’ activities', '#F0A964', 7], ['Dining & leisure', '#6A4FC9', 28], ['Health', '#3E8C7E', 11], ['Vacations', '#C9CFDA', 0], ['Other', '#A3ABBA', 21]];
+    var peopleList = [['all', 'Everyone'], ['adults', 'Adults'], ['k1', '[Child 1]'], ['k2', '[Child 2]'], ['k3', '[Child 3]']];
+    var accShare = 0;
+    accList.forEach(function (a) { if (st.acc[a[0]]) accShare += a[2]; });
+    var catCount = 0, anyCat = false;
+    catList.forEach(function (c) { if (st.cats[c[0]]) { catCount += c[2]; anyCat = true; } });
+    if (!anyCat) catCount = 202;
+    var n = Math.round(catCount * accShare);
+    return {
+      accent: this.props.accent ?? '#2D55D6',
+      accounts: accList.map(function (a) { return Object.assign({ label: a[1], pick: flip('acc', a[0]) }, chip(!!st.acc[a[0]])); }),
+      cats: catList.map(function (c) { return Object.assign({ label: c[0], color: c[1], pick: flip('cats', c[0]) }, chip(!!st.cats[c[0]])); }),
+      people: peopleList.map(function (p) { return Object.assign({ label: p[1], pick: flip('people', p[0]) }, chip(!!st.people[p[0]])); }),
+      reset: function () { self.setState({ acc: { a1: true, a2: true, joint: true, c1: true, c2: true, c3: true }, cats: {}, people: { all: true } }); },
+      showLabel: 'Show ' + n + ' transactions'
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -25,6 +25,7 @@ Concurrency: a new push to the same PR cancels the in-flight run.
 | Secret | Used by | Required? | Notes |
 | --- | --- | --- | --- |
 | `GOOGLE_SERVICES_JSON` | `build-android` | No | Full contents of the real `google-services.json`. When absent, CI copies the committed placeholder `androidApp/google-services.json.ci` — fine for build validation, not for a shippable build. |
+| `NETWORTH_GOOGLE_WEB_CLIENT_ID`, `NETWORTH_GOOGLE_IOS_CLIENT_ID`, `NETWORTH_GOOGLE_API_KEY`, `NETWORTH_GOOGLE_PROJECT_NUMBER` | any build (future) | No | Google OAuth client ids and Picker key compiled into `GoogleConfig` (see `docs/google-cloud-setup.md`). Not wired into CI yet; without them builds succeed and sign-in reports "not configured". |
 | `ANDROID_KEYSTORE_PATH`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD` | release build (future) | No | Read as environment variables by `androidApp/build.gradle.kts`. Not wired into CI yet — a release job would decode a base64 keystore secret to a temp file and export these. |
 | `GITHUB_TOKEN` | `pr-title` | Automatic | Read-only. |
 

@@ -1,28 +1,78 @@
 package com.neteinstein.networth
 
+import com.neteinstein.networth.core.domain.repository.AuthRepository
+import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
+import com.neteinstein.networth.core.domain.repository.InMemoryLocalStore
+import com.neteinstein.networth.core.domain.repository.LocalStore
+import com.neteinstein.networth.core.domain.repository.UserProfile
+import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
+import com.neteinstein.networth.core.domain.usecase.RestoreSessionUseCase
+import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
+import com.neteinstein.networth.core.google.DriveClient
+import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.di.appModule
-import com.neteinstein.networth.feature.dashboard.domain.repository.AccountRepository
-import com.neteinstein.networth.feature.dashboard.domain.usecase.ObserveNetWorthUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
+import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
 import com.neteinstein.networth.feature.settings.domain.repository.SettingsRepository
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import org.koin.dsl.koinApplication
+import org.koin.dsl.module
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 
 /** Fails fast if a binding in `AppModule.kt` is missing or mis-typed. */
 class AppModuleTest {
+    // The JVM test host has no Android Context or browser, so platform bindings are replaced.
+    private val fakes = module {
+        single<LocalStore> { InMemoryLocalStore() }
+        single<GoogleAuthPlatform> {
+            object : GoogleAuthPlatform {
+                override val isConfigured = false
+
+                override suspend fun restore(): UserProfile? = null
+
+                override suspend fun signIn(): UserProfile = error("not in tests")
+
+                override suspend fun accessToken(forceRefresh: Boolean): String = error("not in tests")
+
+                override suspend fun pickFile(): String? = null
+
+                override suspend fun signOut() = Unit
+            }
+        }
+    }
+
     @Test
     fun resolvesNonViewModelBindings() {
-        val koin = koinApplication { modules(appModule) }.koin
+        val koin = koinApplication {
+            allowOverride(true)
+            modules(appModule, fakes)
+        }.koin
 
-        assertNotNull(koin.get<ObserveNetWorthUseCase>())
+        assertNotNull(koin.get<RestoreSessionUseCase>())
+        assertNotNull(koin.get<SignOutUseCase>())
+        assertNotNull(koin.get<EditDatabaseUseCase>())
+        assertNotNull(koin.get<CreateHouseholdUseCase>())
+        assertNotNull(koin.get<OpenSharedDatabaseUseCase>())
+        assertNotNull(koin.get<BuildOverviewUseCase>())
+        assertNotNull(koin.get<MarkSeasonalUseCase>())
+        assertNotNull(koin.get<SaveAccountUseCase>())
+        assertNotNull(koin.get<MergeCategoryUseCase>())
         assertNotNull(koin.get<ObserveAppearanceUseCase>())
         assertNotNull(koin.get<SetThemeModeUseCase>())
         assertNotNull(koin.get<SetDynamicColorUseCase>())
-        assertSame(koin.get<AccountRepository>(), koin.get<AccountRepository>())
+        assertNotNull(koin.get<ShareDatabaseUseCase>())
+        assertNotNull(koin.get<DriveClient>())
+        assertSame(koin.get<AuthRepository>(), koin.get<AuthRepository>())
+        assertSame(koin.get<FamilyDatabaseRepository>(), koin.get<FamilyDatabaseRepository>())
         assertSame(koin.get<SettingsRepository>(), koin.get<SettingsRepository>())
     }
 }

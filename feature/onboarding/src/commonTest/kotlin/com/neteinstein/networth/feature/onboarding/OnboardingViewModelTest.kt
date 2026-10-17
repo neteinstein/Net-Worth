@@ -1,0 +1,170 @@
+package com.neteinstein.networth.feature.onboarding
+
+import com.neteinstein.networth.core.domain.repository.AuthCancelledException
+import com.neteinstein.networth.core.domain.repository.AuthNotConfiguredException
+import com.neteinstein.networth.core.domain.repository.DatabaseError
+import com.neteinstein.networth.core.domain.repository.DatabaseException
+import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
+import com.neteinstein.networth.core.domain.usecase.SignInUseCase
+import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
+import com.neteinstein.networth.core.testing.FakeAuthRepository
+import com.neteinstein.networth.core.testing.FakeDatabaseRepository
+import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingError
+import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingStep
+import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class OnboardingViewModelTest {
+    private val auth = FakeAuthRepository()
+    private val database = FakeDatabaseRepository()
+
+    private fun TestScope.viewModel() = OnboardingViewModel(
+        observeAuth = ObserveAuthUseCase(auth),
+        signIn = SignInUseCase(auth, database),
+        signOut = SignOutUseCase(auth, database),
+        createHousehold = CreateHouseholdUseCase(database),
+        openSharedDatabase = OpenSharedDatabaseUseCase(auth, database),
+    ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
+
+    @BeforeTest
+    fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
+
+    @AfterTest
+    fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun signInMovesToTheChoice() = runTest {
+        val vm = viewModel()
+        assertEquals(OnboardingStep.SIGN_IN, vm.state.value.step)
+
+        vm.onSignIn()
+
+        assertEquals(OnboardingStep.CHOOSE, vm.state.value.step)
+        assertEquals("pedro@example.com", vm.state.value.user?.email)
+        assertEquals(listOf("restore"), database.calls)
+        assertFalse(vm.state.value.busy)
+    }
+
+    @Test
+    fun signInFailuresBecomeMessages() = runTest {
+        val vm = viewModel()
+
+        auth.signInResult = { throw AuthNotConfiguredException() }
+        vm.onSignIn()
+        assertEquals(OnboardingError.NOT_CONFIGURED, vm.state.value.error)
+
+        vm.onErrorShown()
+        auth.signInResult = { throw IllegalStateException("network") }
+        vm.onSignIn()
+        assertEquals(OnboardingError.SIGN_IN_FAILED, vm.state.value.error)
+
+        vm.onErrorShown()
+        auth.signInResult = { throw AuthCancelledException() }
+        vm.onSignIn()
+        assertNull(vm.state.value.error)
+    }
+
+    @Test
+    fun startFreshPrefillsTheFirstAdultAndCreatesTheDatabase() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+
+        vm.onStartFresh()
+        assertEquals(OnboardingStep.START_FRESH, vm.state.value.step)
+        assertEquals(listOf("Pedro"), vm.state.value.form.adults)
+        assertFalse(vm.state.value.form.canSubmit)
+
+        vm.onHouseholdNameChange("The Vicentes")
+        vm.onAddAdult()
+        vm.onAdultChange(1, "Maria")
+        vm.onAddChild()
+        vm.onChildChange(0, "Inês")
+        vm.onAddChild()
+        vm.onRemoveChild(1)
+        vm.onCurrencySelected("GBP")
+        vm.onCreateAccountsChange(false)
+        vm.onCreate(jointSavingsName = "Poupança conjunta")
+
+        assertEquals(listOf("create:The Vicentes"), database.calls)
+        val created = assertIs<DatabaseState.Ready>(database.state.value).database
+        assertEquals(listOf("Pedro", "Maria", "Inês"), created.members.map { it.name })
+        assertEquals("GBP", created.settings.currencyCode)
+        assertTrue(created.accounts.isEmpty())
+    }
+
+    @Test
+    fun formEditsKeepAtLeastOneAdult() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+        vm.onStartFresh()
+
+        vm.onRemoveAdult(0)
+        vm.onCreate("Joint savings")
+
+        assertEquals(1, vm.state.value.form.adults.size)
+        assertTrue(database.calls.isEmpty())
+
+        vm.onBackToChoices()
+        assertEquals(OnboardingStep.CHOOSE, vm.state.value.step)
+    }
+
+    @Test
+    fun openExistingUsesThePickerAndReportsUnreadableFiles() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+
+        vm.onOpenExisting()
+        assertEquals(listOf("open:picked-file"), database.calls)
+
+        auth.pickResult = { null }
+        vm.onOpenExisting()
+        assertEquals(1, database.calls.size)
+
+        auth.pickResult = { "x" }
+        for ((error, expected) in listOf(
+            DatabaseError.NOT_A_DATABASE to OnboardingError.NOT_A_DATABASE,
+            DatabaseError.NEWER_SCHEMA to OnboardingError.NEWER_SCHEMA,
+            DatabaseError.NOT_ACCESSIBLE to OnboardingError.NOT_ACCESSIBLE,
+            DatabaseError.UNKNOWN to OnboardingError.NETWORK,
+        )) {
+            database.failure = DatabaseException(error)
+            vm.onOpenExisting()
+            assertEquals(expected, vm.state.value.error)
+            vm.onErrorShown()
+        }
+        database.failure = IllegalStateException("drive down")
+        vm.onOpenExisting()
+        assertEquals(OnboardingError.NETWORK, vm.state.value.error)
+    }
+
+    @Test
+    fun useAnotherAccountSignsOut() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+        vm.onStartFresh()
+
+        vm.onSignOut()
+
+        assertEquals(OnboardingStep.SIGN_IN, vm.state.value.step)
+        assertEquals(listOf("close"), database.calls)
+    }
+}

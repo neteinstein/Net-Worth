@@ -5,10 +5,18 @@ CI/CD topology lives in [CI_CD.md](CI_CD.md), not here.
 
 ## What this is
 
-**Net Worth** — a Kotlin Multiplatform app for Android, iOS and Web (Wasm) with a single shared
-Compose Multiplatform UI. The product scope is still being defined: the dashboard currently renders
-**placeholder demo data** (`feature/dashboard/.../data/SampleAccounts.kt`) from an in-memory
-repository. Do not treat that data, or the account categories, as product requirements.
+**Net Worth** — a family-finance app (Kotlin Multiplatform: Android, iOS and Web/Wasm, one shared Compose
+Multiplatform UI). A household (e.g. 2 adults, 3 kids) imports bank extracts, sees where the money went, gets
+spike alerts and projections. The scope is the design canvas snapshotted in [`docs/design/`](docs/design/README.md).
+
+All family data lives in **one JSON file in Google Drive** that the family shares
+([`docs/database.md`](docs/database.md)). First launch: sign in with Google, then **Start fresh** (create the
+file) or **Open a Google Drive file** (Google Picker). Setup of the Google Cloud project:
+[`docs/google-cloud-setup.md`](docs/google-cloud-setup.md).
+
+Delivery is phased: phase 1 (this foundation) = Drive database + sync, onboarding, Overview, Manage,
+Categories, Settings. Next: Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Best
+statements), then Spending/Filters/Alerts, then Future/Year ahead.
 
 ## Stack
 
@@ -17,6 +25,8 @@ repository. Do not treat that data, or the account categories, as product requir
 | Language / UI | Kotlin 2.4, Compose Multiplatform 1.12 (Material 3 `1.9.0`) |
 | Architecture | Clean architecture (domain / data / ui) + MVVM, Coroutines + `StateFlow` |
 | DI | Koin 4.2 — one shared `di/AppModule.kt` |
+| Data | One JSON file in Google Drive (`drive.file` scope) + local cache; Ktor 3 client; kotlinx-serialization-json; kotlinx-datetime |
+| Sign-in | Android: Credential Manager + Identity AuthorizationClient; iOS: OAuth PKCE via ASWebAuthenticationSession; Web: Google Identity Services + Picker |
 | Navigation | Navigation 3 (JetBrains KMP build), type-safe `@Serializable` routes |
 | Android | AGP 9.4, compileSdk/targetSdk 37, minSdk 32, R8 full mode on release |
 | iOS | `iosArm64` + `iosSimulatorArm64` only (no `iosX64`), static `ComposeApp.framework`, hand-authored Xcode project, iOS 17+ |
@@ -34,9 +44,21 @@ composeApp/            KMP library (com.android.kotlin.multiplatform.library) �
                        App(), navigation, di/AppModule.kt + di/InitKoin.kt, AppViewModel,
                        iosMain/MainViewController.kt, wasmJsMain/Main.kt (web entry point + index.html).
                        Produces the iOS framework `ComposeApp` and the web bundle.
-core/designsystem/     Theme (light/dark, dynamic colour, finance colours), reusable components.
-feature/dashboard/     Net-worth overview: domain / data / ui.
-feature/settings/      Appearance settings (theme mode, dynamic colour): domain / data / ui.
+core/domain/           Pure Kotlin: FamilyDatabase models, Money/MoneyFormatter/MoneyParser, CalendarMonth,
+                       calculators (totals, averages, spikes, balances, projections), repository interfaces
+                       (FamilyDatabaseRepository, AuthRepository, LocalStore, AppClock), shared use cases, seeds.
+core/database/         The Drive-backed FamilyDatabaseRepository: JSON schema (schema/SchemaV1.kt), codec,
+                       record-level merger, local cache; expect/actual LocalStore (files / localStorage).
+core/google/           Google sign-in per platform (GoogleAuthPlatform actuals), DriveClient (Ktor), OAuth/PKCE
+                       helpers, generated GoogleConfig (client ids from local.properties / env).
+core/designsystem/     Theme from the design (ink/blue palette, Bricolage Grotesque + Instrument Sans + IBM Plex
+                       Mono, finance colours), components (HeroCard, SectionCard, chips, charts…), line icons.
+core/testing/          Fakes for feature tests (FakeDatabaseRepository, FakeAuthRepository, designFamily()).
+                       commonTest dependency only.
+feature/onboarding/    Sign in → Start fresh / Open a Google Drive file.
+feature/overview/      Overview artboard.
+feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, categories).
+feature/settings/      Appearance (device-local), database file, sharing, household members, sign out.
 iosApp/                Hand-authored Xcode project wrapping ComposeApp.framework (SwiftUI host).
 build-logic/           Convention plugins: networth.kmp.library, networth.kmp.compose, networth.android.application.
 docs/                  Authoritative source material (see "Source content").
@@ -48,12 +70,13 @@ Why it is split this way:
   module.** So the shared UI/logic is a KMP *library* (`composeApp`) and the installable Android app is
   a thin separate module (`androidApp`).
 - **One module per feature** keeps build times and ownership local. A feature depends on
-  `core:*` modules, never on another feature. `composeApp` is the only module that sees every feature
+  `core:designsystem` + `core:domain` (never on `core:database`/`core:google`, never on another feature). `composeApp` is the only module that sees every feature
   (it wires them into navigation and DI).
 - **commonMain-first.** All code defaults to `src/commonMain/kotlin/<package>/`. Use
   `androidMain`/`iosMain`/`wasmJsMain` or `expect`/`actual` only for what a platform genuinely cannot
-  share. Current `expect`/`actual`s (all in `core/designsystem/.../ui/theme/Platform.kt`): dynamic colour
-  availability/scheme and system-bar icon tint.
+  share. Current `expect`/`actual`s: dynamic colour availability/scheme and system-bar icon tint
+  (`core/designsystem/.../ui/theme/Platform.kt`), `Scope.platformLocalStore()` (`core/database`) and
+  `Scope.googleAuthPlatform()` (`core/google`).
 
 Inside each feature module:
 
@@ -70,16 +93,16 @@ Inside each feature module:
 ```
 
 Package root is `com.neteinstein.networth`; a module's namespace is derived from its Gradle path
-(`:feature:dashboard` → `com.neteinstein.networth.feature.dashboard`, `:composeApp` → `…networth.composeapp`)
+(`:feature:overview` → `com.neteinstein.networth.feature.overview`, `:composeApp` → `…networth.composeapp`)
 and its generated Compose resources class is `<namespace>.generated.resources.Res`.
 
 ## Conventions
 
 ### MVVM
 
-- A **screen** composable (`DashboardScreen`) gets its ViewModel via `koinViewModel()`, collects
+- A **screen** composable (`OverviewScreen`) gets its ViewModel via `koinViewModel()`, collects
   `state` with `collectAsStateWithLifecycle()`, and passes state + callbacks down. That is all it does.
-- A **content** composable (`DashboardContent`) is stateless: `state` + lambdas in, UI out. It is
+- A **content** composable (`OverviewContent`) is stateless: `state` + lambdas in, UI out. It is
   what `@Preview`s and future UI tests target. Add a preview for every content composable.
 - ViewModels expose **one immutable `StateFlow<XUiState>`** (a `data class`); UI events are plain
   method calls (`onThemeModeSelected(mode)`). Use `stateIn(viewModelScope, WhileSubscribed(5_000), initial)`.
@@ -95,6 +118,8 @@ and its generated Compose resources class is `<namespace>.generated.resources.Re
   Callers: `NetWorthApplication` (Android), `iOSApp.init()` (iOS), `Main.kt` (web).
 - Prefer `factoryOf(::UseCase)` / `viewModelOf(::ViewModel)`. **Do not use `singleOf(::X)` when `X`'s
   constructor has default arguments** — Koin will try to inject them. Use `single<Interface> { X() }`.
+- Platform-touching bindings (`LocalStore`, `GoogleAuthPlatform`) sit in `platformBindings` (same file,
+  included by `appModule`) so `AppModuleTest` can override them with fakes on the JVM.
 - `AppModuleTest` resolves the graph; extend it when you add bindings.
 
 ### Testing
@@ -105,13 +130,16 @@ and its generated Compose resources class is `<namespace>.generated.resources.Re
   emulator or a Mac.
 - ViewModel tests: `Dispatchers.setMain(UnconfinedTestDispatcher())` in `@BeforeTest`, `resetMain()` in
   `@AfterTest`, and collect `state` in `backgroundScope` before asserting (state uses `WhileSubscribed`).
+- Feature tests use `core:testing` (`FakeDatabaseRepository.ready(designFamily())`, `FakeAuthRepository`).
+- Code that launches work into an injected `CoroutineScope` (e.g. the debounced Drive upload) is tested
+  with the `TestScope` itself as that scope, so `advanceUntilIdle()` drives it.
 - Coverage excludes composables, theme, navigation and generated code (see root `build.gradle.kts`);
   everything else counts toward the 80 % Kover gate.
 
 ### Commits & PRs
 
-- [Conventional Commits](https://www.conventionalcommits.org/): `feat(dashboard): …`, `fix(settings): …`,
-  `docs(agents): …`, `build(deps): …`, `ci: …`, `test(dashboard): …`, `refactor(designsystem): …`.
+- [Conventional Commits](https://www.conventionalcommits.org/): `feat(overview): …`, `fix(settings): …`,
+  `docs(agents): …`, `build(deps): …`, `ci: …`, `test(overview): …`, `refactor(designsystem): …`.
   Scope = module or area. The PR title must follow the same format (checked in CI).
 - Fill in `.github/pull_request_template.md`. The **Test plan must say what you could not run and why**.
 
@@ -154,25 +182,28 @@ Agent containers frequently **cannot build the whole project**. Known limits:
   `https://maven-central.storage-download.googleapis.com/maven2/`. Never commit such mirrors.
 - **`github.com` / `codeload.github.com` may be blocked**, so `wasmJsBrowserDistribution`/web tests fail
   while downloading Yarn/Binaryen/npm packages. `compileKotlinWasmJs` still works offline-from-GitHub.
-- **No macOS / Xcode / simulator / emulator.** iOS code (`iosMain`, Swift, `project.pbxproj`) cannot be
-  compiled; nothing can be run on a device.
+- **No macOS / Xcode / simulator / emulator.** Nothing can be run on a device, and Swift/`project.pbxproj`
+  can't be built. Kotlin `iosMain` code **can be type-checked** on Linux with klib cross-compilation:
+  `./gradlew compileKotlinIosSimulatorArm64 -Pkotlin.native.enableKlibsCrossCompilation=true` (downloads the
+  Kotlin/Native toolchain once; linking the framework still needs macOS).
 
 What *can* usually be checked in a sandbox: `testDebugUnitTest`, `ktlintCheck`, `:androidApp:lintDebug`,
-`:koverVerify`, `:androidApp:assembleDebug/assembleRelease`, `compileKotlinWasmJs`.
+`:koverVerify`, `:androidApp:assembleDebug/assembleRelease`, `compileKotlinWasmJs`, and the iOS klib
+cross-compile above. Real Google sign-in/Drive calls can't be exercised (no OAuth client ids, no device).
 **CI on the PR is the real build signal** — especially for iOS and the web bundle. Say in the PR's test
 plan exactly which of these you ran.
 
 ## Source content
 
-There is **no authoritative source document yet** — product scope will be provided later. When it is:
-
-- Commit the source files (spec, spreadsheet, PDF, design export) under `docs/` and record here the
-  exact file and sheet/section that is canonical.
-- Copy content verbatim; **do not "clean up", paraphrase, reorder or invent** content that is not in the
-  source. If something looks wrong, flag it in the PR instead of fixing it silently.
-- If an origin link (Google Sheets, Figma, …) is unreachable from a sandboxed agent, note that here and
-  rely on the committed snapshot in `docs/`.
-- If deriving from it becomes a recurring task, add a skill under `.claude/skills/`.
+- **Product/UI:** [`docs/design/`](docs/design/README.md) — snapshot of the claude.ai design canvas
+  "Net Worth — family finances" (10 artboards + `canvas.json`). Canonical for layout, copy, palette, type and
+  the default category taxonomy. Its figures and names are **example data**, never seed data.
+- **Bank statement samples** (for the importer, phase 2) are real personal documents: **never commit them**.
+  Build synthetic fixtures with the same layout and invented values.
+- Copy verbatim; **do not "clean up", paraphrase, reorder or invent** content that is not in the source. If
+  something looks wrong, flag it in the PR instead of fixing it silently. Screens the design doesn't cover
+  (sign-in, Start fresh, Settings) reuse its visual language and are called out in the PR.
+- If an origin link is unreachable from a sandboxed agent, rely on the committed snapshot.
 
 ## Gotchas
 
@@ -211,4 +242,14 @@ There is **no authoritative source document yet** — product scope will be prov
     is upstream noise (JetBrains vs. Google KMP artifacts) — not something to fix here.
 12. ktlint ignores generated sources (`**/generated/**`, `build/`); composables are exempt from
     function-naming via `.editorconfig`.
-13. Persistence doesn't exist yet: accounts and settings are in-memory and reset on restart.
+13. **Persistence:** family data = the Drive JSON file + its local cache (`core:database`). Appearance is
+    device-local (`LocalSettingsRepository` → `LocalStore`). Never store family data anywhere else.
+14. **Schema changes** to `core/database/.../schema/SchemaV1.kt` are a file-format change shared by every
+    device: add fields with defaults; renames/removals need a `SCHEMA_VERSION` bump and a migration in
+    `FamilyDatabaseCodec`. Every syncable record needs `id` + `updatedAt`; deletions go through
+    `withTombstone()` or the merge brings them back.
+15. **Google OAuth client ids** come from `local.properties`/env into the generated `GoogleConfig`
+    (`:core:google:generateGoogleConfig`). Empty ids are valid builds: sign-in then reports "not configured".
+    Only ever request `drive.file` (non-sensitive); the Picker flow on mobile requires it alone.
+16. Fonts in `core/designsystem/src/commonMain/composeResources/font/` are OFL (see
+    `core/designsystem/FONTS-LICENSE.txt`); keep that notice when adding or replacing fonts.

@@ -33,8 +33,13 @@ allprojects {
 
 dependencies {
     kover(projects.composeApp)
+    kover(projects.core.database)
     kover(projects.core.designsystem)
-    kover(projects.feature.dashboard)
+    kover(projects.core.domain)
+    kover(projects.core.google)
+    kover(projects.feature.manage)
+    kover(projects.feature.onboarding)
+    kover(projects.feature.overview)
     kover(projects.feature.settings)
 }
 

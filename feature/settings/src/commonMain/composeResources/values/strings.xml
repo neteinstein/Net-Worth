@@ -8,4 +8,26 @@
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_dynamic_color">Dynamic colour</string>
     <string name="settings_dynamic_color_body">Use colours from your wallpaper</string>
+    <string name="settings_database">Family database</string>
+    <string name="settings_database_file">Google Drive file</string>
+    <string name="settings_sync_now">Sync now</string>
+    <string name="settings_share_title">Share with your partner</string>
+    <string name="settings_share_body">They get edit access to the file in Google Drive, then choose “Open a Google Drive file” in Net Worth.</string>
+    <string name="settings_share_email">Their Google email</string>
+    <string name="settings_share">Share</string>
+    <string name="settings_shared">Shared. They’ll get an email from Google Drive.</string>
+    <string name="settings_share_failed">Couldn’t share the file. Check the address and your connection.</string>
+    <string name="settings_switch_database">Use a different database</string>
+    <string name="settings_switch_database_body">Forgets the file on this device. It stays in Google Drive.</string>
+    <string name="settings_household">Household</string>
+    <string name="settings_household_name">Family name</string>
+    <string name="settings_adults">Adults</string>
+    <string name="settings_children">Children</string>
+    <string name="settings_add_adult">Add adult</string>
+    <string name="settings_add_child">Add child</string>
+    <string name="settings_member_name">Name</string>
+    <string name="settings_account">Google account</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_cancel">Cancel</string>
 </resources>

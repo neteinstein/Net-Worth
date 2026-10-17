@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Net Worth — Alerts and insights</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&amp;family=Instrument+Sans:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2D55D6}a:hover{color:#1E3FA8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1120px; box-sizing: border-box; display: flex; flex-direction: column; background: #F3F4F6; color: #141B2D; font-family: 'Instrument Sans', system-ui, sans-serif; font-variant-numeric: tabular-nums">
+<main style="flex: 1; display: flex; flex-direction: column; gap: 14px; padding: 56px 20px 20px">
+
+<div style="display: flex; justify-content: space-between; align-items: center">
+<h1 style="margin: 0; font-family: 'Bricolage Grotesque', 'Instrument Sans', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em">Alerts</h1>
+<button type="button" style="height: 44px; padding: 0 14px; border-radius: 22px; border: 1px solid #D5D9E1; background: #FFFFFF; font-family: inherit; font-size: 13px; font-weight: 600; color: #141B2D; display: flex; align-items: center; gap: 6px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h10"></path><path d="M18 6h2"></path><circle cx="16" cy="6" r="2"></circle><path d="M4 18h4"></path><path d="M12 18h8"></path><circle cx="10" cy="18" r="2"></circle></svg>Alert when +40%</button>
+</div>
+
+<h2 style="margin: 4px 0 0; font-size: 13px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Spikes in September</h2>
+
+<article style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: flex-start; gap: 12px">
+<span style="width: 36px; height: 36px; border-radius: 18px; background: #B5481A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg></span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 2px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 16px; font-weight: 700">School</span><span style="font-size: 16px; font-weight: 700">€610</span></div>
+<span style="font-size: 13px; color: #8A3510; font-weight: 600">▲ +114% vs avg €285 · both current accounts</span>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{schoolParts}}" as="p" hint-placeholder-count="4">
+<div style="display: grid; grid-template-columns: 128px minmax(0, 1fr) 48px; gap: 10px; align-items: center; font-size: 13px">
+<span>{{p.name}}</span>
+<div style="height: 6px; border-radius: 3px; background: #F6DCCB"><div style="height: 100%; width: {{p.w}}%; border-radius: 3px; background: #D9652B"></div></div>
+<span style="text-align: right; font-weight: 600">{{p.v}}</span>
+</div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 13px; color: #5A6275; line-height: 1.45">Last September was €580 — this repeats every year.</p>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button type="button" aria-pressed="{{seasonalPressed}}" onClick="{{toggleSeasonal}}" style="height: 44px; padding: 0 16px; border-radius: 22px; font-family: inherit; font-size: 14px; font-weight: 600; background: {{seasonalBg}}; color: {{seasonalFg}}; border: 1px solid {{seasonalBc}}">{{seasonalLabel}}</button>
+<a href="Spending.dc.html" style="height: 44px; padding: 0 16px; border-radius: 22px; border: 1px solid #D5D9E1; color: #141B2D; font-size: 14px; font-weight: 600; text-decoration: none; display: flex; align-items: center">See transactions</a>
+</div>
+</article>
+
+<article style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+<span style="width: 36px; height: 36px; border-radius: 18px; background: #B5481A; color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg></span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 16px; font-weight: 700">Clothes</span><span style="font-size: 16px; font-weight: 700">€285</span></div>
+<span style="font-size: 13px; color: #8A3510; font-weight: 600">▲ +46% vs avg €195 · mostly [Partner]’s account</span>
+<span style="font-size: 13px; color: #5A6275; line-height: 1.45">5 purchases between 2 and 11 Sep.</span>
+</div>
+</article>
+
+<h2 style="margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Worth a look</h2>
+
+<article style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+<span style="width: 36px; height: 36px; border-radius: 18px; background: #E6ECFB; color: #1E3FA8; display: flex; align-items: center; justify-content: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"></path><path d="M20 4v4h-4"></path></svg></span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 700">New recurring payment</span>
+<span style="font-size: 13px; color: #5A6275; line-height: 1.45">Disney+ €13.99/month since 8 Sep, Pedro’s account — €168 a year.</span>
+</div>
+</article>
+
+<article style="background: #FFFFFF; border: 1px solid #E3E6EC; border-radius: 16px; padding: 16px; display: flex; align-items: flex-start; gap: 12px">
+<span style="width: 36px; height: 36px; border-radius: 18px; background: #E6ECFB; color: #1E3FA8; display: flex; align-items: center; justify-content: center; flex: none"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V6a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v14"></path><path d="M3 20h12"></path><path d="M14 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"></path></svg></span>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 4px">
+<span style="font-size: 15px; font-weight: 700">Fuel up 3 months running</span>
+<span style="font-size: 13px; color: #5A6275; line-height: 1.45">€212 → €226 → €238 (Jul–Sep).</span>
+</div>
+</article>
+
+<h2 style="margin: 6px 0 0; font-size: 13px; font-weight: 700; color: #5A6275; text-transform: uppercase; letter-spacing: 0.06em">Going well</h2>
+
+<article style="background: #E7F2EF; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; color: #1D4A41">
+<div style="display: flex; gap: 10px; align-items: baseline"><span style="font-size: 15px; font-weight: 700; flex: 1">Dining &amp; leisure</span><span style="font-size: 13px; font-weight: 600">▼ −21% · €60 under avg</span></div>
+<div style="height: 1px; background: #C7E0D9"></div>
+<div style="display: flex; gap: 10px; align-items: baseline"><span style="font-size: 15px; font-weight: 700; flex: 1">Kids’ savings</span><span style="font-size: 13px; font-weight: 600">+€30 each, 9 months in a row</span></div>
+</article>
+
+</main>
+
+<nav aria-label="Main" style="display: flex; justify-content: space-around; align-items: center; height: 86px; padding: 0 8px 18px; box-sizing: border-box; background: #FFFFFF; border-top: 1px solid #E3E6EC">
+<a href="Main.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Overview</span></a>
+<a href="Spending.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10"></path><path d="M12 20V4"></path><path d="M19 20v-7"></path></svg><span>Spending</span></a>
+<a href="Import.dc.html" aria-label="Import extract" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 26px; background: {{accent}}; color: #FFFFFF; text-decoration: none"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"></path><path d="M7 10l5 5 5-5"></path><path d="M5 20h14"></path></svg></a>
+<a href="Alerts.dc.html" aria-current="page" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: {{accent}}; font-size: 11px; font-weight: 700"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z"></path><path d="M10 21h4"></path></svg><span>Alerts</span></a>
+<a href="Future.dc.html" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-width: 60px; min-height: 52px; text-decoration: none; color: #5A6275; font-size: 11px; font-weight: 600"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"></path><path d="M15 7h6v6"></path></svg><span>Future</span></a>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"accent":{"editor":"color","default":"#2D55D6","options":["#2D55D6","#141B2D","#3E8C7E"]},"$preview":{"width":390,"height":1120}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { seasonal: false };
+  }
+  renderVals() {
+    var self = this;
+    var on = this.state.seasonal;
+    var parts = [['Books & materials', 385], ['Canteen top-ups', 150], ['Parents’ association', 45], ['Other', 30]];
+    return {
+      accent: this.props.accent ?? '#2D55D6',
+      schoolParts: parts.map(function (p) { return { name: p[0], v: '€' + p[1], w: Math.round(p[1] / 385 * 100) }; }),
+      seasonalPressed: on ? 'true' : 'false',
+      seasonalLabel: on ? 'Seasonal · planned for Sep 2027' : 'Mark as seasonal',
+      seasonalBg: on ? '#141B2D' : '#B5481A',
+      seasonalFg: '#FFFFFF',
+      seasonalBc: on ? '#141B2D' : '#B5481A',
+      toggleSeasonal: function () { self.setState({ seasonal: !self.state.seasonal }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

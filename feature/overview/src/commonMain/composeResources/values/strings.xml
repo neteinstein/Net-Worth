@@ -1,0 +1,45 @@
+<resources>
+    <string name="overview_title">Net Worth</string>
+    <plurals name="overview_family">
+        <item quantity="one">%1$s · %2$d person</item>
+        <item quantity="other">%1$s · family of %2$d</item>
+    </plurals>
+    <string name="overview_change_period">Change period, %1$s</string>
+    <string name="overview_manage">Manage accounts, categories and filters</string>
+    <string name="overview_scope_all">All accounts</string>
+    <string name="overview_scope_children">Kids’ savings</string>
+    <string name="overview_saved_in">Saved in %1$s</string>
+    <string name="overview_overspent_in">Spent more than came in, %1$s</string>
+    <string name="overview_percent_of_income">%1$d%% of income</string>
+    <string name="overview_income">Income</string>
+    <string name="overview_spent">Spent</string>
+    <string name="overview_spike_title">Spending spike: %1$s</string>
+    <string name="overview_spike_body">%1$s this month — %2$s× your 12-month average of %3$s.</string>
+    <string name="overview_mark_seasonal">Mark as seasonal</string>
+    <string name="overview_where_it_went">Where it went</string>
+    <string name="overview_uncategorised">Not categorised yet</string>
+    <plurals name="overview_more_categories">
+        <item quantity="one">+ %1$d more category · %2$s</item>
+        <item quantity="other">+ %1$d more categories · %2$s</item>
+    </plurals>
+    <string name="overview_nothing_spent">Nothing spent this month.</string>
+    <string name="overview_last_months">Last 6 months</string>
+    <string name="overview_twelve_month_average">12-month avg %1$s</string>
+    <string name="overview_trend_description">Spending over the last 6 months, %1$s this month</string>
+    <string name="overview_net_worth">Net worth</string>
+    <string name="overview_manage_accounts">Manage accounts</string>
+    <plurals name="overview_account_count">
+        <item quantity="one">%1$d account</item>
+        <item quantity="other">%1$d accounts</item>
+    </plurals>
+    <string name="overview_projection">At this pace, savings reach %1$s in %2$d years</string>
+    <string name="overview_empty_title">No transactions yet</string>
+    <string name="overview_empty_body">Once bank extracts are imported, this shows what came in, where it went and how each month compares.</string>
+    <string name="overview_no_accounts">No accounts yet. Add one in Manage.</string>
+    <string name="overview_type_current">Current</string>
+    <string name="overview_type_savings">Savings</string>
+    <string name="overview_type_term_deposit">Term deposit</string>
+    <string name="overview_type_investment">Investments</string>
+    <string name="overview_type_mortgage">Mortgage</string>
+    <string name="overview_type_loan">Loan</string>
+</resources>

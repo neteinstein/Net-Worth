@@ -4,9 +4,9 @@ html, body {
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background: #F5FBF4;
+    background: #F3F4F6;
 }
 
 @media (prefers-color-scheme: dark) {
-    html, body { background: #0F1511; }
+    html, body { background: #0C111C; }
 }
