@@ -152,7 +152,7 @@ jobs:
       # Optional: needs no token for public repos; set CODECOV_TOKEN if the repo is private.
       - name: Upload coverage to Codecov
         if: always()
-        uses: codecov/codecov-action@v6
+        uses: codecov/codecov-action@v7
         with:
           files: build/reports/kover/report.xml
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -186,7 +186,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
       - name: Kotlin/Native caches
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.konan
           key: konan-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
