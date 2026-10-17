@@ -50,12 +50,14 @@ import com.neteinstein.networth.feature.overview.domain.usecase.Overview
 import com.neteinstein.networth.feature.overview.generated.resources.Res
 import com.neteinstein.networth.feature.overview.generated.resources.overview_change_period
 import com.neteinstein.networth.feature.overview.generated.resources.overview_family
+import com.neteinstein.networth.feature.overview.generated.resources.overview_import
 import com.neteinstein.networth.feature.overview.generated.resources.overview_manage
 import com.neteinstein.networth.feature.overview.generated.resources.overview_scope_all
 import com.neteinstein.networth.feature.overview.generated.resources.overview_scope_children
 import com.neteinstein.networth.feature.overview.generated.resources.overview_title
 import com.neteinstein.networth.feature.overview.ui.components.EmptyHistoryCard
 import com.neteinstein.networth.feature.overview.ui.components.NetWorthCard
+import com.neteinstein.networth.feature.overview.ui.components.ReviewBanner
 import com.neteinstein.networth.feature.overview.ui.components.SavedHeroCard
 import com.neteinstein.networth.feature.overview.ui.components.SpikeCard
 import com.neteinstein.networth.feature.overview.ui.components.TrendCard
@@ -68,6 +70,8 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun OverviewScreen(
     onOpenManage: () -> Unit,
+    onOpenImport: () -> Unit,
+    onOpenReview: () -> Unit,
     viewModel: OverviewViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -78,6 +82,8 @@ fun OverviewScreen(
         onMarkSeasonal = viewModel::onMarkSeasonal,
         onSyncNow = viewModel::onSyncNow,
         onOpenManage = onOpenManage,
+        onOpenImport = onOpenImport,
+        onOpenReview = onOpenReview,
     )
 }
 
@@ -90,6 +96,8 @@ fun OverviewContent(
     onSyncNow: () -> Unit,
     onOpenManage: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenImport: () -> Unit = {},
+    onOpenReview: () -> Unit = {},
 ) {
     Scaffold(modifier = modifier) { padding ->
         val overview = state.overview
@@ -108,7 +116,7 @@ fun OverviewContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item { Header(overview, state.sync, onMonthSelected, onSyncNow, onOpenManage) }
+                item { Header(overview, state.sync, onMonthSelected, onSyncNow, onOpenManage, onOpenImport) }
                 if (overview.scopes.size > 1) {
                     item {
                         ChipRow {
@@ -121,13 +129,14 @@ fun OverviewContent(
                     }
                 }
                 val cards = Modifier.padding(horizontal = 20.dp)
+                if (overview.needsReview > 0) item { ReviewBanner(overview.needsReview, onOpenReview, cards) }
                 if (overview.hasTransactions) {
                     item { SavedHeroCard(overview, currency, cards) }
                     overview.spike?.let { spike -> item { SpikeCard(spike, currency, { onMarkSeasonal(spike.categoryId) }, cards) } }
                     item { WhereItWentCard(overview, currency, cards) }
                     item { TrendCard(overview, currency, cards) }
                 } else {
-                    item { EmptyHistoryCard(cards) }
+                    item { EmptyHistoryCard(onOpenImport, cards) }
                 }
                 item { NetWorthCard(overview, currency, cards) }
             }
@@ -142,6 +151,7 @@ private fun Header(
     onMonthSelected: (CalendarMonth) -> Unit,
     onSyncNow: () -> Unit,
     onOpenManage: () -> Unit,
+    onOpenImport: () -> Unit,
 ) {
     Column(Modifier.padding(horizontal = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -161,6 +171,14 @@ private fun Header(
                 )
             }
             MonthPicker(overview.month, overview.months, onMonthSelected)
+            Spacer(Modifier.size(6.dp))
+            OutlinedIconButton(onClick = onOpenImport, modifier = Modifier.size(44.dp)) {
+                Icon(
+                    NetWorthIcons.Download,
+                    contentDescription = stringResource(Res.string.overview_import),
+                    modifier = Modifier.size(20.dp),
+                )
+            }
             Spacer(Modifier.size(6.dp))
             OutlinedIconButton(onClick = onOpenManage, modifier = Modifier.size(44.dp)) {
                 Icon(

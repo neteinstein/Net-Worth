@@ -14,9 +14,10 @@ All family data lives in **one JSON file in Google Drive** that the family share
 file) or **Open a Google Drive file** (Google Picker). Setup of the Google Cloud project:
 [`docs/google-cloud-setup.md`](docs/google-cloud-setup.md).
 
-Delivery is phased: phase 1 (this foundation) = Drive database + sync, onboarding, Overview, Manage,
-Categories, Settings. Next: Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Best
-statements), then Spending/Filters/Alerts, then Future/Year ahead.
+Delivery is phased: phase 1 = Drive database + sync, onboarding, Overview, Manage, Categories, Settings.
+Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Best statements, account owners,
+months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Next: Spending/Filters/Alerts, then
+Future/Year ahead.
 
 ## Stack
 
@@ -57,6 +58,9 @@ core/testing/          Fakes for feature tests (FakeDatabaseRepository, FakeAuth
                        commonTest dependency only.
 feature/onboarding/    Sign in → Start fresh / Open a Google Drive file.
 feature/overview/      Overview artboard.
+feature/importer/      Import extract + Review & learn artboards: pure-Kotlin statement parsers (PDF incl. RC4/AES,
+                       XLSX, OFX, CSV) with bank profiles, the import planner (dedupe, transfers, rules, snapshots,
+                       owners), month coverage, the review queue, and a file picker per platform.
 feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, categories).
 feature/settings/      Appearance (device-local), database file, sharing, household members, sign out.
 iosApp/                Hand-authored Xcode project wrapping ComposeApp.framework (SwiftUI host).
@@ -75,8 +79,8 @@ Why it is split this way:
 - **commonMain-first.** All code defaults to `src/commonMain/kotlin/<package>/`. Use
   `androidMain`/`iosMain`/`wasmJsMain` or `expect`/`actual` only for what a platform genuinely cannot
   share. Current `expect`/`actual`s: dynamic colour availability/scheme and system-bar icon tint
-  (`core/designsystem/.../ui/theme/Platform.kt`), `Scope.platformLocalStore()` (`core/database`) and
-  `Scope.googleAuthPlatform()` (`core/google`).
+  (`core/designsystem/.../ui/theme/Platform.kt`), `Scope.platformLocalStore()` (`core/database`),
+  `Scope.googleAuthPlatform()` (`core/google`) and `rememberStatementPicker()` (`feature/importer`).
 
 Inside each feature module:
 
@@ -198,8 +202,8 @@ plan exactly which of these you ran.
 - **Product/UI:** [`docs/design/`](docs/design/README.md) — snapshot of the claude.ai design canvas
   "Net Worth — family finances" (10 artboards + `canvas.json`). Canonical for layout, copy, palette, type and
   the default category taxonomy. Its figures and names are **example data**, never seed data.
-- **Bank statement samples** (for the importer, phase 2) are real personal documents: **never commit them**.
-  Build synthetic fixtures with the same layout and invented values.
+- **Bank statement samples** (for the importer) are real personal documents: **never commit them**.
+  Build synthetic fixtures with the same layout and invented values (see `StatementProfilesTest`).
 - Copy verbatim; **do not "clean up", paraphrase, reorder or invent** content that is not in the source. If
   something looks wrong, flag it in the PR instead of fixing it silently. Screens the design doesn't cover
   (sign-in, Start fresh, Settings) reuse its visual language and are called out in the PR.

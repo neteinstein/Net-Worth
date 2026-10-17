@@ -31,4 +31,10 @@
     <string name="designsystem_sync_syncing">Syncing…</string>
     <string name="designsystem_sync_pending">Saving…</string>
     <string name="designsystem_sync_offline">Offline · changes kept on this device</string>
+    <string name="designsystem_add_person">Add person</string>
+    <string name="designsystem_person_name">Name</string>
+    <string name="designsystem_person_adult">Adult</string>
+    <string name="designsystem_person_child">Child</string>
+    <string name="designsystem_add">Add</string>
+    <string name="designsystem_cancel">Cancel</string>
 </resources>

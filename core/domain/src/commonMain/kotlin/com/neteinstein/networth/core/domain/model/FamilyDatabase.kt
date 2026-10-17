@@ -138,6 +138,9 @@ data class Transaction(
     override val updatedAt: Long = 0,
 ) : Syncable {
     val isOutflow: Boolean get() = amountMinor < 0
+
+    /** An outflow nobody has filed yet: what Review & learn asks about. */
+    val needsReview: Boolean get() = !isInternalTransfer && categoryId == null && amountMinor < 0
 }
 
 data class ImportRecord(

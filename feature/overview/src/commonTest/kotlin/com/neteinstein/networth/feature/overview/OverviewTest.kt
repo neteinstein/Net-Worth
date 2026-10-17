@@ -111,6 +111,7 @@ class OverviewTest {
         val overview = BuildOverviewUseCase()(designFamily(), sep, AccountScope.All)
 
         assertFalse(overview.hasTransactions)
+        assertEquals(0, overview.needsReview)
         assertNull(overview.projectedSavingsMinor)
         assertNull(overview.savedPercent)
         assertTrue(overview.shares.isEmpty())

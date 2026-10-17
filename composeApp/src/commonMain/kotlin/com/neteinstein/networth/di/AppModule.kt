@@ -12,6 +12,7 @@ import com.neteinstein.networth.core.domain.repository.IdGenerator
 import com.neteinstein.networth.core.domain.repository.LocalStore
 import com.neteinstein.networth.core.domain.repository.SystemAppClock
 import com.neteinstein.networth.core.domain.repository.UuidGenerator
+import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
@@ -24,6 +25,12 @@ import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.core.google.GoogleAuthRepository
 import com.neteinstein.networth.core.google.googleAuthPlatform
 import com.neteinstein.networth.core.google.googleHttpClient
+import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
+import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
+import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
+import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
+import com.neteinstein.networth.feature.importer.ui.screens.ImportViewModel
+import com.neteinstein.networth.feature.importer.ui.screens.ReviewViewModel
 import com.neteinstein.networth.feature.manage.domain.usecase.AddCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
@@ -105,6 +112,7 @@ val appModule = module {
     factoryOf(::ObserveDatabaseUseCase)
     factoryOf(::EditDatabaseUseCase)
     factoryOf(::SyncDatabaseUseCase)
+    factoryOf(::AddMemberUseCase)
 
     // Onboarding
     factoryOf(::CreateHouseholdUseCase)
@@ -113,6 +121,13 @@ val appModule = module {
     // Overview
     factoryOf(::BuildOverviewUseCase)
     factoryOf(::MarkSeasonalUseCase)
+
+    // Import + Review & learn
+    single { StatementParser() }
+    // Explicit lambda: ParseStatementUseCase has a default dispatcher argument.
+    factory { ParseStatementUseCase(get()) }
+    factoryOf(::CommitImportUseCase)
+    factoryOf(::SaveReviewUseCase)
 
     // Manage
     factoryOf(::SaveAccountUseCase)
@@ -140,6 +155,8 @@ val appModule = module {
     viewModelOf(::AppViewModel)
     viewModelOf(::OnboardingViewModel)
     viewModelOf(::OverviewViewModel)
+    viewModelOf(::ImportViewModel)
+    viewModelOf(::ReviewViewModel)
     viewModelOf(::ManageViewModel)
     viewModelOf(::CategoriesViewModel)
     viewModel {

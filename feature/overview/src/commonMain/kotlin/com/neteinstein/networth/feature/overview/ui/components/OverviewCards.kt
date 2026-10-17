@@ -47,6 +47,7 @@ import com.neteinstein.networth.feature.overview.generated.resources.Res
 import com.neteinstein.networth.feature.overview.generated.resources.overview_account_count
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_body
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_title
+import com.neteinstein.networth.feature.overview.generated.resources.overview_import_extract
 import com.neteinstein.networth.feature.overview.generated.resources.overview_income
 import com.neteinstein.networth.feature.overview.generated.resources.overview_last_months
 import com.neteinstein.networth.feature.overview.generated.resources.overview_mark_seasonal
@@ -57,6 +58,8 @@ import com.neteinstein.networth.feature.overview.generated.resources.overview_no
 import com.neteinstein.networth.feature.overview.generated.resources.overview_overspent_in
 import com.neteinstein.networth.feature.overview.generated.resources.overview_percent_of_income
 import com.neteinstein.networth.feature.overview.generated.resources.overview_projection
+import com.neteinstein.networth.feature.overview.generated.resources.overview_review
+import com.neteinstein.networth.feature.overview.generated.resources.overview_review_banner
 import com.neteinstein.networth.feature.overview.generated.resources.overview_saved_in
 import com.neteinstein.networth.feature.overview.generated.resources.overview_spent
 import com.neteinstein.networth.feature.overview.generated.resources.overview_spike_body
@@ -328,7 +331,7 @@ private fun AccountType.label() = when (this) {
 }
 
 @Composable
-internal fun EmptyHistoryCard(modifier: Modifier = Modifier) {
+internal fun EmptyHistoryCard(onImport: () -> Unit, modifier: Modifier = Modifier) {
     SectionCard(modifier, spacing = 6) {
         Text(stringResource(Res.string.overview_empty_title), style = MaterialTheme.typography.titleMedium)
         Text(
@@ -336,5 +339,31 @@ internal fun EmptyHistoryCard(modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Button(onClick = onImport, modifier = Modifier.padding(top = 8.dp).heightIn(min = 44.dp)) {
+            Text(stringResource(Res.string.overview_import_extract))
+        }
+    }
+}
+
+/** "18 transactions need a category · Review" — the way into Review & learn after an import. */
+@Composable
+internal fun ReviewBanner(count: Int, onReview: () -> Unit, modifier: Modifier = Modifier) {
+    val finance = NetWorthTheme.financeColors
+    Surface(
+        onClick = onReview,
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        color = finance.warningContainer,
+        contentColor = finance.onWarningContainer,
+    ) {
+        Row(Modifier.padding(horizontal = 18.dp, vertical = 14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                pluralStringResource(Res.plurals.overview_review_banner, count, count),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(stringResource(Res.string.overview_review), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Icon(NetWorthIcons.ChevronRight, contentDescription = null, modifier = Modifier.padding(start = 4.dp).size(16.dp))
+        }
     }
 }
