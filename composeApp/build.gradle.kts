@@ -33,11 +33,13 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.core.domain)
             implementation(projects.core.google)
+            implementation(projects.feature.alerts)
             implementation(projects.feature.importer)
             implementation(projects.feature.manage)
             implementation(projects.feature.onboarding)
             implementation(projects.feature.overview)
             implementation(projects.feature.settings)
+            implementation(projects.feature.spending)
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.kotlinx.serialization.core)
         }

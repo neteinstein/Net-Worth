@@ -23,4 +23,23 @@ sealed interface Route : NavKey {
 
     @Serializable
     data object Review : Route
+
+    @Serializable
+    data object Spending : Route
+
+    @Serializable
+    data object Filters : Route
+
+    /** A transaction list: one category over a period (dates as ISO strings), or the active filter. */
+    @Serializable
+    data class Transactions(
+        val categoryId: String? = null,
+        val start: String? = null,
+        val end: String? = null,
+        val accountIds: List<String> = emptyList(),
+        val fromFilters: Boolean = false,
+    ) : Route
+
+    @Serializable
+    data object Alerts : Route
 }

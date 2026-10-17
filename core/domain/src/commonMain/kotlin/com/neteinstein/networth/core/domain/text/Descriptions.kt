@@ -1,4 +1,4 @@
-package com.neteinstein.networth.feature.importer.domain.parse
+package com.neteinstein.networth.core.domain.text
 
 /** What kind of bank movement a description is, as far as the text tells. */
 enum class MovementKind {

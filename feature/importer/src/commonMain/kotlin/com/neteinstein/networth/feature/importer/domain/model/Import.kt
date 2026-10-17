@@ -4,7 +4,7 @@ import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.Transaction
-import com.neteinstein.networth.feature.importer.domain.parse.DescriptionInfo
+import com.neteinstein.networth.core.domain.text.DescriptionInfo
 import kotlinx.datetime.LocalDate
 
 /** Where one section of a statement goes: an existing account, or a new one with these details. */

@@ -8,10 +8,12 @@ import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.RestoreSessionUseCase
+import com.neteinstein.networth.core.domain.usecase.SetSeasonalUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.core.google.DriveClient
 import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.di.appModule
+import com.neteinstein.networth.feature.alerts.domain.usecase.BuildAlertsUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
@@ -26,6 +28,10 @@ import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanc
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
+import com.neteinstein.networth.feature.spending.domain.repository.ActiveFilterRepository
+import com.neteinstein.networth.feature.spending.domain.usecase.BuildSpendingUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.SaveFilterUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.UpdateTransactionUseCase
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import kotlin.test.Test
@@ -79,6 +85,12 @@ class AppModuleTest {
         assertNotNull(koin.get<ParseStatementUseCase>())
         assertNotNull(koin.get<CommitImportUseCase>())
         assertNotNull(koin.get<SaveReviewUseCase>())
+        assertNotNull(koin.get<SetSeasonalUseCase>())
+        assertNotNull(koin.get<BuildSpendingUseCase>())
+        assertNotNull(koin.get<SaveFilterUseCase>())
+        assertNotNull(koin.get<UpdateTransactionUseCase>())
+        assertNotNull(koin.get<BuildAlertsUseCase>())
+        assertSame(koin.get<ActiveFilterRepository>(), koin.get<ActiveFilterRepository>())
         assertSame(koin.get<AuthRepository>(), koin.get<AuthRepository>())
         assertSame(koin.get<FamilyDatabaseRepository>(), koin.get<FamilyDatabaseRepository>())
         assertSame(koin.get<SettingsRepository>(), koin.get<SettingsRepository>())

@@ -17,6 +17,7 @@ import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.RestoreSessionUseCase
+import com.neteinstein.networth.core.domain.usecase.SetSeasonalUseCase
 import com.neteinstein.networth.core.domain.usecase.SignInUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.core.domain.usecase.SyncDatabaseUseCase
@@ -25,6 +26,8 @@ import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.core.google.GoogleAuthRepository
 import com.neteinstein.networth.core.google.googleAuthPlatform
 import com.neteinstein.networth.core.google.googleHttpClient
+import com.neteinstein.networth.feature.alerts.domain.usecase.BuildAlertsUseCase
+import com.neteinstein.networth.feature.alerts.ui.screens.AlertsViewModel
 import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
@@ -60,6 +63,16 @@ import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorU
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import com.neteinstein.networth.feature.settings.ui.screens.SettingsViewModel
+import com.neteinstein.networth.feature.spending.data.InMemoryActiveFilterRepository
+import com.neteinstein.networth.feature.spending.domain.repository.ActiveFilterRepository
+import com.neteinstein.networth.feature.spending.domain.usecase.BuildSpendingUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.ObserveActiveFilterUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.SaveFilterUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.SetActiveFilterUseCase
+import com.neteinstein.networth.feature.spending.domain.usecase.UpdateTransactionUseCase
+import com.neteinstein.networth.feature.spending.ui.screens.FiltersViewModel
+import com.neteinstein.networth.feature.spending.ui.screens.SpendingViewModel
+import com.neteinstein.networth.feature.spending.ui.screens.TransactionsViewModel
 import com.neteinstein.networth.ui.AppViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -113,6 +126,7 @@ val appModule = module {
     factoryOf(::EditDatabaseUseCase)
     factoryOf(::SyncDatabaseUseCase)
     factoryOf(::AddMemberUseCase)
+    factoryOf(::SetSeasonalUseCase)
 
     // Onboarding
     factoryOf(::CreateHouseholdUseCase)
@@ -128,6 +142,17 @@ val appModule = module {
     factory { ParseStatementUseCase(get()) }
     factoryOf(::CommitImportUseCase)
     factoryOf(::SaveReviewUseCase)
+
+    // Spending + Filters
+    single<ActiveFilterRepository> { InMemoryActiveFilterRepository() }
+    factoryOf(::BuildSpendingUseCase)
+    factoryOf(::ObserveActiveFilterUseCase)
+    factoryOf(::SetActiveFilterUseCase)
+    factoryOf(::SaveFilterUseCase)
+    factoryOf(::UpdateTransactionUseCase)
+
+    // Alerts
+    factoryOf(::BuildAlertsUseCase)
 
     // Manage
     factoryOf(::SaveAccountUseCase)
@@ -157,6 +182,10 @@ val appModule = module {
     viewModelOf(::OverviewViewModel)
     viewModelOf(::ImportViewModel)
     viewModelOf(::ReviewViewModel)
+    viewModelOf(::SpendingViewModel)
+    viewModelOf(::FiltersViewModel)
+    viewModelOf(::TransactionsViewModel)
+    viewModelOf(::AlertsViewModel)
     viewModelOf(::ManageViewModel)
     viewModelOf(::CategoriesViewModel)
     viewModel {

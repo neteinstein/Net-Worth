@@ -21,16 +21,17 @@ data class Spike(
 
 /**
  * Categories whose spending in [month] is at least the household's spike threshold above their
- * trailing average. Categories with spike warnings off, without history, or marked as seasonal
- * for that month are skipped. Largest excess first.
+ * trailing average. Categories with spike warnings off or without history are skipped, and so are
+ * those marked as seasonal for that month unless [includeSeasonal] (Alerts shows them as planned).
+ * Largest excess first.
  */
-fun FamilyDatabase.spikes(month: CalendarMonth, scope: AccountScope = AccountScope.All): List<Spike> {
+fun FamilyDatabase.spikes(month: CalendarMonth, scope: AccountScope = AccountScope.All, includeSeasonal: Boolean = false): List<Spike> {
     val threshold = settings.alerts.spikeThresholdPct
     val current = totals(scope, month).spentByCategory
     val average = trailingAverage(scope, month).spentByCategory
     val lastYear = month.plus(-12)
     val lastYearTotals = if (lastYear in coveredMonths(scope)) totals(scope, lastYear).spentByCategory else null
-    val seasonal = settings.alerts.seasonalMarks.filter { it.month == month.month && it.year == month.year }.map { it.categoryId }.toSet()
+    val seasonal = if (includeSeasonal) emptySet() else seasonalCategories(month)
     return categories
         .filter { it.warnOnSpike && it.id !in seasonal }
         .mapNotNull { category ->
@@ -41,3 +42,7 @@ fun FamilyDatabase.spikes(month: CalendarMonth, scope: AccountScope = AccountSco
         }
         .sortedByDescending { it.spentMinor - it.averageMinor }
 }
+
+/** Categories marked "seasonal" for [month]: their spike that month was expected. */
+fun FamilyDatabase.seasonalCategories(month: CalendarMonth): Set<String> =
+    settings.alerts.seasonalMarks.filter { it.month == month.month && it.year == month.year }.map { it.categoryId }.toSet()

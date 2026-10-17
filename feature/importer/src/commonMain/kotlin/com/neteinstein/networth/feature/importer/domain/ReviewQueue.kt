@@ -5,10 +5,10 @@ import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.repository.IdGenerator
+import com.neteinstein.networth.core.domain.text.Descriptions
+import com.neteinstein.networth.core.domain.text.MovementKind
 import com.neteinstein.networth.feature.importer.domain.model.ReviewChoice
 import com.neteinstein.networth.feature.importer.domain.model.ReviewItem
-import com.neteinstein.networth.feature.importer.domain.parse.Descriptions
-import com.neteinstein.networth.feature.importer.domain.parse.MovementKind
 
 /** Builds the Review & learn queue and applies the family's choices. */
 object ReviewQueue {

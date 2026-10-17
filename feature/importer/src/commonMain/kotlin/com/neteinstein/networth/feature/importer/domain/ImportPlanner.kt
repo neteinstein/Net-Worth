@@ -9,12 +9,12 @@ import com.neteinstein.networth.core.domain.model.ScheduledPayment
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.repository.IdGenerator
+import com.neteinstein.networth.core.domain.text.Descriptions
+import com.neteinstein.networth.core.domain.text.MovementKind
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
 import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
 import com.neteinstein.networth.feature.importer.domain.model.ParsedRow
 import com.neteinstein.networth.feature.importer.domain.model.ParsedSection
-import com.neteinstein.networth.feature.importer.domain.parse.Descriptions
-import com.neteinstein.networth.feature.importer.domain.parse.MovementKind
 import com.neteinstein.networth.feature.importer.domain.parse.Values
 import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
