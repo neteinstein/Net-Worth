@@ -2,8 +2,6 @@ package com.neteinstein.networth.feature.manage.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
@@ -32,14 +30,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.neteinstein.networth.core.designsystem.ui.components.ChoiceChip
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
+import com.neteinstein.networth.core.designsystem.ui.components.OwnerPicker
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Member
+import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.feature.manage.generated.resources.Res
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance_invalid
@@ -63,12 +62,13 @@ import com.neteinstein.networth.feature.manage.ui.screens.AccountEditor
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun AccountEditorDialog(
     editor: AccountEditor,
     members: List<Member>,
     onChange: ((AccountEditor) -> AccountEditor) -> Unit,
+    onAddPerson: (String, MemberRole) -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
@@ -108,17 +108,13 @@ internal fun AccountEditorDialog(
                         }
                     }
                 }
-                if (members.isNotEmpty()) {
-                    OverlineLabel(stringResource(Res.string.manage_account_owners))
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        members.forEach { member ->
-                            val selected = member.id in editor.ownerIds
-                            ChoiceChip(member.name, selected, onClick = {
-                                onChange { it.copy(ownerIds = if (selected) it.ownerIds - member.id else it.ownerIds + member.id) }
-                            })
-                        }
-                    }
-                }
+                OverlineLabel(stringResource(Res.string.manage_account_owners))
+                OwnerPicker(
+                    members = members,
+                    selectedIds = editor.ownerIds,
+                    onToggle = { id -> onChange { it.copy(ownerIds = if (id in it.ownerIds) it.ownerIds - id else it.ownerIds + id) } },
+                    onAddPerson = onAddPerson,
+                )
                 OutlinedTextField(
                     value = editor.bank,
                     onValueChange = { value -> onChange { it.copy(bank = value) } },

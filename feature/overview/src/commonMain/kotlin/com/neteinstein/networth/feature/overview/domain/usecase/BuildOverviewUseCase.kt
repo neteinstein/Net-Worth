@@ -61,6 +61,8 @@ data class Overview(
     val scopes: List<AccountScope>,
     val scope: AccountScope,
     val hasTransactions: Boolean,
+    /** Uncategorised outflows waiting in Review & learn. */
+    val needsReview: Int,
     val incomeMinor: Long,
     val spentMinor: Long,
     val savedMinor: Long,
@@ -112,6 +114,7 @@ class BuildOverviewUseCase {
             scopes = scopes,
             scope = effectiveScope,
             hasTransactions = database.transactions.isNotEmpty(),
+            needsReview = database.transactions.count { it.needsReview },
             incomeMinor = totals.incomeMinor,
             spentMinor = spent,
             savedMinor = totals.savedMinor,

@@ -33,6 +33,7 @@ kotlin {
             implementation(projects.core.designsystem)
             implementation(projects.core.domain)
             implementation(projects.core.google)
+            implementation(projects.feature.importer)
             implementation(projects.feature.manage)
             implementation(projects.feature.onboarding)
             implementation(projects.feature.overview)

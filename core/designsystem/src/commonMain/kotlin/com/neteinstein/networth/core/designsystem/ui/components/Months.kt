@@ -17,3 +17,11 @@ fun shortMonthName(month: Int): String = stringArrayResource(Res.array.designsys
 /** "Sep 2026". */
 @Composable
 fun shortMonthYear(month: Int, year: Int): String = "${shortMonthName(month)} $year"
+
+/** All 12 localised month names, January first. */
+@Composable
+fun monthNames(): List<String> = stringArrayResource(Res.array.designsystem_months_long)
+
+/** All 12 localised short month names, "Jan" first. */
+@Composable
+fun shortMonthNames(): List<String> = stringArrayResource(Res.array.designsystem_months_short)

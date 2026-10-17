@@ -78,5 +78,6 @@ include(":core:testing")
 // Features — one module per feature
 include(":feature:onboarding")
 include(":feature:manage")
+include(":feature:importer")
 include(":feature:overview")
 include(":feature:settings")

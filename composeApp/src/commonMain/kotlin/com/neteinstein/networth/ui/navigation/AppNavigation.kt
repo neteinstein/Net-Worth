@@ -14,6 +14,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import com.neteinstein.networth.feature.importer.ui.screens.ImportScreen
+import com.neteinstein.networth.feature.importer.ui.screens.ReviewScreen
 import com.neteinstein.networth.feature.manage.ui.screens.CategoriesScreen
 import com.neteinstein.networth.feature.manage.ui.screens.ManageScreen
 import com.neteinstein.networth.feature.overview.ui.screens.OverviewScreen
@@ -32,6 +34,8 @@ internal val navSavedStateConfiguration = SavedStateConfiguration {
             subclass(Route.Manage::class, Route.Manage.serializer())
             subclass(Route.Categories::class, Route.Categories.serializer())
             subclass(Route.Settings::class, Route.Settings.serializer())
+            subclass(Route.Import::class, Route.Import.serializer())
+            subclass(Route.Review::class, Route.Review.serializer())
         }
     }
 }
@@ -49,7 +53,11 @@ fun AppNavigation() {
         predictivePopTransitionSpec = { backward() },
         entryProvider = entryProvider {
             entry<Route.Overview> {
-                OverviewScreen(onOpenManage = { backStack.add(Route.Manage) })
+                OverviewScreen(
+                    onOpenManage = { backStack.add(Route.Manage) },
+                    onOpenImport = { backStack.add(Route.Import) },
+                    onOpenReview = { backStack.add(Route.Review) },
+                )
             }
             entry<Route.Manage> {
                 ManageScreen(
@@ -63,6 +71,12 @@ fun AppNavigation() {
             }
             entry<Route.Settings> {
                 SettingsScreen(onBack = back)
+            }
+            entry<Route.Import> {
+                ImportScreen(onBack = back, onOpenReview = { backStack.add(Route.Review) })
+            }
+            entry<Route.Review> {
+                ReviewScreen(onBack = back)
             }
         },
     )

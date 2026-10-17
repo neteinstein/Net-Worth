@@ -1,0 +1,103 @@
+<resources>
+    <!-- Import extract (docs/design/Import.dc.html) -->
+    <string name="importer_title">Import extract</string>
+    <string name="importer_intro">Upload the statement you download from your bank — weekly, monthly or any period. Overlapping dates are merged, never counted twice.</string>
+    <string name="importer_choose">Choose a bank extract</string>
+    <string name="importer_formats">CSV · XLSX · OFX · PDF</string>
+    <string name="importer_browse">Browse files</string>
+    <string name="importer_which_account">Which account is this extract from?</string>
+    <string name="importer_preselected">Pre-selected from the IBAN in the file — check it before importing.</string>
+    <string name="importer_categorised">Categorised automatically</string>
+    <string name="importer_categorised_value">%1$d of %2$d · %3$d%%</string>
+    <plurals name="importer_rows_read">
+        <item quantity="one">%1$d row read</item>
+        <item quantity="other">%1$d rows read</item>
+    </plurals>
+    <plurals name="importer_duplicates">
+        <item quantity="one">%1$d duplicate skipped</item>
+        <item quantity="other">%1$d duplicates skipped</item>
+    </plurals>
+    <string name="importer_need_you">%1$d need you</string>
+    <plurals name="importer_overlap_note">
+        <item quantity="one">The duplicate overlapped with your extract of %2$s.</item>
+        <item quantity="other">The %1$d duplicates overlapped with your extract of %2$s.</item>
+    </plurals>
+    <plurals name="importer_transfers_note">
+        <item quantity="one">%1$d transfer between your accounts is marked as internal, not spending.</item>
+        <item quantity="other">%1$d transfers between your accounts are marked as internal, not spending.</item>
+    </plurals>
+    <plurals name="importer_review_count">
+        <item quantity="one">Review %1$d transaction</item>
+        <item quantity="other">Review %1$d transactions</item>
+    </plurals>
+    <string name="importer_earlier">Earlier imports</string>
+    <plurals name="importer_transactions">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
+    <string name="importer_period_weekly">Weekly</string>
+    <string name="importer_period_monthly">Monthly</string>
+    <string name="importer_period_other">Statement</string>
+
+    <!-- Not on the artboard: multi-account files, owners, coverage (flagged in the PR). -->
+    <string name="importer_reading">Reading %1$s…</string>
+    <string name="importer_importing">Importing…</string>
+    <string name="importer_section_rows">%1$s · %2$s</string>
+    <string name="importer_new_account">New account</string>
+    <string name="importer_new_account_name">Account name</string>
+    <string name="importer_include_section">Import this account</string>
+    <string name="importer_whose">Whose account is it?</string>
+    <string name="importer_whose_hint">Pick everyone who owns it — a joint account has more than one.</string>
+    <string name="importer_import">Import</string>
+    <string name="importer_import_another">Import another extract</string>
+    <string name="importer_unreconciled">The movements of %1$s don’t add up to the closing balance in the file. Check them in Spending.</string>
+    <string name="importer_error_unknown">Couldn’t read this file. Is it a bank statement in CSV, XLSX, OFX or PDF?</string>
+    <string name="importer_error_dismiss">Choose another file</string>
+    <string name="importer_months_title">Months uploaded</string>
+    <string name="importer_months_body">Last 12 months per account. Upload the missing ones so averages and alerts see the whole picture.</string>
+    <string name="importer_month_full">Uploaded</string>
+    <string name="importer_month_partial">Partly</string>
+    <string name="importer_month_missing">Missing</string>
+    <plurals name="importer_months_missing">
+        <item quantity="one">%1$d month to upload</item>
+        <item quantity="other">%1$d months to upload</item>
+    </plurals>
+    <string name="importer_months_complete">All uploaded</string>
+    <string name="importer_back">Back</string>
+    <string name="importer_type_current">Current account</string>
+    <string name="importer_type_savings">Savings</string>
+    <string name="importer_type_term_deposit">Term deposit</string>
+    <string name="importer_type_investment">Investments</string>
+    <string name="importer_type_mortgage">Mortgage</string>
+    <string name="importer_type_loan">Loan</string>
+
+    <!-- Review & learn (docs/design/Review.dc.html) -->
+    <string name="review_title">Review &amp; learn</string>
+    <string name="review_done">%1$d of %2$d done</string>
+    <string name="review_intro">Net Worth already knows %1$d merchants. Each choice here teaches it one more, so next month’s import needs less of you.</string>
+    <string name="review_showing">Showing %1$d of %2$d</string>
+    <string name="review_accept_all">Accept all suggestions</string>
+    <string name="review_suggested">%1$s · suggested</string>
+    <string name="review_note">Note (no merchant name on MB WAY)</string>
+    <string name="review_remember_merchant">Always file %1$s this way</string>
+    <string name="review_remember_phone">Remember for this phone number</string>
+    <string name="review_save">Save &amp; learn</string>
+    <string name="review_save_count">Save %1$d &amp; learn</string>
+    <string name="review_hint_phone">Phone transfer</string>
+    <string name="review_hint_history">%1$d of %2$d past visits were %3$s</string>
+    <!-- Not on the artboard -->
+    <string name="review_remember_person">Remember for %1$s</string>
+    <string name="review_hint_low_value">Contactless payment · the bank doesn’t name the shop</string>
+    <string name="review_hint_card">Card payment</string>
+    <string name="review_hint_debit">Direct debit</string>
+    <string name="review_hint_transfer">Transfer to %1$s</string>
+    <string name="review_hint_cash">Cash withdrawal</string>
+    <string name="review_hint_fee">Bank fee or tax</string>
+    <string name="review_more">More…</string>
+    <string name="review_empty_title">Nothing to review</string>
+    <string name="review_empty_body">Every transaction has a category. New ones appear here after an import.</string>
+    <plurals name="review_saved">
+        <item quantity="one">Filed %1$d transaction.</item>
+        <item quantity="other">Filed %1$d transactions.</item>
+    </plurals>
+</resources>

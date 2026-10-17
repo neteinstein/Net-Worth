@@ -34,6 +34,7 @@ internal fun previewOverview(): Overview {
         scopes = listOf(AccountScope.All, AccountScope.Single("a1"), AccountScope.Children),
         scope = AccountScope.All,
         hasTransactions = true,
+        needsReview = 18,
         incomeMinor = 4_850_00,
         spentMinor = 4_120_00,
         savedMinor = 730_00,

@@ -2,10 +2,12 @@ package com.neteinstein.networth.feature.manage
 
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.FamilyDatabase
+import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
@@ -62,6 +64,7 @@ class ManageTest {
         setAskAccount = SetAskAccountOnImportUseCase(edit),
         saveAlertSettings = SaveAlertSettingsUseCase(edit),
         deleteRule = DeleteMerchantRuleUseCase(edit),
+        addMember = AddMemberUseCase(edit, SequentialIds("person")),
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 
     @BeforeTest
@@ -102,6 +105,18 @@ class ManageTest {
         assertEquals(147_268_16, snapshot.amountMinor)
         assertEquals(LocalDate(2026, 10, 1), snapshot.date)
         assertEquals(147_268_16, vm.state.value.accounts.last().balanceMinor)
+    }
+
+    @Test
+    fun addingAPersonFromTheEditorMakesThemAnOwner() = runTest {
+        val vm = viewModel()
+
+        vm.onAddAccount()
+        vm.onAddPerson("Avó Rosa", MemberRole.ADULT)
+
+        val person = repository.database.members.last()
+        assertEquals("Avó Rosa", person.name)
+        assertEquals(listOf(person.id), vm.state.value.editor!!.ownerIds)
     }
 
     @Test

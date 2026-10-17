@@ -5,6 +5,13 @@
         <item quantity="other">%1$s · family of %2$d</item>
     </plurals>
     <string name="overview_change_period">Change period, %1$s</string>
+    <string name="overview_import">Import extract</string>
+    <string name="overview_import_extract">Import extract</string>
+    <plurals name="overview_review_banner">
+        <item quantity="one">%1$d transaction needs a category</item>
+        <item quantity="other">%1$d transactions need a category</item>
+    </plurals>
+    <string name="overview_review">Review</string>
     <string name="overview_manage">Manage accounts, categories and filters</string>
     <string name="overview_scope_all">All accounts</string>
     <string name="overview_scope_children">Kids’ savings</string>

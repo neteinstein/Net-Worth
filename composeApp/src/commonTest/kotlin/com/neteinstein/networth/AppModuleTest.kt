@@ -5,12 +5,16 @@ import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
 import com.neteinstein.networth.core.domain.repository.InMemoryLocalStore
 import com.neteinstein.networth.core.domain.repository.LocalStore
 import com.neteinstein.networth.core.domain.repository.UserProfile
+import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.RestoreSessionUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.core.google.DriveClient
 import com.neteinstein.networth.core.google.GoogleAuthPlatform
 import com.neteinstein.networth.di.appModule
+import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
+import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
+import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
@@ -71,6 +75,10 @@ class AppModuleTest {
         assertNotNull(koin.get<SetDynamicColorUseCase>())
         assertNotNull(koin.get<ShareDatabaseUseCase>())
         assertNotNull(koin.get<DriveClient>())
+        assertNotNull(koin.get<AddMemberUseCase>())
+        assertNotNull(koin.get<ParseStatementUseCase>())
+        assertNotNull(koin.get<CommitImportUseCase>())
+        assertNotNull(koin.get<SaveReviewUseCase>())
         assertSame(koin.get<AuthRepository>(), koin.get<AuthRepository>())
         assertSame(koin.get<FamilyDatabaseRepository>(), koin.get<FamilyDatabaseRepository>())
         assertSame(koin.get<SettingsRepository>(), koin.get<SettingsRepository>())

@@ -9,8 +9,10 @@ import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
 import com.neteinstein.networth.core.domain.model.Member
+import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.SavedFilter
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.AccountDraft
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
@@ -78,6 +80,7 @@ class ManageViewModel(
     private val setAskAccount: SetAskAccountOnImportUseCase,
     private val saveAlertSettings: SaveAlertSettingsUseCase,
     private val deleteRule: DeleteMerchantRuleUseCase,
+    private val addMember: AddMemberUseCase,
 ) : ViewModel() {
     private val editor = MutableStateFlow<AccountEditor?>(null)
 
@@ -133,6 +136,14 @@ class ManageViewModel(
     }
 
     fun onEditorChange(change: (AccountEditor) -> AccountEditor) = editor.update { it?.let(change) }
+
+    /** Adds someone to the household from the owner picker and makes them an owner of the edited account. */
+    fun onAddPerson(name: String, role: MemberRole) {
+        viewModelScope.launch {
+            val member = addMember(name, role)
+            editor.update { it?.copy(ownerIds = it.ownerIds + member.id) }
+        }
+    }
 
     fun onDismissEditor() {
         editor.value = null
