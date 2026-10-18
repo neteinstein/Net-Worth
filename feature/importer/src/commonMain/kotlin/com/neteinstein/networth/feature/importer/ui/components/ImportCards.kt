@@ -50,6 +50,7 @@ import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
+import com.neteinstein.networth.core.domain.repository.CategorizerFailure
 import com.neteinstein.networth.feature.importer.domain.model.AccountCoverage
 import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
 import com.neteinstein.networth.feature.importer.domain.model.MonthCoverage
@@ -58,6 +59,11 @@ import com.neteinstein.networth.feature.importer.generated.resources.importer_br
 import com.neteinstein.networth.feature.importer.generated.resources.importer_categorised
 import com.neteinstein.networth.feature.importer.generated.resources.importer_categorised_value
 import com.neteinstein.networth.feature.importer.generated.resources.importer_choose
+import com.neteinstein.networth.feature.importer.generated.resources.importer_claude_filed
+import com.neteinstein.networth.feature.importer.generated.resources.importer_claude_invalid_key
+import com.neteinstein.networth.feature.importer.generated.resources.importer_claude_network
+import com.neteinstein.networth.feature.importer.generated.resources.importer_claude_rate_limited
+import com.neteinstein.networth.feature.importer.generated.resources.importer_claude_unknown
 import com.neteinstein.networth.feature.importer.generated.resources.importer_duplicates
 import com.neteinstein.networth.feature.importer.generated.resources.importer_earlier
 import com.neteinstein.networth.feature.importer.generated.resources.importer_error_dismiss
@@ -92,6 +98,7 @@ import com.neteinstein.networth.feature.importer.ui.Periods
 import com.neteinstein.networth.feature.importer.ui.screens.ImportHistoryLine
 import com.neteinstein.networth.feature.importer.ui.screens.SectionUi
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -356,6 +363,13 @@ internal fun SummaryCard(
                     add(pluralStringResource(Res.plurals.importer_transfers_note, summary.internalTransfers, summary.internalTransfers))
                 }
                 summary.unreconciledAccounts.forEach { add(stringResource(Res.string.importer_unreconciled, it)) }
+                summary.claude?.let { claude ->
+                    val failure = claude.failure
+                    when {
+                        failure != null -> add(stringResource(failure.message))
+                        claude.filed > 0 -> add(pluralStringResource(Res.plurals.importer_claude_filed, claude.filed, claude.filed))
+                    }
+                }
             }
         if (notes.isNotEmpty()) {
             Text(notes.joinToString(" "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -506,3 +520,11 @@ internal fun HistoryCard(
         }
     }
 }
+
+private val CategorizerFailure.message: StringResource
+    get() = when (this) {
+        CategorizerFailure.INVALID_KEY -> Res.string.importer_claude_invalid_key
+        CategorizerFailure.RATE_LIMITED -> Res.string.importer_claude_rate_limited
+        CategorizerFailure.NETWORK -> Res.string.importer_claude_network
+        CategorizerFailure.UNKNOWN -> Res.string.importer_claude_unknown
+    }

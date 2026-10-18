@@ -71,6 +71,7 @@ include(":composeApp")
 // Shared core
 include(":core:designsystem")
 include(":core:domain")
+include(":core:claude")
 include(":core:database")
 include(":core:google")
 include(":core:testing")

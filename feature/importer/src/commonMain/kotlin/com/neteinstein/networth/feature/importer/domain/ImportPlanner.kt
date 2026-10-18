@@ -38,6 +38,8 @@ class ImportPlanner(
     data class Result(
         val database: FamilyDatabase,
         val summary: ImportSummary,
+        /** Ids of the transactions this import added. */
+        val addedIds: List<String> = emptyList(),
     )
 
     fun apply(
@@ -208,6 +210,7 @@ class ImportPlanner(
                 unreconciledAccounts = unreconciled,
                 sectionAccountIds = targetAccounts,
             ),
+            added.map { it.id },
         )
     }
 

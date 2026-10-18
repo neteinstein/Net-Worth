@@ -121,4 +121,13 @@
         <item quantity="one">%1$d movimento classificado.</item>
         <item quantity="other">%1$d movimentos classificados.</item>
     </plurals>
+    <!-- Classificação automática com o Claude -->
+    <plurals name="importer_claude_filed">
+        <item quantity="one">O Claude classificou %1$d movimento que nenhuma regra conhecia. Confira-o em Gastos.</item>
+        <item quantity="other">O Claude classificou %1$d movimentos que nenhuma regra conhecia. Confira-os em Gastos.</item>
+    </plurals>
+    <string name="importer_claude_invalid_key">O Claude não classificou os restantes: a chave da API foi recusada. Verifique-a nas Definições.</string>
+    <string name="importer_claude_rate_limited">O Claude não classificou os restantes: a sua conta Anthropic atingiu o limite ou ficou sem crédito.</string>
+    <string name="importer_claude_network">Não foi possível contactar o Claude, por isso os restantes esperam por si em Rever e aprender.</string>
+    <string name="importer_claude_unknown">O Claude não conseguiu classificar os restantes desta vez. Esperam por si em Rever e aprender.</string>
 </resources>

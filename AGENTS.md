@@ -53,6 +53,8 @@ core/domain/           Pure Kotlin: FamilyDatabase models, Money/MoneyFormatter/
                        (FamilyDatabaseRepository, AuthRepository, LocalStore, AppClock), shared use cases, seeds.
 core/database/         The Drive-backed FamilyDatabaseRepository: JSON schema (schema/SchemaV1.kt), codec,
                        record-level merger, local cache; expect/actual LocalStore (files / localStorage).
+core/claude/           Optional Claude auto-categorisation of imports: ClaudeCategorizer (Messages API over Ktor, with the
+                       user's own key) and the device-local LocalClaudeKeyRepository.
 core/google/           Google sign-in per platform (GoogleAuthPlatform actuals), DriveClient (Ktor), OAuth/PKCE
                        helpers, generated GoogleConfig (client ids from local.properties / env).
 core/designsystem/     Theme from the design (ink/blue palette, Bricolage Grotesque + Instrument Sans + IBM Plex
@@ -85,7 +87,7 @@ Why it is split this way:
   module.** So the shared UI/logic is a KMP *library* (`composeApp`) and the installable Android app is
   a thin separate module (`androidApp`).
 - **One module per feature** keeps build times and ownership local. A feature depends on
-  `core:designsystem` + `core:domain` (never on `core:database`/`core:google`, never on another feature). `composeApp` is the only module that sees every feature
+  `core:designsystem` + `core:domain` (never on `core:database`/`core:google`/`core:claude`, never on another feature). `composeApp` is the only module that sees every feature
   (it wires them into navigation and DI).
 - **commonMain-first.** All code defaults to `src/commonMain/kotlin/<package>/`. Use
   `androidMain`/`iosMain`/`wasmJsMain` or `expect`/`actual` only for what a platform genuinely cannot
@@ -291,7 +293,9 @@ plan exactly which of these you ran.
 12. ktlint ignores generated sources (`**/generated/**`, `build/`); composables are exempt from
     function-naming via `.editorconfig`.
 13. **Persistence:** family data = the Drive JSON file + its local cache (`core:database`). Appearance is
-    device-local (`LocalSettingsRepository` → `LocalStore`). Never store family data anywhere else.
+    device-local (`LocalSettingsRepository` → `LocalStore`), and so is the Claude API key
+    (`LocalClaudeKeyRepository`): a personal secret never goes into the shared family file. Never store family
+    data anywhere else.
 14. **Schema changes** to `core/database/.../schema/SchemaV1.kt` are a file-format change shared by every
     device: add fields with defaults; renames/removals need a `SCHEMA_VERSION` bump and a migration in
     `FamilyDatabaseCodec`. Every syncable record needs `id` + `updatedAt`; deletions go through

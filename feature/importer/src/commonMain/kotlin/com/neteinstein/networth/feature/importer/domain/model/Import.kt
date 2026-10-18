@@ -4,6 +4,7 @@ import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.Transaction
+import com.neteinstein.networth.core.domain.repository.CategorizerFailure
 import com.neteinstein.networth.core.domain.text.DescriptionInfo
 import kotlinx.datetime.LocalDate
 
@@ -41,10 +42,18 @@ data class ImportSummary(
     val unreconciledAccounts: List<String>,
     /** The account each imported section went to, by section index (new accounts included). */
     val sectionAccountIds: Map<Int, String> = emptyMap(),
+    /** How Claude did on what rules couldn't file; null when Claude isn't set up or nothing was left to file. */
+    val claude: ClaudeOutcome? = null,
 ) {
     /** Movements that count as spending or income, i.e. not internal transfers. */
     val categorisable: Int get() = imported - internalTransfers
 }
+
+/** What Claude filed of the movements no rule could, or why it couldn't. Its count is part of [ImportSummary.autoCategorised]. */
+data class ClaudeOutcome(
+    val filed: Int,
+    val failure: CategorizerFailure? = null,
+)
 
 enum class MonthCoverage {
     /** Every day of the month is covered by imported statements. */
