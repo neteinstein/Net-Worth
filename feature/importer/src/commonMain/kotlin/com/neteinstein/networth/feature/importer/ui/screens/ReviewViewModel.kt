@@ -70,10 +70,11 @@ class ReviewViewModel(
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ReviewUiState())
 
+    /** Picking the chosen category again clears it, so a wrong tap can be undone. */
     fun onPick(
         transactionId: String,
         categoryId: String,
-    ) = edit(transactionId) { it.copy(categoryId = categoryId) }
+    ) = edit(transactionId) { it.copy(categoryId = if (it.categoryId == categoryId) null else categoryId) }
 
     fun onNote(
         transactionId: String,

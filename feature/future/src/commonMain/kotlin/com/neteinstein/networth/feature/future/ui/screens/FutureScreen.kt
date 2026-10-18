@@ -48,6 +48,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ProportionBar
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.monthName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthYear
@@ -372,7 +373,7 @@ private fun WhatIfCard(
             option(
                 future.whatIfs.setAside,
                 stringResource(Res.string.future_set_aside, MoneyFormatter.whole(it.monthlyMinor, currency), monthName(it.month)),
-                stringResource(Res.string.future_set_aside_body, it.categoryName),
+                stringResource(Res.string.future_set_aside_body, categoryName(it.categoryName)),
                 onToggleSetAside,
             )
         }

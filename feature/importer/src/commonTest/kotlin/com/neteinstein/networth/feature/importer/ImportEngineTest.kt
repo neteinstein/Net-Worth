@@ -44,6 +44,7 @@ class ImportEngineTest {
     private val joint = family.accounts.first { it.type == AccountType.SAVINGS && it.ownerIds.size == 2 }
     private val groceries = family.categories.first { it.name == "Groceries" }
     private val other = family.categories.first { it.name == "Other" }
+    private val bankCosts = family.categories.first { it.name == "Bank costs" }
 
     private fun d(day: Int, month: Int = 9) = LocalDate(2026, month, day)
 
@@ -292,7 +293,8 @@ class ImportEngineTest {
         val mbWay = queue.first { it.transaction.id == "w2" }
         assertTrue(mbWay.needsNote)
         assertNull(mbWay.suggestedCategoryId)
-        assertEquals(other.id, queue.first { it.transaction.id == "w3" }.suggestedCategoryId)
+        // An account fee lands in the seeded "Bank costs › Bank fees".
+        assertEquals(bankCosts.id, queue.first { it.transaction.id == "w3" }.suggestedCategoryId)
         assertTrue(ReviewQueue.knownMerchants(db) >= 1)
 
         val (updated, filed) =

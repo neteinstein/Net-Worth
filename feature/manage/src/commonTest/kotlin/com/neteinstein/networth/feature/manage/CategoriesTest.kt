@@ -132,8 +132,8 @@ class CategoriesTest {
         assertNull(repository.database.transactions.first { it.id == "t1" }.subcategoryId)
         val pets = repository.database.categories.last()
         assertEquals("Pets", pets.name)
-        assertEquals(10, pets.position)
-        assertEquals(11, repository.database.categories.size)
+        assertEquals(11, pets.position)
+        assertEquals(12, repository.database.categories.size)
     }
 
     @Test

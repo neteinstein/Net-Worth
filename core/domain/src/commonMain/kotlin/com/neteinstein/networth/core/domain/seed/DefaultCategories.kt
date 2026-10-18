@@ -7,7 +7,8 @@ import com.neteinstein.networth.core.domain.repository.IdGenerator
 /**
  * The starting categories, copied from the "Categories" artboard of the design
  * (docs/design/Categories.dc.html): names, colours and subcategories, in that order.
- * Budgets and seasonal peaks shown there are example values and are not seeded.
+ * Budgets and seasonal peaks shown there are example values and are not seeded. "Bank costs" is not on the
+ * artboard: it was added at the household's request (bank fees used to sit under "Other").
  */
 object DefaultCategories {
     internal val definitions: List<Triple<String, String, List<String>>> = listOf(
@@ -27,8 +28,9 @@ object DefaultCategories {
         Triple("Kids’ activities", "#F0A964", listOf("Sports", "Music", "Camps")),
         Triple("Dining & leisure", "#6A4FC9", listOf("Restaurants", "Takeaway", "Outings", "Subscriptions")),
         Triple("Health", "#3E8C7E", listOf("Pharmacy", "Doctor & dentist", "Optician")),
+        Triple("Bank costs", "#5B6475", listOf("Bank fees", "Card fees", "Interest")),
         Triple("Vacations", "#C9CFDA", listOf("Travel", "Accommodation", "Activities")),
-        Triple("Other", "#A3ABBA", listOf("Gifts", "Bank fees", "Misc")),
+        Triple("Other", "#A3ABBA", listOf("Gifts", "Misc")),
     )
 
     fun create(ids: IdGenerator, now: Long): List<Category> = definitions.mapIndexed { index, (name, color, subs) ->
@@ -41,6 +43,9 @@ object DefaultCategories {
             updatedAt = now,
         )
     }
+
+    /** Every seeded name, categories and subcategories, as stored in a new database. */
+    val names: Set<String> get() = definitions.flatMap { (name, _, subs) -> listOf(name) + subs }.toSet()
 
     /** Swatches offered when recolouring a category (Categories artboard). */
     val palette: List<String> = listOf("#D9652B", "#2D55D6", "#3E8C7E", "#A8487A", "#6A4FC9", "#141B2D")

@@ -49,6 +49,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
@@ -438,7 +439,7 @@ private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: 
                     overflow = TextOverflow.Ellipsis,
                 )
                 ColorKey(categoryColor(rule.colorHex), size = 8.dp)
-                Text(rule.categoryName, style = MaterialTheme.typography.labelMedium)
+                Text(categoryName(rule.categoryName), style = MaterialTheme.typography.labelMedium)
                 IconButton(onClick = { onDelete(rule.id) }) {
                     Icon(
                         Icons.Filled.Close,
