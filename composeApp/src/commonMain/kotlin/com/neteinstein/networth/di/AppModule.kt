@@ -54,6 +54,7 @@ import com.neteinstein.networth.feature.manage.ui.screens.CategoriesViewModel
 import com.neteinstein.networth.feature.manage.ui.screens.ManageViewModel
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.PickDatabaseFolderUseCase
 import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingViewModel
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
@@ -136,6 +137,7 @@ val appModule = module {
     // Onboarding
     factoryOf(::CreateHouseholdUseCase)
     factoryOf(::OpenSharedDatabaseUseCase)
+    factoryOf(::PickDatabaseFolderUseCase)
 
     // Overview
     factoryOf(::BuildOverviewUseCase)

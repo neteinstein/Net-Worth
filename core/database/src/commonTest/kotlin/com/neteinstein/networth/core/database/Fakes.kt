@@ -19,6 +19,7 @@ class FakeRemote : DatabaseRemote {
     val files = mutableMapOf<String, String>()
     val versions = mutableMapOf<String, Int>()
     val shares = mutableListOf<Pair<String, String>>()
+    val folders = mutableMapOf<String, String?>()
     var uploads = 0
     var failWith: Problem? = null
     private var nextId = 1
@@ -35,10 +36,11 @@ class FakeRemote : DatabaseRemote {
         versions[id] = (versions[id] ?: 0) + 1
     }
 
-    override suspend fun create(name: String, content: String): DatabaseRemote.FileInfo {
+    override suspend fun create(name: String, content: String, folderId: String?): DatabaseRemote.FileInfo {
         check()
         val id = "f${nextId++}"
         externalWrite(id, content)
+        folders[id] = folderId
         return fileInfo(id).copy(name = name)
     }
 
@@ -81,6 +83,8 @@ class FakeAuth(email: String = "ana@example.com") : AuthRepository {
     override suspend fun signIn() = (state.value as AuthState.SignedIn).user
 
     override suspend fun pickDatabaseFile(): String? = null
+
+    override suspend fun pickDatabaseFolder(): String? = null
 
     override suspend fun signOut() = Unit
 }

@@ -1,8 +1,14 @@
 # The family database file
 
-One JSON file per family, stored in the Drive of whoever chose **Start fresh**
-(`Net Worth – <family>.networth.json`, created with `appProperties.netWorthDatabase = "1"`) and shared
-with the rest of the family through Drive.
+One JSON file per family, stored in the Drive of whoever chose **Start fresh** (created with
+`appProperties.netWorthDatabase = "1"`) and shared with the rest of the family through Drive.
+
+**Start fresh** asks who picks the file's name and place:
+
+- **Choose for me** (default): `Net Worth – <family>.networth.json` in the root of My Drive.
+- **Let me choose**: a name the user types (made Drive-safe and given the `.networth.json` ending; left blank,
+  the default name is used) and a folder picked with the Google Picker in folder mode, or My Drive. Picking
+  a folder through the Picker is what lets the app write into it under the `drive.file` scope.
 
 ## Why a JSON file
 

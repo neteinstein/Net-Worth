@@ -36,8 +36,12 @@ class GoogleAuthRepository(
         return user
     }
 
-    override suspend fun pickDatabaseFile(): String? = try {
-        platform.pickFile()
+    override suspend fun pickDatabaseFile(): String? = pickOrNull { platform.pickFile() }
+
+    override suspend fun pickDatabaseFolder(): String? = pickOrNull { platform.pickFolder() }
+
+    private suspend fun pickOrNull(pick: suspend () -> String?): String? = try {
+        pick()
     } catch (_: AuthCancelledException) {
         null
     }

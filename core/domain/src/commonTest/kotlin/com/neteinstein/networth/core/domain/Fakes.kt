@@ -4,8 +4,10 @@ import com.neteinstein.networth.core.domain.model.FamilyDatabase
 import com.neteinstein.networth.core.domain.repository.AuthRepository
 import com.neteinstein.networth.core.domain.repository.AuthState
 import com.neteinstein.networth.core.domain.repository.DatabaseFile
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
+import com.neteinstein.networth.core.domain.repository.NewDatabaseFile
 import com.neteinstein.networth.core.domain.repository.SyncStatus
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.core.domain.seed.HouseholdSetup
@@ -30,6 +32,8 @@ class RecordingAuth(var savedUser: UserProfile? = null) : AuthRepository {
 
     override suspend fun pickDatabaseFile(): String? = "picked"
 
+    override suspend fun pickDatabaseFolder(): String? = "folder"
+
     override suspend fun signOut() {
         calls += "signOut"
         state.value = AuthState.SignedOut
@@ -45,12 +49,14 @@ class RecordingDatabase : FamilyDatabaseRepository {
         state.value = DatabaseState.NotSelected
     }
 
-    override suspend fun createNew(setup: HouseholdSetup): DatabaseFile {
+    override suspend fun createNew(setup: HouseholdSetup, file: NewDatabaseFile): DatabaseFile {
         calls += "create"
-        val file = DatabaseFile("f", "n")
-        state.value = DatabaseState.Ready(setup.toDatabase(SequentialIds(), 0, "a"), file, SyncStatus.SYNCED)
-        return file
+        val created = DatabaseFile("f", "n")
+        state.value = DatabaseState.Ready(setup.toDatabase(SequentialIds(), 0, "a"), created, SyncStatus.SYNCED)
+        return created
     }
+
+    override suspend fun folder(folderId: String) = DatabaseFolder(folderId, "Folder")
 
     override suspend fun open(fileId: String) {
         calls += "open:$fileId"

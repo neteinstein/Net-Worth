@@ -126,13 +126,18 @@ internal class AndroidGoogleAuth(
         fresh
     }
 
-    override suspend fun pickFile(): String? {
-        val request = driveRequest()
+    override suspend fun pickFile(): String? = pick(DriveClient.JSON_MIME, folders = false)
+
+    override suspend fun pickFolder(): String? = pick(DriveClient.FOLDER_MIME, folders = true)
+
+    private suspend fun pick(mimeTypes: String, folders: Boolean): String? {
+        val builder = driveRequest()
             .setOptOutIncludingGrantedScopes(true)
             .setPrompt(AuthorizationRequest.Prompt.CONSENT)
             .addResourceParameter(AuthorizationRequest.ResourceParameter.PICKER_OAUTH_TRIGGER, "true")
-            .addResourceParameter(AuthorizationRequest.ResourceParameter.PICKER_MIMETYPES, DriveClient.JSON_MIME)
-            .build()
+            .addResourceParameter(AuthorizationRequest.ResourceParameter.PICKER_MIMETYPES, mimeTypes)
+        if (folders) builder.addResourceParameter(AuthorizationRequest.ResourceParameter.PICKER_ALLOW_FOLDER_SELECTION, "true")
+        val request = builder.build()
         val result = authorize(request)
         result.accessToken?.let {
             tokenLock.withLock {
