@@ -28,7 +28,16 @@
     <!-- Google sign-in (Identity Services) and the Google Picker, used by core:google on the web. -->
     <script src="https://accounts.google.com/gsi/client" async></script>
     <script src="https://apis.google.com/js/api.js" async></script>
-    <script type="application/javascript" src="composeApp.js"></script>
+    <!--
+        composeApp.js has a fixed name and GitHub Pages lets browsers cache it for 10 minutes, so after a deploy an old
+        copy would run against the new string files (see Main.kt). Load it fresh; the .wasm files it loads are named
+        by their content hash and stay cached.
+    -->
+    <script>
+        var app = document.createElement('script');
+        app.src = 'composeApp.js?v=' + Date.now();
+        document.head.appendChild(app);
+    </script>
 </head>
 <body>
 </body>
