@@ -82,8 +82,8 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup
-      - name: Build minified release APK
-        run: ./gradlew :androidApp:assembleGithubRelease --stacktrace
+      - name: Build minified release APK (github) and app bundle (playstore)
+        run: ./gradlew :androidApp:assembleGithubRelease :androidApp:bundlePlaystoreRelease --stacktrace
       - name: Verify obfuscation
         run: ./scripts/verify-obfuscation.sh
       # The mapping is what a reviewer needs to see what R8 renamed or removed on this PR.
@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: r8-mapping
-          path: androidApp/build/outputs/mapping/githubRelease/
+          path: androidApp/build/outputs/mapping/*Release/
           if-no-files-found: warn
           retention-days: 30
 
