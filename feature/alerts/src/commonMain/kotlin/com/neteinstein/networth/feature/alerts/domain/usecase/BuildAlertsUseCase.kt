@@ -6,14 +6,16 @@ import com.neteinstein.networth.core.domain.calc.isChildAccount
 import com.neteinstein.networth.core.domain.calc.latestMonth
 import com.neteinstein.networth.core.domain.calc.seasonalCategories
 import com.neteinstein.networth.core.domain.calc.spikes
-import com.neteinstein.networth.core.domain.calc.totals
+import com.neteinstein.networth.core.domain.calc.totalsOf
 import com.neteinstein.networth.core.domain.calc.trailingAverage
+import com.neteinstein.networth.core.domain.calc.transactionsIn
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.FamilyDatabase
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.text.Descriptions
 import com.neteinstein.networth.core.domain.text.MovementKind
+import com.neteinstein.networth.feature.alerts.domain.model.AlertsPeriod
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
 
@@ -59,11 +61,12 @@ data class SpikeAlert(
 
 /** "Worth a look" cards. */
 sealed interface Insight {
-    /** A category past its monthly budget: "Groceries €1,040 of a €900 budget". */
+    /** A category past its budget: "Groceries €1,040 of a €900 budget" (the monthly budget × [months] for a longer period). */
     data class OverBudget(
         val name: String,
         val spentMinor: Long,
         val budgetMinor: Long,
+        val months: Int = 1,
     ) : Insight {
         val overMinor: Long get() = spentMinor - budgetMinor
     }
@@ -113,36 +116,77 @@ sealed interface GoodNews {
 
 data class Alerts(
     val currencyCode: String,
-    /** The month the alerts are about (the latest with data), or null without any history. */
-    val month: CalendarMonth?,
+    /** The period the alerts are about (by default the latest month with data), or null without any history. */
+    val period: AlertsPeriod?,
     val thresholdPct: Int,
+    /** Newest month first. */
     val spikes: List<SpikeAlert>,
     val worthALook: List<Insight>,
     val goingWell: List<GoodNews>,
+    /** Months that can be picked: every month with data, plus a selected month. Newest first. */
+    val months: List<CalendarMonth> = emptyList(),
+    /** Years that can be picked: every year with data, plus a selected year. Newest first. */
+    val years: List<Int> = emptyList(),
+    /** The first and last day the period covers. */
+    val from: LocalDate? = null,
+    val to: LocalDate? = null,
 )
 
 /**
  * The Alerts artboard, from the family's own history: spikes against the 12-month average (with
  * the subcategories and accounts behind them), new recurring payments, categories rising three
  * months running, single payments over the large-payment limit, and what went well.
+ *
+ * A longer [AlertsPeriod] lists the spikes of every month in it; budgets, new recurring payments,
+ * large payments and averages cover the whole period, while rises and the savings streak end with
+ * its last month with data.
  */
 class BuildAlertsUseCase {
-    operator fun invoke(database: FamilyDatabase): Alerts {
+    /** A null [period] follows the latest month with data. */
+    operator fun invoke(database: FamilyDatabase, period: AlertsPeriod? = null): Alerts {
         val settings = database.settings.alerts
-        val month =
+        val latest =
             database.latestMonth()
                 ?: return Alerts(database.settings.currencyCode, null, settings.spikeThresholdPct, emptyList(), emptyList(), emptyList())
-        val spikes = spikeAlerts(database, month)
-        val spikeIds = spikes.map { it.categoryId }.toSet()
+        val effective = period ?: AlertsPeriod.Month(latest)
+        val (from, to) = database.rangeOf(effective)
+        val covered = database.coveredMonths(AccountScope.All)
+        // Months of the period that have data, newest first.
+        val months = covered.filter { it >= CalendarMonth.of(from) && it <= CalendarMonth.of(to) }.sortedDescending()
+        val base =
+            Alerts(
+                currencyCode = database.settings.currencyCode,
+                period = effective,
+                thresholdPct = settings.spikeThresholdPct,
+                spikes = emptyList(),
+                worthALook = emptyList(),
+                goingWell = emptyList(),
+                months = (covered + listOfNotNull((effective as? AlertsPeriod.Month)?.month)).sortedDescending(),
+                years = (covered.map { it.year } + listOfNotNull((effective as? AlertsPeriod.Year)?.year)).distinct().sortedDescending(),
+                from = from,
+                to = to,
+            )
+        val last = months.firstOrNull() ?: return base
+        val spikes = months.flatMap { spikeAlerts(database, it) }
+        val lastSpikeIds = spikes.filter { it.month == last }.map { it.categoryId }.toSet()
+        // A spike already has its own card; over a longer period the budget is about the whole of it.
+        val budgetSkip = if (effective is AlertsPeriod.Month) lastSpikeIds else emptySet()
         val worth =
             buildList {
-                addAll(overBudget(database, month, spikeIds))
-                if (settings.newSubscriptions) addAll(newRecurring(database, month))
-                addAll(rising(database, month, spikeIds))
-                addAll(largePayments(database, month))
+                addAll(overBudget(database, from, to, months.size, budgetSkip))
+                if (settings.newSubscriptions) addAll(months.flatMap { newRecurring(database, it) }.distinctBy { it.name })
+                addAll(rising(database, last, lastSpikeIds))
+                addAll(largePayments(database, from, to))
             }
-        val good = underAverage(database, month) + listOfNotNull(savingsStreak(database, month))
-        return Alerts(database.settings.currencyCode, month, settings.spikeThresholdPct, spikes, worth, good)
+        val good = underAverage(database, from, to, months) + listOfNotNull(savingsStreak(database, last))
+        return base.copy(spikes = spikes, worthALook = worth, goingWell = good)
+    }
+
+    private fun FamilyDatabase.rangeOf(period: AlertsPeriod): Pair<LocalDate, LocalDate> = when (period) {
+        is AlertsPeriod.Month -> period.month.firstDay to period.month.lastDay
+        is AlertsPeriod.Year -> LocalDate(period.year, 1, 1) to LocalDate(period.year, 12, 31)
+        is AlertsPeriod.Custom -> period.start to period.end
+        AlertsPeriod.AllTime -> transactions.minOf { it.date } to transactions.maxOf { it.date }
     }
 
     private fun accountName(
@@ -155,7 +199,14 @@ class BuildAlertsUseCase {
     private fun outflows(
         database: FamilyDatabase,
         month: CalendarMonth,
-    ): List<Transaction> = database.transactions.filter { it.date in month && it.amountMinor < 0 && !it.isInternalTransfer }
+    ): List<Transaction> = outflows(database, month.firstDay, month.lastDay)
+
+    private fun outflows(
+        database: FamilyDatabase,
+        from: LocalDate,
+        to: LocalDate,
+    ): List<Transaction> =
+        database.transactions.filter { it.date >= from && it.date <= to && it.amountMinor < 0 && !it.isInternalTransfer }
 
     private fun spikeAlerts(
         database: FamilyDatabase,
@@ -277,42 +328,48 @@ class BuildAlertsUseCase {
 
     private fun largePayments(
         database: FamilyDatabase,
-        month: CalendarMonth,
+        from: LocalDate,
+        to: LocalDate,
     ): List<Insight.LargePayment> {
         val limit = database.settings.alerts.largePaymentMinor
         if (limit <= 0) return emptyList()
-        return outflows(database, month)
+        return outflows(database, from, to)
             .filter { -it.amountMinor >= limit && Descriptions.describe(it.description).kind != MovementKind.MORTGAGE }
             .sortedBy { it.amountMinor }
             .take(MAX_LARGE)
             .map { Insight.LargePayment(it.description, -it.amountMinor, it.date, database.account(it.accountId)?.name.orEmpty()) }
     }
 
-    /** Categories over their monthly budget, largest overrun first; spikes already have their own card. */
+    /** Categories over their budget for the [months] with data, largest overrun first; [skip] already have their own card. */
     private fun overBudget(
         database: FamilyDatabase,
-        month: CalendarMonth,
-        spikeIds: Set<String>,
+        from: LocalDate,
+        to: LocalDate,
+        months: Int,
+        skip: Set<String>,
     ): List<Insight.OverBudget> {
-        val spent = database.totals(AccountScope.All, month).spentByCategory
+        val spent = totalsOf(database.transactionsIn(AccountScope.All, from, to)).spentByCategory
         return database.categories
-            .filter { it.id !in spikeIds }
+            .filter { it.id !in skip }
             .mapNotNull { category ->
-                val budget = category.monthlyBudgetMinor?.takeIf { it > 0 } ?: return@mapNotNull null
+                val budget = category.monthlyBudgetMinor?.takeIf { it > 0 }?.times(months) ?: return@mapNotNull null
                 val amount = spent[category.id] ?: return@mapNotNull null
-                if (amount > budget) Insight.OverBudget(category.name, amount, budget) else null
+                if (amount > budget) Insight.OverBudget(category.name, amount, budget, months) else null
             }.sortedByDescending { it.overMinor }
     }
 
+    /** Monthly spending over the period's [months] with data, against the 12 months before its first. */
     private fun underAverage(
         database: FamilyDatabase,
-        month: CalendarMonth,
+        from: LocalDate,
+        to: LocalDate,
+        months: List<CalendarMonth>,
     ): List<GoodNews.UnderAverage> {
-        val current = database.totals(AccountScope.All, month).spentByCategory
-        val average = database.trailingAverage(AccountScope.All, month).spentByCategory
+        val current = totalsOf(database.transactionsIn(AccountScope.All, from, to)).spentByCategory
+        val average = database.trailingAverage(AccountScope.All, months.min()).spentByCategory
         return database.categories.mapNotNull { category ->
             val avg = average[category.id]?.takeIf { it >= MIN_AVERAGE_MINOR } ?: return@mapNotNull null
-            val spent = (current[category.id] ?: 0L).coerceAtLeast(0)
+            val spent = ((current[category.id] ?: 0L) / months.size).coerceAtLeast(0)
             val below = ((avg - spent) * 100 / avg).toInt()
             if (below < UNDER_AVERAGE_PERCENT) null else GoodNews.UnderAverage(category.name, below, avg - spent)
         }.sortedByDescending { it.underMinor }.take(MAX_UNDER)

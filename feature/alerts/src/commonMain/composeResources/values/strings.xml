@@ -41,4 +41,15 @@
     <!-- Budgets (not on the artboard; flagged in the PR) -->
     <string name="alerts_over_budget_title">%1$s %2$s over budget</string>
     <string name="alerts_over_budget_body">%1$s spent this month against a %2$s budget.</string>
+    <!-- Period picker, as on Overview (not on the artboard; flagged in the PR) -->
+    <string name="alerts_change_period">Change period, %1$s</string>
+    <string name="alerts_all_time">All time</string>
+    <string name="alerts_custom_period">Custom period…</string>
+    <string name="alerts_ok">OK</string>
+    <string name="alerts_cancel">Cancel</string>
+    <string name="alerts_no_spikes_period">No spikes in this period — every category is within %1$d% of its average.</string>
+    <plurals name="alerts_over_budget_body_months">
+        <item quantity="one">%1$s spent against a %2$s budget for %3$d month.</item>
+        <item quantity="other">%1$s spent against a %2$s budget for %3$d months.</item>
+    </plurals>
 </resources>

@@ -10,6 +10,7 @@ import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.SetSeasonalUseCase
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.designFamily
+import com.neteinstein.networth.feature.alerts.domain.model.AlertsPeriod
 import com.neteinstein.networth.feature.alerts.domain.usecase.AccountName
 import com.neteinstein.networth.feature.alerts.domain.usecase.AccountShare
 import com.neteinstein.networth.feature.alerts.domain.usecase.BuildAlertsUseCase
@@ -114,7 +115,13 @@ class AlertsTest {
     @Test
     fun spikesExplainWhereTheMoneyWent() {
         val alerts = BuildAlertsUseCase()(history())
-        assertEquals(sep, alerts.month)
+        assertEquals(AlertsPeriod.Month(sep), alerts.period)
+        assertEquals(sep.firstDay, alerts.from)
+        assertEquals(
+            listOf(sep, CalendarMonth(2026, 8), CalendarMonth(2026, 7), CalendarMonth(2026, 6), CalendarMonth(2025, 9)),
+            alerts.months,
+        )
+        assertEquals(listOf(2026, 2025), alerts.years)
         assertEquals(40, alerts.thresholdPct)
         assertEquals(listOf("School", "Clothes"), alerts.spikes.map { it.name })
 
@@ -177,9 +184,51 @@ class AlertsTest {
     }
 
     @Test
+    fun aYearCoversEveryMonthInIt() {
+        val budgets = mapOf(groceries.id to 200_00L, dining.id to 150_00L, school.id to 300_00L)
+        val db = history().let { db -> db.copy(categories = db.categories.map { it.copy(monthlyBudgetMinor = budgets[it.id]) }) }
+        val alerts = BuildAlertsUseCase()(db, AlertsPeriod.Year(2026))
+        assertEquals(AlertsPeriod.Year(2026), alerts.period)
+        assertEquals(LocalDate(2026, 1, 1) to LocalDate(2026, 12, 31), alerts.from to alerts.to)
+        // Every month's spikes, newest first: September, then the months with a thin history behind them.
+        assertEquals(listOf(sep, CalendarMonth(2026, 8), CalendarMonth(2026, 7)), alerts.spikes.map { it.month }.distinct())
+        assertEquals(listOf("School", "Clothes"), alerts.spikes.filter { it.month == sep }.map { it.name })
+
+        // June–September have data: four months of budget. School stays under its €1,200.
+        val over = alerts.worthALook.filterIsInstance<Insight.OverBudget>()
+        assertEquals(
+            listOf(Insight.OverBudget("Dining & leisure", 1_000_00, 600_00, 4), Insight.OverBudget("Groceries", 1_130_00, 800_00, 4)),
+            over,
+        )
+        assertEquals("Disney Plus", alerts.worthALook.filterIsInstance<Insight.NewRecurring>().single().name)
+        assertEquals("IKEA", alerts.worthALook.filterIsInstance<Insight.LargePayment>().single().description)
+        assertEquals("Fuel", alerts.worthALook.filterIsInstance<Insight.Rising>().single().name)
+
+        // €910 over four months against the €580 of September 2025, the only month before June.
+        assertEquals(GoodNews.UnderAverage("School", 60, 352_50), alerts.goingWell.first())
+        assertEquals(GoodNews.SavingsStreak(3, 30_00, 4), alerts.goingWell.last())
+    }
+
+    @Test
+    fun allTimeAndCustomRanges() {
+        val all = BuildAlertsUseCase()(history(), AlertsPeriod.AllTime)
+        assertEquals(LocalDate(2025, 9, 5) to LocalDate(2026, 9, 21), all.from to all.to)
+        assertEquals(listOf("School", "Clothes"), all.spikes.take(2).map { it.name })
+        assertEquals(BuildAlertsUseCase()(history(), AlertsPeriod.Year(2026)).spikes, all.spikes)
+
+        val quiet = BuildAlertsUseCase()(history(), AlertsPeriod.Custom(LocalDate(2026, 1, 1), LocalDate(2026, 3, 31)))
+        assertEquals(AlertsPeriod.Custom(LocalDate(2026, 1, 1), LocalDate(2026, 3, 31)), quiet.period)
+        assertTrue(quiet.spikes.isEmpty() && quiet.worthALook.isEmpty() && quiet.goingWell.isEmpty())
+        assertEquals(5, quiet.months.size)
+
+        val picked = BuildAlertsUseCase()(history(), AlertsPeriod.Month(CalendarMonth(2026, 1)))
+        assertTrue(CalendarMonth(2026, 1) in picked.months)
+    }
+
+    @Test
     fun emptyHistoryHasNoAlerts() {
         val alerts = BuildAlertsUseCase()(family)
-        assertNull(alerts.month)
+        assertNull(alerts.period)
         assertTrue(alerts.spikes.isEmpty() && alerts.worthALook.isEmpty() && alerts.goingWell.isEmpty())
         assertEquals(2, previewAlerts().spikes.size)
     }
@@ -205,6 +254,12 @@ class AlertsTest {
             vm.onToggleSeasonal(marked)
             assertFalse(vm.state.value.alerts!!.spikes.first().seasonal)
             assertTrue(repository.database.settings.alerts.seasonalMarks.isEmpty())
+
+            vm.onPeriodSelected(AlertsPeriod.Year(2026))
+            assertEquals(AlertsPeriod.Year(2026), vm.state.value.alerts!!.period)
+            vm.onCustomRange(LocalDate(2026, 9, 30), LocalDate(2026, 8, 1))
+            assertEquals(AlertsPeriod.Custom(LocalDate(2026, 8, 1), LocalDate(2026, 9, 30)), vm.state.value.alerts!!.period)
+            assertEquals(listOf(sep, CalendarMonth(2026, 8)), vm.state.value.alerts!!.spikes.map { it.month }.distinct())
 
             repository.state.value = DatabaseState.NotSelected
             assertNull(vm.state.value.alerts)

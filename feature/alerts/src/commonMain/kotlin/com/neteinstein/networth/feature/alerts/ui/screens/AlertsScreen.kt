@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,6 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -26,16 +31,21 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.CardTitle
 import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
+import com.neteinstein.networth.core.designsystem.ui.components.DateRangePickerDialog
 import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
@@ -44,11 +54,14 @@ import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.monthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
+import com.neteinstein.networth.core.designsystem.ui.components.shortMonthYear
+import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.CurrencyCode
+import com.neteinstein.networth.feature.alerts.domain.model.AlertsPeriod
 import com.neteinstein.networth.feature.alerts.domain.usecase.AccountName
 import com.neteinstein.networth.feature.alerts.domain.usecase.AccountShare
 import com.neteinstein.networth.feature.alerts.domain.usecase.Alerts
@@ -57,7 +70,11 @@ import com.neteinstein.networth.feature.alerts.domain.usecase.Insight
 import com.neteinstein.networth.feature.alerts.domain.usecase.SpikeAlert
 import com.neteinstein.networth.feature.alerts.generated.resources.Res
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_account_personal
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_all_time
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_both_current
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_cancel
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_change_period
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_custom_period
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_empty_body
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_empty_title
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_going_well
@@ -68,8 +85,11 @@ import com.neteinstein.networth.feature.alerts.generated.resources.alerts_mostly
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_mostly_personal
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_new_recurring
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_no_spikes
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_no_spikes_period
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_ok
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_other
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_over_budget_body
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_over_budget_body_months
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_over_budget_title
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_purchases_between
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_recurring_body
@@ -89,6 +109,7 @@ import com.neteinstein.networth.feature.alerts.generated.resources.alerts_thresh
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_title
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_under_average
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_worth_a_look
+import com.neteinstein.networth.feature.alerts.ui.AlertsLabels
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.number
 import org.jetbrains.compose.resources.pluralStringResource
@@ -102,7 +123,14 @@ fun AlertsScreen(
     viewModel: AlertsViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    AlertsContent(state, onOpenAlertRules, viewModel::onToggleSeasonal, onSeeTransactions)
+    AlertsContent(
+        state,
+        onOpenAlertRules,
+        viewModel::onToggleSeasonal,
+        onSeeTransactions,
+        onPeriodSelected = viewModel::onPeriodSelected,
+        onCustomRange = viewModel::onCustomRange,
+    )
 }
 
 @Composable
@@ -112,7 +140,10 @@ fun AlertsContent(
     onToggleSeasonal: (SpikeAlert) -> Unit,
     onSeeTransactions: (String, CalendarMonth) -> Unit,
     modifier: Modifier = Modifier,
+    onPeriodSelected: (AlertsPeriod) -> Unit = {},
+    onCustomRange: (LocalDate, LocalDate) -> Unit = { _, _ -> },
 ) {
+    var pickingRange by remember { mutableStateOf(false) }
     Scaffold(modifier = modifier) { padding ->
         val alerts = state.alerts
         if (alerts == null) {
@@ -146,25 +177,37 @@ fun AlertsContent(
                         }
                     }
                 }
-                val month = alerts.month
-                if (month == null) {
+                val period = alerts.period
+                if (period == null) {
                     item { EmptyState(stringResource(Res.string.alerts_empty_title), stringResource(Res.string.alerts_empty_body), cards) }
                     return@LazyColumn
                 }
-                item { OverlineLabel(stringResource(Res.string.alerts_spikes_in, monthNames()[month.month - 1]), cards) }
-                if (alerts.spikes.isEmpty()) {
-                    item {
-                        val monthName = monthNames()[month.month - 1]
-                        Text(
-                            stringResource(Res.string.alerts_no_spikes, monthName, alerts.thresholdPct),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = cards,
-                        )
+                item { PeriodPicker(alerts, period, onPeriodSelected, onPickRange = { pickingRange = true }, cards) }
+                if (period is AlertsPeriod.Month) {
+                    item { OverlineLabel(stringResource(Res.string.alerts_spikes_in, monthNames()[period.month.month - 1]), cards) }
+                    if (alerts.spikes.isEmpty()) {
+                        item {
+                            NoSpikes(
+                                stringResource(Res.string.alerts_no_spikes, monthNames()[period.month.month - 1], alerts.thresholdPct),
+                                cards,
+                            )
+                        }
                     }
+                } else if (alerts.spikes.isEmpty()) {
+                    item { NoSpikes(stringResource(Res.string.alerts_no_spikes_period, alerts.thresholdPct), cards) }
                 }
-                items(alerts.spikes, key = { it.categoryId }) { spike ->
-                    SpikeCard(spike, expanded = spike == alerts.spikes.first(), currency, onToggleSeasonal, onSeeTransactions, cards)
+                alerts.spikes.groupBy { it.month }.forEach { (month, spikes) ->
+                    if (period !is AlertsPeriod.Month) {
+                        item(key = "spikes-$month") {
+                            OverlineLabel(
+                                stringResource(Res.string.alerts_spikes_in, "${monthNames()[month.month - 1]} ${month.year}"),
+                                cards,
+                            )
+                        }
+                    }
+                    items(spikes, key = { "${it.categoryId}-${it.month}" }) { spike ->
+                        SpikeCard(spike, expanded = spike == alerts.spikes.first(), currency, onToggleSeasonal, onSeeTransactions, cards)
+                    }
                 }
                 if (alerts.worthALook.isNotEmpty()) {
                     item { OverlineLabel(stringResource(Res.string.alerts_worth_a_look), cards) }
@@ -173,6 +216,91 @@ fun AlertsContent(
                 if (alerts.goingWell.isNotEmpty()) {
                     item { GoingWellCard(alerts.goingWell, currency, cards) }
                 }
+            }
+        }
+        if (pickingRange) {
+            DateRangePickerDialog(
+                start = alerts.from,
+                end = alerts.to,
+                confirmLabel = stringResource(Res.string.alerts_ok),
+                dismissLabel = stringResource(Res.string.alerts_cancel),
+                onPicked = { start, end ->
+                    pickingRange = false
+                    onCustomRange(start, end)
+                },
+                onDismiss = { pickingRange = false },
+            )
+        }
+    }
+}
+
+@Composable
+private fun NoSpikes(text: String, modifier: Modifier) {
+    Text(
+        text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
+    )
+}
+
+/** The period pill, as on Overview: all time, a custom range, a year or a month (newest first). */
+@Composable
+private fun PeriodPicker(
+    alerts: Alerts,
+    period: AlertsPeriod,
+    onSelected: (AlertsPeriod) -> Unit,
+    onPickRange: () -> Unit,
+    modifier: Modifier,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val allTime = stringResource(Res.string.alerts_all_time)
+    val label = AlertsLabels.title(period, shortMonthNames(), allTime)
+
+    fun pick(choice: AlertsPeriod) {
+        expanded = false
+        onSelected(choice)
+    }
+    Box(modifier) {
+        OutlinedButton(
+            onClick = { expanded = true },
+            shape = CircleShape,
+            contentPadding = PaddingValues(horizontal = 14.dp),
+            modifier = Modifier.heightIn(min = 44.dp).widthIn(max = 240.dp),
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
+            Icon(
+                NetWorthIcons.ChevronDown,
+                contentDescription = stringResource(Res.string.alerts_change_period, label),
+                modifier = Modifier.padding(start = 6.dp).size(16.dp),
+            )
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(text = { Text(allTime) }, onClick = { pick(AlertsPeriod.AllTime) })
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.alerts_custom_period)) },
+                onClick = {
+                    expanded = false
+                    onPickRange()
+                },
+            )
+            if (alerts.years.isNotEmpty()) HorizontalDivider()
+            alerts.years.forEach { year ->
+                DropdownMenuItem(text = { Text(year.toString()) }, onClick = { pick(AlertsPeriod.Year(year)) })
+            }
+            if (alerts.months.isNotEmpty()) HorizontalDivider()
+            alerts.months.forEach { month ->
+                DropdownMenuItem(
+                    text = { Text(shortMonthYear(month.month, month.year)) },
+                    onClick = { pick(AlertsPeriod.Month(month)) },
+                )
             }
         }
     }
@@ -336,12 +464,14 @@ private fun InsightCard(
                     ),
                     style = MaterialTheme.typography.titleSmall,
                 )
+                val spent = MoneyFormatter.whole(insight.spentMinor, currency)
+                val budget = MoneyFormatter.whole(insight.budgetMinor, currency)
                 Text(
-                    stringResource(
-                        Res.string.alerts_over_budget_body,
-                        MoneyFormatter.whole(insight.spentMinor, currency),
-                        MoneyFormatter.whole(insight.budgetMinor, currency),
-                    ),
+                    if (insight.months > 1) {
+                        pluralStringResource(Res.plurals.alerts_over_budget_body_months, insight.months, spent, budget, insight.months)
+                    } else {
+                        stringResource(Res.string.alerts_over_budget_body, spent, budget)
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -452,7 +582,7 @@ internal fun previewAlerts(): Alerts {
     val sep = CalendarMonth(2026, 9)
     return Alerts(
         currencyCode = "EUR",
-        month = sep,
+        period = AlertsPeriod.Month(sep),
         thresholdPct = 40,
         spikes =
             listOf(
@@ -498,6 +628,24 @@ internal fun previewAlerts(): Alerts {
                 Insight.Rising("Fuel", listOf(212_00, 226_00, 238_00), CalendarMonth(2026, 7), sep),
             ),
         goingWell = listOf(GoodNews.UnderAverage("Dining & leisure", 21, 60_00), GoodNews.SavingsStreak(3, 30_00, 9)),
+        months = listOf(sep, CalendarMonth(2026, 8), CalendarMonth(2026, 7)),
+        years = listOf(2026),
+        from = sep.firstDay,
+        to = sep.lastDay,
+    )
+}
+
+/** 2026 so far: September's spikes, then August's. */
+internal fun previewYearAlerts(): Alerts {
+    val month = previewAlerts()
+    val aug = CalendarMonth(2026, 8)
+    val clothes = month.spikes[1]
+    return month.copy(
+        period = AlertsPeriod.Year(2026),
+        spikes = listOf(month.spikes[0], clothes.copy(month = aug, firstDay = LocalDate(2026, 8, 3), lastDay = LocalDate(2026, 8, 29))),
+        worthALook = listOf(Insight.OverBudget("Groceries", 8_350_00, 8_100_00, 9)),
+        from = LocalDate(2026, 1, 1),
+        to = LocalDate(2026, 12, 31),
     )
 }
 
@@ -505,6 +653,12 @@ internal fun previewAlerts(): Alerts {
 @Composable
 private fun AlertsPreview() {
     NetWorthTheme { AlertsContent(AlertsUiState(previewAlerts()), {}, {}, { _, _ -> }) }
+}
+
+@Preview
+@Composable
+private fun AlertsYearPreview() {
+    NetWorthTheme { AlertsContent(AlertsUiState(previewYearAlerts()), {}, {}, { _, _ -> }) }
 }
 
 @Preview

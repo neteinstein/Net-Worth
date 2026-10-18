@@ -15,6 +15,9 @@ class ScreenshotTest {
     fun alerts() = screenshot("alerts") { AlertsContent(AlertsUiState(previewAlerts()), {}, {}, { _, _ -> }) }
 
     @Test
+    fun alertsYear() = screenshot("alerts_year") { AlertsContent(AlertsUiState(previewYearAlerts()), {}, {}, { _, _ -> }) }
+
+    @Test
     fun alertsEmpty() = screenshot("alerts_empty") {
         AlertsContent(AlertsUiState(Alerts("EUR", null, 40, emptyList(), emptyList(), emptyList())), {}, {}, { _, _ -> })
     }
