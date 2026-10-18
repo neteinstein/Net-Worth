@@ -31,35 +31,46 @@ import com.neteinstein.networth.core.designsystem.ui.components.ColumnBarChart
 import com.neteinstein.networth.core.designsystem.ui.components.HeroCard
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.StackedBar
-import com.neteinstein.networth.core.designsystem.ui.components.monthName
-import com.neteinstein.networth.core.designsystem.ui.components.shortMonthName
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
+import com.neteinstein.networth.core.designsystem.ui.components.monthNames
+import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CurrencyCode
+import com.neteinstein.networth.feature.overview.domain.model.TrendStep
 import com.neteinstein.networth.feature.overview.domain.usecase.AccountLine
 import com.neteinstein.networth.feature.overview.domain.usecase.CategoryShare
 import com.neteinstein.networth.feature.overview.domain.usecase.Overview
 import com.neteinstein.networth.feature.overview.domain.usecase.SpikeSummary
 import com.neteinstein.networth.feature.overview.generated.resources.Res
 import com.neteinstein.networth.feature.overview.generated.resources.overview_account_count
+import com.neteinstein.networth.feature.overview.generated.resources.overview_by_month
+import com.neteinstein.networth.feature.overview.generated.resources.overview_by_quarter
+import com.neteinstein.networth.feature.overview.generated.resources.overview_by_year
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_body
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_title
 import com.neteinstein.networth.feature.overview.generated.resources.overview_import_extract
 import com.neteinstein.networth.feature.overview.generated.resources.overview_income
 import com.neteinstein.networth.feature.overview.generated.resources.overview_last_months
 import com.neteinstein.networth.feature.overview.generated.resources.overview_mark_seasonal
+import com.neteinstein.networth.feature.overview.generated.resources.overview_monthly_average
 import com.neteinstein.networth.feature.overview.generated.resources.overview_more_categories
 import com.neteinstein.networth.feature.overview.generated.resources.overview_net_worth
 import com.neteinstein.networth.feature.overview.generated.resources.overview_no_accounts
 import com.neteinstein.networth.feature.overview.generated.resources.overview_nothing_spent
+import com.neteinstein.networth.feature.overview.generated.resources.overview_nothing_spent_period
+import com.neteinstein.networth.feature.overview.generated.resources.overview_overspent_all_time
 import com.neteinstein.networth.feature.overview.generated.resources.overview_overspent_in
 import com.neteinstein.networth.feature.overview.generated.resources.overview_percent_of_income
+import com.neteinstein.networth.feature.overview.generated.resources.overview_period_trend_description
 import com.neteinstein.networth.feature.overview.generated.resources.overview_projection
+import com.neteinstein.networth.feature.overview.generated.resources.overview_quarter
 import com.neteinstein.networth.feature.overview.generated.resources.overview_review
 import com.neteinstein.networth.feature.overview.generated.resources.overview_review_banner
+import com.neteinstein.networth.feature.overview.generated.resources.overview_saved_all_time
 import com.neteinstein.networth.feature.overview.generated.resources.overview_saved_in
 import com.neteinstein.networth.feature.overview.generated.resources.overview_spent
 import com.neteinstein.networth.feature.overview.generated.resources.overview_spike_body
@@ -74,6 +85,7 @@ import com.neteinstein.networth.feature.overview.generated.resources.overview_ty
 import com.neteinstein.networth.feature.overview.generated.resources.overview_type_term_deposit
 import com.neteinstein.networth.feature.overview.generated.resources.overview_uncategorised
 import com.neteinstein.networth.feature.overview.generated.resources.overview_where_it_went
+import com.neteinstein.networth.feature.overview.ui.OverviewLabels
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
@@ -82,11 +94,17 @@ import kotlin.math.roundToInt
 @Composable
 internal fun SavedHeroCard(overview: Overview, currency: CurrencyCode, modifier: Modifier = Modifier) {
     val finance = NetWorthTheme.financeColors
-    val month = monthName(overview.month.month)
+    val period = OverviewLabels.inline(overview.period, shortMonthNames(), monthNames())
+    val saved = overview.savedMinor >= 0
     HeroCard(modifier) {
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
-                stringResource(if (overview.savedMinor >= 0) Res.string.overview_saved_in else Res.string.overview_overspent_in, month),
+                when {
+                    period == null -> stringResource(
+                        if (saved) Res.string.overview_saved_all_time else Res.string.overview_overspent_all_time,
+                    )
+                    else -> stringResource(if (saved) Res.string.overview_saved_in else Res.string.overview_overspent_in, period)
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = finance.heroMuted,
             )
@@ -143,7 +161,10 @@ internal fun SpikeCard(spike: SpikeSummary, currency: CurrencyCode, onMarkSeason
                 Surface(shape = CircleShape, color = finance.negative, contentColor = Color.White, modifier = Modifier.size(32.dp)) {
                     Icon(NetWorthIcons.TrendUp, contentDescription = null, modifier = Modifier.padding(7.dp))
                 }
-                Text(stringResource(Res.string.overview_spike_title, spike.categoryName), style = MaterialTheme.typography.titleSmall)
+                Text(
+                    stringResource(Res.string.overview_spike_title, categoryName(spike.categoryName)),
+                    style = MaterialTheme.typography.titleSmall,
+                )
             }
             Text(
                 stringResource(
@@ -170,7 +191,9 @@ internal fun WhereItWentCard(overview: Overview, currency: CurrencyCode, modifie
         CardTitle(stringResource(Res.string.overview_where_it_went))
         if (overview.shares.isEmpty()) {
             Text(
-                stringResource(Res.string.overview_nothing_spent),
+                stringResource(
+                    if (overview.period.isMonth) Res.string.overview_nothing_spent else Res.string.overview_nothing_spent_period,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -182,7 +205,7 @@ internal fun WhereItWentCard(overview: Overview, currency: CurrencyCode, modifie
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     ColorKey(share.color())
                     Text(
-                        share.name ?: stringResource(Res.string.overview_uncategorised),
+                        share.name?.let { categoryName(it) } ?: stringResource(Res.string.overview_uncategorised),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )
@@ -228,24 +251,43 @@ private fun CategoryShare.color(): Color = colorHex?.let { categoryColor(it) } ?
 
 @Composable
 internal fun TrendCard(overview: Overview, currency: CurrencyCode, modifier: Modifier = Modifier) {
+    val isMonth = overview.period.isMonth
+    val step = overview.trend.firstOrNull()?.step ?: TrendStep.MONTH
+    val average = overview.averageSpentMinor.takeIf { it > 0 }
     SectionCard(modifier) {
         CardTitle(
-            stringResource(Res.string.overview_last_months),
-            trailing = overview.averageSpentMinor.takeIf { it > 0 }?.let {
-                stringResource(Res.string.overview_twelve_month_average, MoneyFormatter.whole(it, currency))
+            stringResource(
+                when {
+                    isMonth -> Res.string.overview_last_months
+                    step == TrendStep.MONTH -> Res.string.overview_by_month
+                    step == TrendStep.QUARTER -> Res.string.overview_by_quarter
+                    else -> Res.string.overview_by_year
+                },
+            ),
+            trailing = average?.let {
+                stringResource(
+                    if (isMonth) Res.string.overview_twelve_month_average else Res.string.overview_monthly_average,
+                    MoneyFormatter.whole(it, currency),
+                )
             },
         )
+        val short = shortMonthNames()
+        val quarter = stringResource(Res.string.overview_quarter)
         ColumnBarChart(
             bars = overview.trend.map { point ->
                 ColumnBar(
-                    label = shortMonthName(point.month.month),
+                    label = OverviewLabels.bar(point, short, quarter),
                     valueLabel = MoneyFormatter.compact(point.spentMinor, currency),
                     value = point.spentMinor.toFloat(),
                     highlighted = point.isSelected,
                 )
             },
-            average = overview.averageSpentMinor.toFloat(),
-            description = stringResource(Res.string.overview_trend_description, MoneyFormatter.whole(overview.spentMinor, currency)),
+            // The dashed line is a monthly figure, so it only belongs on monthly bars.
+            average = overview.averageSpentMinor.toFloat().takeIf { step == TrendStep.MONTH },
+            description = stringResource(
+                if (isMonth) Res.string.overview_trend_description else Res.string.overview_period_trend_description,
+                MoneyFormatter.whole(overview.spentMinor, currency),
+            ),
         )
     }
 }

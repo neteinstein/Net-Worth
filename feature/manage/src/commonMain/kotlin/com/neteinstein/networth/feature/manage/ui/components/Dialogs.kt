@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.OwnerPicker
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.AccountType
@@ -122,17 +123,17 @@ internal fun RuleEditorDialog(
                 )
                 Dropdown(
                     label = stringResource(Res.string.manage_rule_category),
-                    value = categories.firstOrNull { it.id == rule.categoryId }?.name.orEmpty(),
-                    options = categories.map { category -> category.name to { onCategory(category.id) } },
+                    value = categories.firstOrNull { it.id == rule.categoryId }?.name?.let { categoryName(it) }.orEmpty(),
+                    options = categories.map { category -> categoryName(category.name) to { onCategory(category.id) } },
                 )
                 val subcategories = categories.firstOrNull { it.id == rule.categoryId }?.subcategories.orEmpty()
                 if (subcategories.isNotEmpty()) {
                     val none = stringResource(Res.string.manage_rule_no_subcategory)
                     Dropdown(
                         label = stringResource(Res.string.manage_rule_subcategory),
-                        value = subcategories.firstOrNull { it.id == rule.subcategoryId }?.name ?: none,
+                        value = subcategories.firstOrNull { it.id == rule.subcategoryId }?.name?.let { categoryName(it) } ?: none,
                         options = listOf(none to { onChange { it.copy(subcategoryId = null) } }) +
-                            subcategories.map { sub -> sub.name to { onChange { it.copy(subcategoryId = sub.id) } } },
+                            subcategories.map { sub -> categoryName(sub.name) to { onChange { it.copy(subcategoryId = sub.id) } } },
                     )
                 }
                 Text(

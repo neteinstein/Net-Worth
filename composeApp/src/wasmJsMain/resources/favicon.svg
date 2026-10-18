@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="21 21 66 66">
+    <!-- The launcher icon (androidApp ic_launcher_foreground on ic_launcher_background), cropped to its safe zone. -->
+    <rect x="21" y="21" width="66" height="66" rx="15" fill="#00391D"/>
+    <path fill="#89F8B4" d="M34,64h9a2,2 0,0 1,2 2v10h-13v-10a2,2 0,0 1,2 -2z"/>
+    <path fill="#89F8B4" d="M49.5,54h9a2,2 0,0 1,2 2v20h-13v-20a2,2 0,0 1,2 -2z"/>
+    <path fill="#89F8B4" d="M65,42h9a2,2 0,0 1,2 2v32h-13v-32a2,2 0,0 1,2 -2z"/>
+    <path fill="none" stroke="#E9C349" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" d="M32,54L47,42L57,47L76,30"/>
+    <path fill="#E9C349" d="M69,29L78,28L77,37Z"/>
+</svg>

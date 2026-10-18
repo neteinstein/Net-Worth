@@ -11,6 +11,8 @@ import com.neteinstein.networth.core.domain.usecase.SyncDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.FixedClock
 import com.neteinstein.networth.core.testing.designFamily
+import com.neteinstein.networth.feature.overview.domain.model.OverviewPeriod
+import com.neteinstein.networth.feature.overview.domain.model.TrendStep
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
 import com.neteinstein.networth.feature.overview.ui.screens.OverviewViewModel
@@ -35,6 +37,9 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class OverviewTest {
     private val sep = CalendarMonth(2026, 9)
+
+    private fun build(db: FamilyDatabase, period: OverviewPeriod, scope: AccountScope = AccountScope.All) =
+        BuildOverviewUseCase()(db, period, scope, today = LocalDate(2026, 10, 18))
 
     /** The design family with three months of history: School spikes in September. */
     private fun history(): FamilyDatabase {
@@ -65,7 +70,7 @@ class OverviewTest {
 
     @Test
     fun buildsTheOverviewForAMonth() {
-        val overview = BuildOverviewUseCase()(history(), sep, AccountScope.All)
+        val overview = build(history(), OverviewPeriod.Month(sep))
 
         assertEquals(2, overview.adults)
         assertEquals(3, overview.children)
@@ -82,6 +87,8 @@ class OverviewTest {
         assertTrue(overview.trend.last().isSelected)
         assertEquals(1_185_00, overview.averageSpentMinor)
         assertEquals(listOf(sep, sep.previous(), sep.plus(-2)), overview.months)
+        assertEquals(listOf(2026), overview.years)
+        assertEquals(LocalDate(2026, 9, 1) to LocalDate(2026, 9, 30), overview.from to overview.to)
         assertTrue(overview.hasTransactions)
         // Pedro's account: 3 × (4850 − 900 − school − 450) − 12; joint: 12,600 + 3 × 450.
         val pedro = overview.accounts.first { it.name == "Pedro" }
@@ -97,18 +104,18 @@ class OverviewTest {
         val db = history()
         val joint = db.accounts.first { it.name == "Joint savings" }
 
-        val jointOnly = BuildOverviewUseCase()(db, sep, AccountScope.Single(joint.id))
-        val unknown = BuildOverviewUseCase()(db, sep, AccountScope.Single("nope"))
+        val jointOnly = build(db, OverviewPeriod.Month(sep), AccountScope.Single(joint.id))
+        val unknown = build(db, OverviewPeriod.Month(sep), AccountScope.Single("nope"))
 
         assertEquals(0, jointOnly.spentMinor)
         assertNull(jointOnly.spike)
         assertEquals(AccountScope.All, unknown.scope)
-        assertEquals(AccountScope.Children, db.let { BuildOverviewUseCase()(it, sep, AccountScope.All) }.scopes.last())
+        assertEquals(AccountScope.Children, build(db, OverviewPeriod.Month(sep)).scopes.last())
     }
 
     @Test
     fun emptyDatabaseHasNoHistory() {
-        val overview = BuildOverviewUseCase()(designFamily(), sep, AccountScope.All)
+        val overview = build(designFamily(), OverviewPeriod.Month(sep))
 
         assertFalse(overview.hasTransactions)
         assertEquals(0, overview.needsReview)
@@ -116,6 +123,62 @@ class OverviewTest {
         assertNull(overview.savedPercent)
         assertTrue(overview.shares.isEmpty())
         assertEquals(listOf(sep), overview.months)
+    }
+
+    @Test
+    fun allTimeAddsUpEveryMonthWithoutASpike() {
+        val overview = build(history(), OverviewPeriod.AllTime)
+
+        assertEquals(LocalDate(2026, 7, 1), overview.from)
+        assertEquals(LocalDate(2026, 9, 21), overview.to)
+        assertEquals(sep, overview.month)
+        assertEquals(3 * 4_850_00, overview.incomeMinor)
+        // Groceries 3 × 900, school 285 + 285 + 610, 12 uncategorised; transfers are not spending.
+        assertEquals(3_892_00, overview.spentMinor)
+        assertEquals(listOf(2_700_00L, 1_180_00L, 12_00L), overview.shares.map { it.amountMinor })
+        assertNull(overview.spike)
+        assertEquals(3_892_00 / 3, overview.averageSpentMinor)
+        assertEquals(listOf(TrendStep.MONTH), overview.trend.map { it.step }.distinct())
+        assertEquals(listOf(1_185_00L, 1_185_00L, 1_522_00L), overview.trend.map { it.spentMinor })
+        assertTrue(overview.trend.none { it.isSelected })
+        assertNotNull(overview.projectedSavingsMinor)
+    }
+
+    @Test
+    fun aYearAndACustomRangeCoverExactlyTheirDays() {
+        val year = build(history(), OverviewPeriod.Year(2025))
+        val custom = build(history(), OverviewPeriod.Custom(LocalDate(2026, 8, 15), LocalDate(2026, 9, 15)))
+
+        assertEquals(0, year.spentMinor)
+        assertEquals(listOf(2026, 2025), year.years)
+        assertEquals(LocalDate(2025, 12, 31), year.to)
+        assertEquals(4_850_00, custom.incomeMinor)
+        assertEquals(1_510_00, custom.spentMinor)
+        assertEquals(listOf(CalendarMonth(2026, 8), sep), custom.trend.map { it.month })
+        assertEquals(listOf(sep, sep.previous(), sep.plus(-2)), custom.months)
+    }
+
+    @Test
+    fun longPeriodsGroupTheTrendByQuarterThenByYear() {
+        val quarters = build(history(), OverviewPeriod.Custom(LocalDate(2025, 10, 1), LocalDate(2026, 9, 30)))
+        val years = build(history(), OverviewPeriod.Custom(LocalDate(2019, 1, 1), LocalDate(2026, 9, 30)))
+
+        assertEquals(List(4) { TrendStep.QUARTER }, quarters.trend.map { it.step })
+        assertEquals(listOf(0L, 0L, 0L, 3_892_00L), quarters.trend.map { it.spentMinor })
+        assertEquals(CalendarMonth(2026, 7), quarters.trend.last().month)
+        assertEquals((2021..2026).toList(), years.trend.map { it.month.year })
+        assertEquals(TrendStep.YEAR, years.trend.first().step)
+        assertEquals(3_892_00, years.trend.last().spentMinor)
+    }
+
+    @Test
+    fun allTimeWithoutMovementsIsToday() {
+        val overview = build(designFamily(), OverviewPeriod.AllTime)
+
+        assertEquals(LocalDate(2026, 10, 18), overview.from)
+        assertEquals(LocalDate(2026, 10, 18), overview.to)
+        assertTrue(overview.months.isEmpty())
+        assertEquals(0, overview.averageSpentMinor)
     }
 
     private val repository = FakeDatabaseRepository.ready(history())
@@ -144,6 +207,28 @@ class OverviewTest {
 
         assertEquals(CalendarMonth(2026, 8), vm.state.value.overview?.month)
         assertEquals(AccountScope.Children, vm.state.value.overview?.scope)
+    }
+
+    @Test
+    fun picksAggregatePeriodsAndCustomRangesInEitherOrder() = runTest {
+        val vm = viewModel()
+
+        vm.onPeriodSelected(OverviewPeriod.AllTime)
+        assertEquals(OverviewPeriod.AllTime, vm.state.value.overview?.period)
+
+        vm.onCustomRange(LocalDate(2026, 9, 15), LocalDate(2026, 8, 15))
+        assertEquals(OverviewPeriod.Custom(LocalDate(2026, 8, 15), LocalDate(2026, 9, 15)), vm.state.value.overview?.period)
+    }
+
+    @Test
+    fun markingSeasonalNeedsAMonth() = runTest {
+        val vm = viewModel()
+        val school = vm.state.value.overview!!.spike!!.categoryId
+        vm.onPeriodSelected(OverviewPeriod.AllTime)
+
+        vm.onMarkSeasonal(school)
+
+        assertNull(repository.database.category(school)?.seasonalPeakMonth)
     }
 
     @Test

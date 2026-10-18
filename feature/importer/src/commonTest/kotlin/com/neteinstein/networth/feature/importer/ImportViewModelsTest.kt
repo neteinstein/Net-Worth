@@ -360,6 +360,10 @@ class ImportViewModelsTest {
 
             vm.onAcceptAll()
             assertEquals(2, vm.state.value.done)
+            vm.onPick("w3", groceries.id)
+            // Tapping the picked category again clears a wrong pick.
+            vm.onPick("w3", groceries.id)
+            assertEquals(2, vm.state.value.done)
             vm.onPick("w3", other.id)
             vm.onNote("w3", "Football club")
             vm.onRemember("w3", false)

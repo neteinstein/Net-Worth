@@ -67,6 +67,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.monthName
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
@@ -240,7 +241,7 @@ fun CategoriesContent(
         val item = state.categories.firstOrNull { it.category.id == id } ?: return@let
         AlertDialog(
             onDismissRequest = { deleting = null },
-            title = { Text(stringResource(Res.string.manage_delete_category_title, item.category.name)) },
+            title = { Text(stringResource(Res.string.manage_delete_category_title, categoryName(item.category.name))) },
             text = { Text(pluralStringResource(Res.plurals.manage_delete_category_body, item.transactionCount, item.transactionCount)) },
             confirmButton = {
                 TextButton(onClick = {
@@ -279,7 +280,7 @@ private fun CategoryRow(
         ) {
             ColorKey(categoryColor(category.colorHex), size = 14.dp)
             Column(Modifier.weight(1f)) {
-                Text(category.name, style = MaterialTheme.typography.titleSmall)
+                Text(categoryName(category.name), style = MaterialTheme.typography.titleSmall)
                 Text(metaLine(item), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Text(
@@ -297,7 +298,8 @@ private fun CategoryRow(
         }
         AnimatedVisibility(expanded) {
             Column(Modifier.padding(top = 4.dp, bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                var name by remember(category.id) { mutableStateOf(category.name) }
+                val shown = categoryName(category.name)
+                var name by remember(category.id, shown) { mutableStateOf(shown) }
                 OutlinedTextField(
                     value = name,
                     onValueChange = {
@@ -402,11 +404,11 @@ private fun metaLine(item: CategoryItem): String {
 private fun SubcategoryChip(sub: Subcategory, onRemove: () -> Unit) {
     Surface(shape = CircleShape, color = MaterialTheme.colorScheme.background) {
         Row(Modifier.padding(start = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(sub.name, style = MaterialTheme.typography.labelMedium)
+            Text(categoryName(sub.name), style = MaterialTheme.typography.labelMedium)
             IconButton(onClick = onRemove, modifier = Modifier.size(36.dp)) {
                 Icon(
                     Icons.Filled.Close,
-                    contentDescription = stringResource(Res.string.manage_remove_subcategory, sub.name),
+                    contentDescription = stringResource(Res.string.manage_remove_subcategory, categoryName(sub.name)),
                     modifier = Modifier.size(14.dp),
                 )
             }

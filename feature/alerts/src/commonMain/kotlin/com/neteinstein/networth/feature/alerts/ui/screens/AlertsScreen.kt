@@ -41,6 +41,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.ProportionBar
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.monthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
@@ -198,7 +199,11 @@ private fun SpikeCard(
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    stringResource(Res.string.alerts_spike_title, spike.name, MoneyFormatter.whole(spike.spentMinor, currency)),
+                    stringResource(
+                        Res.string.alerts_spike_title,
+                        categoryName(spike.name),
+                        MoneyFormatter.whole(spike.spentMinor, currency),
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                 )
                 val share = spike.accounts?.let { accountShare(it) }
@@ -220,7 +225,7 @@ private fun SpikeCard(
                 spike.parts.forEach { (name, amount) ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            name ?: stringResource(Res.string.alerts_other),
+                            name?.let { categoryName(it) } ?: stringResource(Res.string.alerts_other),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.weight(0.45f),
                         )
@@ -324,7 +329,11 @@ private fun InsightCard(
         when (insight) {
             is Insight.OverBudget -> {
                 Text(
-                    stringResource(Res.string.alerts_over_budget_title, insight.name, MoneyFormatter.whole(insight.overMinor, currency)),
+                    stringResource(
+                        Res.string.alerts_over_budget_title,
+                        categoryName(insight.name),
+                        MoneyFormatter.whole(insight.overMinor, currency),
+                    ),
                     style = MaterialTheme.typography.titleSmall,
                 )
                 Text(
@@ -353,7 +362,10 @@ private fun InsightCard(
                 )
             }
             is Insight.Rising -> {
-                Text(stringResource(Res.string.alerts_rising_title, insight.name), style = MaterialTheme.typography.titleSmall)
+                Text(
+                    stringResource(Res.string.alerts_rising_title, categoryName(insight.name)),
+                    style = MaterialTheme.typography.titleSmall,
+                )
                 Text(
                     stringResource(
                         Res.string.alerts_rising_body,
@@ -407,7 +419,7 @@ private fun GoingWellCard(
                             is GoodNews.UnderAverage ->
                                 stringResource(
                                     Res.string.alerts_under_average,
-                                    item.name,
+                                    categoryName(item.name),
                                     item.percentBelow,
                                     MoneyFormatter.whole(item.underMinor, currency),
                                 )

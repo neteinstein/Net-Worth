@@ -47,6 +47,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
@@ -137,7 +138,7 @@ fun TransactionsContent(
                         Column(Modifier.weight(1f).padding(start = 10.dp)) {
                             val title =
                                 when {
-                                    state.category != null -> state.category.name
+                                    state.category != null -> categoryName(state.category.name)
                                     state.request.categoryId == UNCATEGORISED -> stringResource(Res.string.spending_uncategorised)
                                     else -> stringResource(Res.string.transactions_title)
                                 }
@@ -206,7 +207,7 @@ private fun LineRow(
             val label =
                 when {
                     tx.isInternalTransfer -> stringResource(Res.string.transactions_internal_label)
-                    line.category != null -> line.category.name
+                    line.category != null -> categoryName(line.category.name)
                     else -> stringResource(Res.string.spending_uncategorised)
                 }
             Text(
@@ -263,8 +264,19 @@ private fun EditDialog(
                             onChange { it.copy(categoryId = null, subcategoryId = null) }
                         })
                         categories.forEach { category ->
-                            ChoiceChip(category.name, edit.categoryId == category.id, {
-                                onChange { it.copy(categoryId = category.id, subcategoryId = null) }
+                            ChoiceChip(categoryName(category.name), edit.categoryId == category.id, {
+                                onChange {
+                                    it.copy(
+                                        categoryId = if (it.categoryId ==
+                                            category.id
+                                        ) {
+                                            null
+                                        } else {
+                                            category.id
+                                        },
+                                        subcategoryId = null,
+                                    )
+                                }
                             })
                         }
                     }
@@ -273,7 +285,7 @@ private fun EditDialog(
                         OverlineLabel(stringResource(Res.string.transactions_subcategory))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             subcategories.forEach { sub ->
-                                ChoiceChip(sub.name, edit.subcategoryId == sub.id, {
+                                ChoiceChip(categoryName(sub.name), edit.subcategoryId == sub.id, {
                                     onChange { it.copy(subcategoryId = if (it.subcategoryId == sub.id) null else sub.id) }
                                 })
                             }

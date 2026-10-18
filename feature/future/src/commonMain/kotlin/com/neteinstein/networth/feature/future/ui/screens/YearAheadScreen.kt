@@ -40,6 +40,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.HeroCard
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthYear
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
@@ -296,7 +297,7 @@ private fun Peaks(forecast: Forecast, currency: CurrencyCode, modifier: Modifier
                         modifier = Modifier.width(36.dp),
                     )
                     Text(
-                        peak.reason ?: stringResource(Res.string.forecast_peak_other),
+                        peak.reason?.let { categoryName(it) } ?: stringResource(Res.string.forecast_peak_other),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )

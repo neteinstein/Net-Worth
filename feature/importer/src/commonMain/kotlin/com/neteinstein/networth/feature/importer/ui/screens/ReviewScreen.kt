@@ -43,6 +43,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
@@ -236,7 +237,15 @@ private fun ReviewItemCard(
                 val shown = ui.shownCategoryId == id
                 val confirmed = ui.draft.categoryId == id
                 CategoryChip(
-                    label = if (shown && !confirmed) stringResource(Res.string.review_suggested, category.name) else category.name,
+                    label = categoryName(category.name).let { name ->
+                        if (shown &&
+                            !confirmed
+                        ) {
+                            stringResource(Res.string.review_suggested, name)
+                        } else {
+                            name
+                        }
+                    },
                     confirmed = confirmed,
                     suggested = shown && !confirmed,
                     onClick = { onPick(tx.id, id) },
@@ -320,7 +329,7 @@ private fun OtherCategories(
     val selected = categories.firstOrNull { it.id == selectedId }
     Box {
         CategoryChip(
-            label = selected?.name ?: stringResource(
+            label = selected?.name?.let { categoryName(it) } ?: stringResource(
                 Res.string.review_more,
             ),
             confirmed = selected != null,
@@ -333,7 +342,7 @@ private fun OtherCategories(
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             categories.forEach { category ->
                 DropdownMenuItem(
-                    text = { Text(category.name) },
+                    text = { Text(categoryName(category.name)) },
                     onClick = {
                         expanded = false
                         onPick(category.id)
@@ -357,7 +366,7 @@ private fun hint(
     if (history != null &&
         suggested != null
     ) {
-        return stringResource(Res.string.review_hint_history, history.first, history.second, suggested.name)
+        return stringResource(Res.string.review_hint_history, history.first, history.second, categoryName(suggested.name))
     }
     val info = item.info
     return when (info.kind) {

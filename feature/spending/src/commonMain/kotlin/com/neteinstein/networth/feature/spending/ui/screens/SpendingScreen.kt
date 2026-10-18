@@ -15,16 +15,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,12 +38,14 @@ import com.neteinstein.networth.core.designsystem.ui.components.CardTitle
 import com.neteinstein.networth.core.designsystem.ui.components.ChipRow
 import com.neteinstein.networth.core.designsystem.ui.components.ChoiceChip
 import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
+import com.neteinstein.networth.core.designsystem.ui.components.DateRangePickerDialog
 import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.HeroCard
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ProportionBar
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.components.monthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
@@ -213,8 +210,11 @@ fun SpendingContent(
             }
         }
         if (pickingRange) {
-            RangePickerDialog(
-                current = spending.period,
+            DateRangePickerDialog(
+                start = spending.period.start,
+                end = spending.period.end,
+                confirmLabel = stringResource(Res.string.spending_ok),
+                dismissLabel = stringResource(Res.string.spending_cancel),
                 onPicked = { start, end ->
                     pickingRange = false
                     actions.onCustomRange(start, end)
@@ -345,7 +345,7 @@ private fun CategoriesCard(
                     ColorKey(color)
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        row.name ?: stringResource(Res.string.spending_uncategorised),
+                        row.name?.let { categoryName(it) } ?: stringResource(Res.string.spending_uncategorised),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                     )
@@ -425,38 +425,6 @@ private fun SavingsCard(
         )
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RangePickerDialog(
-    current: DateRange,
-    onPicked: (LocalDate, LocalDate) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val picker =
-        rememberDateRangePickerState(
-            initialSelectedStartDateMillis = current.start.toEpochDays() * MILLIS_PER_DAY,
-            initialSelectedEndDateMillis = current.end.toEpochDays() * MILLIS_PER_DAY,
-        )
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            val start = picker.selectedStartDateMillis
-            val end = picker.selectedEndDateMillis
-            TextButton(
-                onClick = { if (start != null && end != null) onPicked(start.toLocalDate(), end.toLocalDate()) },
-                enabled = start != null && end != null,
-            ) { Text(stringResource(Res.string.spending_ok)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.spending_cancel)) } },
-    ) {
-        DateRangePicker(state = picker, modifier = Modifier.weight(1f))
-    }
-}
-
-private const val MILLIS_PER_DAY = 86_400_000L
-
-private fun Long.toLocalDate(): LocalDate = LocalDate.fromEpochDays(this / MILLIS_PER_DAY)
 
 @Preview
 @Composable

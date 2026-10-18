@@ -44,6 +44,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
+import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
@@ -204,7 +205,7 @@ fun FiltersContent(
                     Group(stringResource(Res.string.filters_categories), section) {
                         state.categories.forEach { category ->
                             ChoiceChip(
-                                category.name,
+                                categoryName(category.name),
                                 selected = category.id in filter.categoryIds,
                                 onClick = { actions.onCategory(category.id) },
                                 leading = { ColorKey(categoryColor(category.colorHex)) },

@@ -29,10 +29,10 @@ class HouseholdSetupTest {
             },
         )
         assertEquals(db.members.take(2).map { it.id }, db.accounts[2].ownerIds)
-        assertEquals(10, db.categories.size)
+        assertEquals(11, db.categories.size)
         assertEquals("Housing", db.categories.first().name)
         assertEquals(7, db.categories.first().subcategories.size)
-        assertEquals(39, db.categories.sumOf { it.subcategories.size })
+        assertEquals(41, db.categories.sumOf { it.subcategories.size })
         assertEquals(42, db.updatedAt)
         assertEquals("pedro@example.com", db.updatedBy)
         assertEquals("EUR", db.currency.code)
