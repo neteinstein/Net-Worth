@@ -1,6 +1,7 @@
 package com.neteinstein.networth.feature.importer.domain
 
 import com.neteinstein.networth.core.domain.text.DescriptionInfo
+import com.neteinstein.networth.core.domain.text.MovementKind
 
 /**
  * Brands and shop words common in Portuguese bank statements, by the default subcategory they belong to.
@@ -1367,6 +1368,8 @@ object KnownMerchants {
 
     /** The default subcategory name ("Supermarket") for a movement's merchant, if it is a known brand. */
     fun subcategoryFor(info: DescriptionInfo): String? {
+        // "Pagamento (de) Baixo Valor Cartão": unnamed low-value card payments go to Other (Outros) › Misc.
+        if (info.kind == MovementKind.LOW_VALUE_CARD) return "Misc"
         val name = info.merchant ?: info.counterparty ?: return null
         val text = words(name)
         if (text.isEmpty()) return null

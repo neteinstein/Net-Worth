@@ -10,6 +10,7 @@ class DescriptionsTest {
     fun describesPortugueseMovements() {
         fun kind(raw: String) = Descriptions.describe(raw).kind
         assertEquals(MovementKind.LOW_VALUE_CARD, kind("Pagamento Baixo Valor Cartão **** ****999*"))
+        assertEquals(MovementKind.LOW_VALUE_CARD, kind("Pagamento de baixo valor cartão **** ****999*"))
         assertEquals(MovementKind.CASH_WITHDRAWAL, kind("Levantamento Mb Cartão **** 999*"))
         assertEquals(MovementKind.MORTGAGE, kind("Pagamento Prestação Ch N° 55 Processo 1"))
         assertEquals(MovementKind.TAX, kind("Imp Selo S/ Com"))

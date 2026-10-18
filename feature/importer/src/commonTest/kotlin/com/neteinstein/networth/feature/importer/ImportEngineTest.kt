@@ -331,7 +331,8 @@ class ImportEngineTest {
         assertEquals("Doctor & dentist", sub("COMPRA CLINICA DENTARIA"))
         assertEquals("Electricity", sub("Cobrança SDD EDP Comercial ADC 123"))
         assertNull(sub("COMPRA LIDLAND"))
-        assertNull(sub("Pagamento Baixo Valor"))
+        assertEquals("Misc", sub("Pagamento Baixo Valor"))
+        assertEquals("Misc", sub("Pagamento de baixo valor cartão **** ****999*"))
         assertTrue(KnownMerchants.size > 500)
 
         val waiting = Transaction("w", pedroAccount.id, d(12), -4_250, "COMPRA 4417 PINGO DOCE PORTO")

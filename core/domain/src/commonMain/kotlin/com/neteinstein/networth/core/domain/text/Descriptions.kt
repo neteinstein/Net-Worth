@@ -4,7 +4,7 @@ package com.neteinstein.networth.core.domain.text
 enum class MovementKind {
     CARD_PURCHASE,
 
-    /** "Pagamento Baixo Valor": contactless payments the bank batches without a merchant name. */
+    /** "Pagamento (de) Baixo Valor": contactless payments the bank batches without a merchant name. */
     LOW_VALUE_CARD,
     MB_WAY_PERSON,
     TRANSFER_IN,
@@ -51,7 +51,7 @@ object Descriptions {
     private val phonePattern = Regex("(9[\\d*]{2}\\s?[\\d*]{3}\\s?[\\d*]{3})")
     private val spaces = Regex("\\s+")
 
-    private val lowValue = Regex("^pagamento baixo valor", ignore)
+    private val lowValue = Regex("^pagamento\\s+(?:de\\s+)?baixo\\s+valor", ignore)
     private val cash = Regex("^levantamento", ignore)
     private val refund = Regex("^devolu[cç][aã]o\\s+(?:compra\\s+)?(.*)$", ignore)
     private val purchase = Regex("^(?:compra|transa[cç][aã]o visa)\\s*(?:mb\\s*way|mbway|mb|internet|visa)?\\s*(.*)$", ignore)
