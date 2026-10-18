@@ -26,6 +26,7 @@ object NetWorthIcons {
         )
     }
     val ChevronDown: ImageVector by lazy { strokeIcon("ChevronDown", "M6 9l6 6 6-6") }
+    val ChevronUp: ImageVector by lazy { strokeIcon("ChevronUp", "M6 15l6-6 6 6") }
     val ChevronRight: ImageVector by lazy { strokeIcon("ChevronRight", "M9 6l6 6-6 6") }
     val ChevronLeft: ImageVector by lazy { strokeIcon("ChevronLeft", "M15 6l-6 6 6 6") }
     val TrendUp: ImageVector by lazy { strokeIcon("TrendUp", "M3 17l6-6 4 4 8-8", "M15 7h6v6") }

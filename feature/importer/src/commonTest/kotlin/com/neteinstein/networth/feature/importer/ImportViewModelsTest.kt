@@ -407,6 +407,27 @@ class ImportViewModelsTest {
         }
 
     @Test
+    fun reviewShowsAHundredItemsAtATime() =
+        runTest {
+            val account = family.accounts.first().id
+            repository.state.value =
+                (repository.state.value as DatabaseState.Ready).let { ready ->
+                    ready.copy(
+                        database =
+                            ready.database.copy(
+                                transactions =
+                                    (1..120).map { i ->
+                                        Transaction("w$i", account, LocalDate(2026, 9, 1), -100L * i, "Compra Mb Loja $i")
+                                    },
+                            ),
+                    )
+                }
+            val vm = reviewViewModel()
+            assertEquals(120, vm.state.value.total)
+            assertEquals(100, vm.state.value.items.size)
+        }
+
+    @Test
     fun describesStatementPeriods() {
         val short = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
         val long =

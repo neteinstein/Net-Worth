@@ -28,6 +28,7 @@
         <item quantity="one">+ %1$d outra categoria · %2$s</item>
         <item quantity="other">+ %1$d outras categorias · %2$s</item>
     </plurals>
+    <string name="overview_fewer_categories">Mostrar menos</string>
     <string name="overview_nothing_spent">Nada gasto este mês.</string>
     <string name="overview_last_months">Últimos 6 meses</string>
     <string name="overview_twelve_month_average">Média 12 meses %1$s</string>
