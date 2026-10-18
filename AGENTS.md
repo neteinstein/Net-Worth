@@ -178,9 +178,15 @@ and its generated Compose resources class is `<namespace>.generated.resources.Re
 
 ### Languages
 
-- The app ships in **English** (`values/`) and **European Portuguese** (`values-pt/`). Every string added to a
-  `values/strings.xml` gets its translation in the same module's `values-pt/strings.xml` in the same change
-  (same names, same placeholders, `one`/`other` plurals).
+- The app ships in **English** (`values/`) and **European Portuguese** (`values-pt/`). **Every feature supports
+  both languages:** every string added to or changed in a `values/strings.xml` gets its translation in the same
+  module's `values-pt/strings.xml` in the same change (same names, same placeholders, `one`/`other` plurals).
+  A new module with strings starts with both files. This is enforced: `./gradlew verifyTranslations` (run by
+  CI's lint job) fails on a missing or extra key, a placeholder mismatch or a missing plural form.
+- Write pt-PT, not pt-BR ("ficheiro", "ecrã", "telemóvel", "guardar"; formal "você" forms as elsewhere in the
+  app), and keep product names (MB WAY, Google Drive, Net Worth) untranslated.
+- A new screen's screenshot test should also render it in Portuguese when its layout could break with longer
+  text (see `settings_pt` in `feature/settings`).
 - The language is a device-local setting (Settings → Language: System / English / Português), stored with the
   appearance settings and applied by `AppLocaleEnvironment` in `App()`. No user-facing text in Kotlin code:
   domain errors carry an enum (e.g. `ParseFailure`) that the UI maps to a string resource.
@@ -194,6 +200,7 @@ cp androidApp/google-services.json.ci androidApp/google-services.json   # once; 
 
 ./gradlew testDebugUnitTest                 # all shared unit tests (JVM)
 ./gradlew ktlintCheck                       # style (ktlintFormat to auto-fix)
+./gradlew verifyTranslations                # every values/strings.xml matched by values-pt/strings.xml
 ./gradlew :androidApp:lintGithubDebug       # Android lint incl. all library modules
 ./gradlew :koverLog :koverVerify            # merged coverage + 80 % gate (report: :koverHtmlReport)
 ./gradlew :androidApp:assembleGithubDebug   # debug APK (flavor "github" — see CI_CD.md → Flavors)
@@ -225,7 +232,7 @@ Agent containers frequently **cannot build the whole project**. Known limits:
   `./gradlew compileKotlinIosSimulatorArm64 -Pkotlin.native.enableKlibsCrossCompilation=true` (downloads the
   Kotlin/Native toolchain once; linking the framework still needs macOS).
 
-What *can* usually be checked in a sandbox: `testDebugUnitTest`, `ktlintCheck`, `:androidApp:lintGithubDebug`,
+What *can* usually be checked in a sandbox: `testDebugUnitTest`, `ktlintCheck`, `verifyTranslations`, `:androidApp:lintGithubDebug`,
 `:koverVerify`, `:androidApp:assembleGithubDebug/assembleGithubRelease`, `compileKotlinWasmJs`, and the iOS klib
 cross-compile above. Real Google sign-in/Drive calls can't be exercised (no OAuth client ids, no device).
 **CI on the PR is the real build signal** — especially for iOS and the web bundle. Say in the PR's test

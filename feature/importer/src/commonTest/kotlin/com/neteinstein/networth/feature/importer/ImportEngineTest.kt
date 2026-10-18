@@ -11,13 +11,14 @@ import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.text.Descriptions
+import com.neteinstein.networth.core.domain.text.Rules
 import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
 import com.neteinstein.networth.feature.importer.domain.AccountMatcher
 import com.neteinstein.networth.feature.importer.domain.Coverage
 import com.neteinstein.networth.feature.importer.domain.ImportPlanner
+import com.neteinstein.networth.feature.importer.domain.KnownMerchants
 import com.neteinstein.networth.feature.importer.domain.ReviewQueue
-import com.neteinstein.networth.feature.importer.domain.Rules
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
 import com.neteinstein.networth.feature.importer.domain.model.MonthCoverage
 import com.neteinstein.networth.feature.importer.domain.model.ParsedHolding
@@ -310,5 +311,51 @@ class ImportEngineTest {
         assertEquals("Birthday gift", txs.getValue("w2").note)
         assertEquals(setOf("DECATHLON", "9** *** 412"), updated.merchantRules.map { it.pattern }.toSet())
         assertEquals(RuleMatch.PREFIX, updated.merchantRules.first { it.pattern == "DECATHLON" }.match)
+    }
+
+    @Test
+    fun knownPortugueseBrandsSuggestACategory() {
+        fun sub(description: String) = KnownMerchants.subcategoryFor(Descriptions.describe(description))
+        assertEquals("Supermarket", sub("Compra Mb Cartão ****1* Pingo Doce Lisboa"))
+        assertEquals("Supermarket", sub("COMPRA 4417 CONTINENTE BOM DIA BRAGA"))
+        assertEquals("Supermarket", sub("Compra Mercadona Gaia"))
+        assertEquals("Supermarket", sub("Compra Intermarché Évora"))
+        assertEquals("Fuel", sub("COMPRA GALP MATOSINHOS"))
+        assertEquals("Takeaway", sub("COMPRA UBER EATS"))
+        assertEquals("Public transport", sub("COMPRA UBER"))
+        assertEquals("Adults", sub("COMPRA H&M COLOMBO"))
+        assertEquals("Outings", sub("COMPRA NOS CINEMAS NORTESHOPPING"))
+        assertEquals("Misc", sub("COMPRA CLINICA VETERINARIA DO PORTO"))
+        assertEquals("Doctor & dentist", sub("COMPRA CLINICA DENTARIA"))
+        assertEquals("Electricity", sub("Cobrança SDD EDP Comercial ADC 123"))
+        assertNull(sub("COMPRA LIDLAND"))
+        assertNull(sub("Pagamento Baixo Valor"))
+        assertTrue(KnownMerchants.size > 500)
+
+        val waiting = Transaction("w", pedroAccount.id, d(12), -4_250, "COMPRA 4417 PINGO DOCE PORTO")
+        val item = ReviewQueue.build(family.copy(transactions = listOf(waiting))).single()
+        val groceriesCategory = family.categories.first { c -> c.subcategories.any { it.name == "Supermarket" } }
+        assertEquals(groceriesCategory.id, item.suggestedCategoryId)
+        assertNull(item.history)
+
+        // A household that renamed its subcategories into Portuguese still gets the suggestion.
+        val renamed =
+            family.categories.map { c ->
+                c.copy(
+                    subcategories = c.subcategories.map { s ->
+                        if (s.name ==
+                            "Supermarket"
+                        ) {
+                            s.copy(name = "Supermercado")
+                        } else {
+                            s
+                        }
+                    },
+                )
+            }
+        val inPortuguese = ReviewQueue.build(family.copy(categories = renamed, transactions = listOf(waiting))).single()
+        assertEquals(groceriesCategory.id, inPortuguese.suggestedCategoryId)
+        assertEquals(listOf("Misc", "Diversos"), KnownMerchants.namesOf("Misc"))
+        assertEquals(listOf("Unknown"), KnownMerchants.namesOf("Unknown"))
     }
 }

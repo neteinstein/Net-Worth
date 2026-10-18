@@ -23,7 +23,7 @@ import platform.posix.memcpy
 
 @Composable
 actual fun rememberStatementPicker(
-    onPicked: (name: String, bytes: ByteArray) -> Unit,
+    onPicked: (files: List<PickedFile>) -> Unit,
     onFailed: () -> Unit,
 ): () -> Unit {
     val picked by rememberUpdatedState(onPicked)
@@ -31,9 +31,13 @@ actual fun rememberStatementPicker(
     // The picker only holds its delegate weakly, so keep it for as long as the screen is shown.
     val delegate =
         remember {
-            PickerDelegate { url ->
-                val bytes = NSData.dataWithContentsOfURL(url)?.toByteArray()
-                if (bytes == null) failed() else picked(url.lastPathComponent.orEmpty(), bytes)
+            PickerDelegate pick@{ urls ->
+                val files =
+                    urls.map { url ->
+                        val bytes = NSData.dataWithContentsOfURL(url)?.toByteArray() ?: return@pick failed()
+                        PickedFile(url.lastPathComponent.orEmpty(), bytes)
+                    }
+                if (files.isNotEmpty()) picked(files)
             }
         }
     return {
@@ -42,20 +46,21 @@ actual fun rememberStatementPicker(
                 forOpeningContentTypes = listOf(UTTypePDF, UTTypeCommaSeparatedText, UTTypePlainText, UTTypeData),
                 asCopy = true,
             )
+        picker.allowsMultipleSelection = true
         picker.delegate = delegate
         topViewController()?.presentViewController(picker, animated = true, completion = null)
     }
 }
 
 private class PickerDelegate(
-    private val onUrl: (NSURL) -> Unit,
+    private val onUrls: (List<NSURL>) -> Unit,
 ) : NSObject(),
     UIDocumentPickerDelegateProtocol {
     override fun documentPicker(
         controller: UIDocumentPickerViewController,
         didPickDocumentsAtURLs: List<*>,
     ) {
-        (didPickDocumentsAtURLs.firstOrNull() as? NSURL)?.let(onUrl)
+        onUrls(didPickDocumentsAtURLs.filterIsInstance<NSURL>())
     }
 }
 

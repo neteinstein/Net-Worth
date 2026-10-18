@@ -70,6 +70,10 @@
     <string name="importer_error_pdf_protection_damaged">This PDF’s protection is damaged</string>
     <string name="importer_error_damaged">This file’s compressed data is damaged</string>
     <string name="importer_error_dismiss">Choose another file</string>
+    <string name="importer_file_error">%1$s — %2$s</string>
+    <string name="importer_file_progress">File %1$d of %2$d · %3$s</string>
+    <string name="importer_skip_file">Skip this file</string>
+    <string name="importer_reuse_choices">Use the same accounts and owners for the next files from these accounts</string>
     <string name="importer_months_title">Months uploaded</string>
     <string name="importer_months_body">Last 12 months per account. Upload the missing ones so averages and alerts see the whole picture.</string>
     <string name="importer_month_full">Uploaded</string>

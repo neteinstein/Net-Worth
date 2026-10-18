@@ -26,6 +26,16 @@
     <string name="onboarding_create_accounts">Criar uma conta para cada pessoa</string>
     <string name="onboarding_create_accounts_body">Uma conta à ordem por adulto, poupança conjunta e uma conta poupança por criança. Pode mudar o nome ou adicionar contas mais tarde.</string>
     <string name="onboarding_joint_savings">Poupança conjunta</string>
+    <string name="onboarding_file">Ficheiro da base de dados</string>
+    <string name="onboarding_file_question">Quer escolher o nome e a pasta do ficheiro no Google Drive, ou deixar o Net Worth escolher?</string>
+    <string name="onboarding_file_auto">Escolher por mim</string>
+    <string name="onboarding_file_custom">Quero escolher</string>
+    <string name="onboarding_file_saved_as">Guardado como “%1$s” em %2$s.</string>
+    <string name="onboarding_file_name">Nome do ficheiro</string>
+    <string name="onboarding_folder">Pasta</string>
+    <string name="onboarding_folder_my_drive">O meu disco</string>
+    <string name="onboarding_choose_folder">Escolher pasta</string>
+    <string name="onboarding_use_my_drive">Usar antes O meu disco</string>
     <string name="onboarding_create">Criar base de dados</string>
     <string name="onboarding_error_not_configured">O início de sessão com o Google ainda não está configurado nesta versão. Consulte docs/google-cloud-setup.md.</string>
     <string name="onboarding_error_sign_in">Não foi possível iniciar sessão com o Google. Verifique a ligação e tente novamente.</string>

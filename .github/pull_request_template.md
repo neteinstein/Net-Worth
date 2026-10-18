@@ -18,7 +18,8 @@ What you ran and what it showed. REQUIRED: also list what you could NOT run and 
 -->
 
 - [ ] `./gradlew testDebugUnitTest`
-- [ ] `./gradlew ktlintCheck :androidApp:lintGithubDebug`
+- [ ] `./gradlew ktlintCheck verifyTranslations :androidApp:lintGithubDebug`
+- [ ] New or changed strings are translated in `values-pt/` (English and Portuguese)
 - [ ] `./gradlew :androidApp:assembleGithubDebug`
 - [ ] Manually verified on: <!-- device / simulator / browser, or "not run" -->
 

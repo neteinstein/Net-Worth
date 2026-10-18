@@ -37,9 +37,12 @@ import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
 import com.neteinstein.networth.core.domain.model.Assumptions
+import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
+import com.neteinstein.networth.core.domain.model.MerchantRule
+import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.feature.manage.generated.resources.Res
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance_invalid
@@ -61,14 +64,142 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_assump
 import com.neteinstein.networth.feature.manage.generated.resources.manage_cancel
 import com.neteinstein.networth.feature.manage.generated.resources.manage_delete
 import com.neteinstein.networth.feature.manage.generated.resources.manage_edit_account
+import com.neteinstein.networth.feature.manage.generated.resources.manage_edit_rule
 import com.neteinstein.networth.feature.manage.generated.resources.manage_large_payment
 import com.neteinstein.networth.feature.manage.generated.resources.manage_new_subscriptions
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_category
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_match
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_match_contains
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_match_phone
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_match_prefix
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_no_subcategory
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_past
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_pattern
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_save_future
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_save_past
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_subcategory
 import com.neteinstein.networth.feature.manage.generated.resources.manage_save
 import com.neteinstein.networth.feature.manage.generated.resources.manage_spike_threshold
 import com.neteinstein.networth.feature.manage.ui.screens.AccountEditor
+import com.neteinstein.networth.feature.manage.ui.screens.RuleEditor
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
+
+/**
+ * Edits a merchant rule: its text, how it matches and where it files. Saving asks whether the change only
+ * applies to future imports or also re-files the past transactions it matches.
+ */
+@Composable
+internal fun RuleEditorDialog(
+    editor: RuleEditor,
+    categories: List<Category>,
+    onChange: ((MerchantRule) -> MerchantRule) -> Unit,
+    onMatch: (RuleMatch) -> Unit,
+    onCategory: (String) -> Unit,
+    onSave: (applyToPast: Boolean) -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val rule = editor.rule
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.manage_edit_rule)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = rule.pattern,
+                    onValueChange = { value -> onChange { it.copy(pattern = value.uppercase()) } },
+                    label = { Text(stringResource(Res.string.manage_rule_pattern)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Characters),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Dropdown(
+                    label = stringResource(Res.string.manage_rule_match),
+                    value = stringResource(rule.match.label),
+                    options = RuleMatch.entries.map { stringResource(it.label) to { onMatch(it) } },
+                )
+                Dropdown(
+                    label = stringResource(Res.string.manage_rule_category),
+                    value = categories.firstOrNull { it.id == rule.categoryId }?.name.orEmpty(),
+                    options = categories.map { category -> category.name to { onCategory(category.id) } },
+                )
+                val subcategories = categories.firstOrNull { it.id == rule.categoryId }?.subcategories.orEmpty()
+                if (subcategories.isNotEmpty()) {
+                    val none = stringResource(Res.string.manage_rule_no_subcategory)
+                    Dropdown(
+                        label = stringResource(Res.string.manage_rule_subcategory),
+                        value = subcategories.firstOrNull { it.id == rule.subcategoryId }?.name ?: none,
+                        options = listOf(none to { onChange { it.copy(subcategoryId = null) } }) +
+                            subcategories.map { sub -> sub.name to { onChange { it.copy(subcategoryId = sub.id) } } },
+                    )
+                }
+                Text(
+                    pluralStringResource(Res.plurals.manage_rule_past, editor.pastMatches, editor.pastMatches),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                if (editor.pastToRefile > 0) {
+                    TextButton(onClick = { onSave(true) }, enabled = editor.canSave) {
+                        Text(pluralStringResource(Res.plurals.manage_rule_save_past, editor.pastToRefile, editor.pastToRefile))
+                    }
+                }
+                TextButton(onClick = { onSave(false) }, enabled = editor.canSave) {
+                    Text(stringResource(if (editor.pastToRefile > 0) Res.string.manage_rule_save_future else Res.string.manage_save))
+                }
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDelete) { Text(stringResource(Res.string.manage_delete)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.manage_cancel)) }
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun Dropdown(
+    label: String,
+    value: String,
+    options: List<Pair<String, () -> Unit>>,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+        )
+        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach { (text, onClick) ->
+                DropdownMenuItem(
+                    text = { Text(text) },
+                    onClick = {
+                        expanded = false
+                        onClick()
+                    },
+                )
+            }
+        }
+    }
+}
+
+private val RuleMatch.label
+    get() = when (this) {
+        RuleMatch.PREFIX -> Res.string.manage_rule_match_prefix
+        RuleMatch.CONTAINS -> Res.string.manage_rule_match_contains
+        RuleMatch.PHONE -> Res.string.manage_rule_match_phone
+    }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

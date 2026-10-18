@@ -59,6 +59,8 @@ import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
+import com.neteinstein.networth.core.domain.model.MerchantRule
+import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.feature.manage.generated.resources.Res
 import com.neteinstein.networth.feature.manage.generated.resources.manage_accounts
 import com.neteinstein.networth.feature.manage.generated.resources.manage_add
@@ -73,6 +75,7 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_back
 import com.neteinstein.networth.feature.manage.generated.resources.manage_categories
 import com.neteinstein.networth.feature.manage.generated.resources.manage_categories_summary
 import com.neteinstein.networth.feature.manage.generated.resources.manage_delete_rule
+import com.neteinstein.networth.feature.manage.generated.resources.manage_edit_rule_named
 import com.neteinstein.networth.feature.manage.generated.resources.manage_no_accounts
 import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_both_adults
 import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_child
@@ -87,6 +90,7 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_title
 import com.neteinstein.networth.feature.manage.ui.components.AccountEditorDialog
 import com.neteinstein.networth.feature.manage.ui.components.AlertRulesDialog
 import com.neteinstein.networth.feature.manage.ui.components.AssumptionsDialog
+import com.neteinstein.networth.feature.manage.ui.components.RuleEditorDialog
 import com.neteinstein.networth.feature.manage.ui.components.label
 import com.neteinstein.networth.feature.manage.ui.components.percent
 import org.jetbrains.compose.resources.stringResource
@@ -120,6 +124,12 @@ fun ManageScreen(
             onSaveAlerts = viewModel::onSaveAlerts,
             onSaveAssumptions = viewModel::onSaveAssumptions,
             onDeleteRule = viewModel::onDeleteRule,
+            onEditRule = viewModel::onEditRule,
+            onRuleChange = viewModel::onRuleChange,
+            onRuleMatch = viewModel::onRuleMatch,
+            onRuleCategory = viewModel::onRuleCategory,
+            onSaveRule = viewModel::onSaveRule,
+            onDismissRule = viewModel::onDismissRule,
         ),
     )
 }
@@ -139,6 +149,12 @@ data class ManageActions(
     val onSaveAlerts: (Int, Long, Boolean) -> Unit = { _, _, _ -> },
     val onSaveAssumptions: (Assumptions) -> Unit = {},
     val onDeleteRule: (String) -> Unit = {},
+    val onEditRule: (String) -> Unit = {},
+    val onRuleChange: ((MerchantRule) -> MerchantRule) -> Unit = {},
+    val onRuleMatch: (RuleMatch) -> Unit = {},
+    val onRuleCategory: (String) -> Unit = {},
+    val onSaveRule: (applyToPast: Boolean) -> Unit = {},
+    val onDismissRule: () -> Unit = {},
 )
 
 @Composable
@@ -180,7 +196,7 @@ fun ManageContent(
                 val card = Modifier.padding(horizontal = 20.dp)
                 item { AccountsCard(state, currency, actions, card) }
                 item { CategoriesLink(state, actions.onOpenCategories, card) }
-                item { RulesCard(state, actions.onDeleteRule, card) }
+                item { RulesCard(state, actions.onEditRule, actions.onDeleteRule, card) }
                 if (state.savedFilters.isNotEmpty()) {
                     item {
                         SectionCard(card, spacing = 6) {
@@ -239,6 +255,18 @@ fun ManageContent(
             actions.onSaveAccount,
             actions.onDeleteAccount,
             actions.onDismissEditor,
+        )
+    }
+    state.ruleEditor?.let { editor ->
+        RuleEditorDialog(
+            editor = editor,
+            categories = state.categories,
+            onChange = actions.onRuleChange,
+            onMatch = actions.onRuleMatch,
+            onCategory = actions.onRuleCategory,
+            onSave = actions.onSaveRule,
+            onDelete = { actions.onDeleteRule(editor.rule.id) },
+            onDismiss = actions.onDismissRule,
         )
     }
     if (showAlertRules) {
@@ -381,7 +409,7 @@ private fun CategoriesLink(state: ManageUiState, onClick: () -> Unit, modifier: 
 }
 
 @Composable
-private fun RulesCard(state: ManageUiState, onDelete: (String) -> Unit, modifier: Modifier) {
+private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: (String) -> Unit, modifier: Modifier) {
     var showAll by remember { mutableStateOf(false) }
     SectionCard(modifier, spacing = 4) {
         CardTitle(stringResource(Res.string.manage_rules), trailing = stringResource(Res.string.manage_rules_learned, state.rules.size))
@@ -393,8 +421,9 @@ private fun RulesCard(state: ManageUiState, onDelete: (String) -> Unit, modifier
             )
         }
         (if (showAll) state.rules else state.rules.take(3)).forEach { rule ->
+            val editLabel = stringResource(Res.string.manage_edit_rule_named, rule.pattern)
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp),
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClickLabel = editLabel) { onEdit(rule.id) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {

@@ -5,8 +5,10 @@ import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.repository.IdGenerator
+import com.neteinstein.networth.core.domain.text.DescriptionInfo
 import com.neteinstein.networth.core.domain.text.Descriptions
 import com.neteinstein.networth.core.domain.text.MovementKind
+import com.neteinstein.networth.core.domain.text.Rules
 import com.neteinstein.networth.feature.importer.domain.model.ReviewChoice
 import com.neteinstein.networth.feature.importer.domain.model.ReviewItem
 
@@ -31,7 +33,7 @@ object ReviewQueue {
                 val past = info.key?.let { byKey[it] }.orEmpty()
                 val counts = past.groupingBy { it.categoryId!! }.eachCount()
                 val best = counts.maxByOrNull { it.value }
-                val kindDefault = if (best == null) defaultFor(database, info.kind) else null
+                val kindDefault = if (best == null) defaultFor(database, info.kind) ?: knownBrand(database, info) else null
                 val suggestion = best?.key ?: kindDefault
                 ReviewItem(
                     transaction = tx,
@@ -61,6 +63,17 @@ object ReviewQueue {
                 else -> return null
             }
         return database.categories.firstOrNull { c -> c.subcategories.any { it.name.equals(subcategory, ignoreCase = true) } }?.id
+    }
+
+    /** The category of a well-known Portuguese brand ("Continente" → Groceries), found by its default subcategory. */
+    private fun knownBrand(
+        database: FamilyDatabase,
+        info: DescriptionInfo,
+    ): String? {
+        val names = KnownMerchants.subcategoryFor(info)?.let(KnownMerchants::namesOf) ?: return null
+        return database.categories.firstOrNull { c ->
+            c.subcategories.any { sub -> names.any { it.equals(sub.name.trim(), ignoreCase = true) } }
+        }?.id
     }
 
     /** Number of merchants Net Worth can already file on its own (learned rules + merchants with history). */

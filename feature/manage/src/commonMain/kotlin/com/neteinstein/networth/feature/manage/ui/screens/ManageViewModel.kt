@@ -9,8 +9,11 @@ import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
 import com.neteinstein.networth.core.domain.model.Assumptions
+import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
+import com.neteinstein.networth.core.domain.model.MerchantRule
+import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.core.domain.model.SavedFilter
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
@@ -21,7 +24,9 @@ import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRule
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.transactionsMatching
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,6 +48,16 @@ data class RuleLine(
     val categoryName: String,
     val colorHex: String,
 )
+
+/** The merchant rule dialog: the rule as edited, and how many past transactions it matches. */
+data class RuleEditor(
+    val rule: MerchantRule,
+    val pastMatches: Int = 0,
+    /** Of [pastMatches], those filed somewhere else today, i.e. what "apply to past" would change. */
+    val pastToRefile: Int = 0,
+) {
+    val canSave: Boolean get() = rule.pattern.isNotBlank()
+}
 
 /** The account dialog's fields, kept as typed text until saved. */
 data class AccountEditor(
@@ -74,21 +89,25 @@ data class ManageUiState(
     val alerts: AlertSettings = AlertSettings(),
     val assumptions: Assumptions = Assumptions(),
     val editor: AccountEditor? = null,
+    val categories: List<Category> = emptyList(),
+    val ruleEditor: RuleEditor? = null,
 )
 
 class ManageViewModel(
-    observeDatabase: ObserveDatabaseUseCase,
+    private val observeDatabase: ObserveDatabaseUseCase,
     private val saveAccount: SaveAccountUseCase,
     private val deleteAccount: DeleteAccountUseCase,
     private val setAskAccount: SetAskAccountOnImportUseCase,
     private val saveAlertSettings: SaveAlertSettingsUseCase,
     private val saveAssumptions: SaveAssumptionsUseCase,
     private val deleteRule: DeleteMerchantRuleUseCase,
+    private val saveRule: SaveMerchantRuleUseCase,
     private val addMember: AddMemberUseCase,
 ) : ViewModel() {
     private val editor = MutableStateFlow<AccountEditor?>(null)
+    private val editedRule = MutableStateFlow<MerchantRule?>(null)
 
-    val state: StateFlow<ManageUiState> = combine(observeDatabase(), editor) { db, editor ->
+    val state: StateFlow<ManageUiState> = combine(observeDatabase(), editor, editedRule) { db, editor, rule ->
         val database = (db as? DatabaseState.Ready)?.database ?: return@combine ManageUiState(editor = editor)
         val categories = database.categories.sortedBy { it.position }
         ManageUiState(
@@ -118,6 +137,15 @@ class ManageViewModel(
             alerts = database.settings.alerts,
             assumptions = database.settings.assumptions,
             editor = editor,
+            categories = categories,
+            ruleEditor = rule?.let {
+                val matching = if (it.pattern.isBlank()) emptyList() else database.transactionsMatching(it)
+                RuleEditor(
+                    rule = it,
+                    pastMatches = matching.size,
+                    pastToRefile = matching.count { tx -> tx.categoryId != it.categoryId || tx.subcategoryId != it.subcategoryId },
+                )
+            },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManageUiState())
 
@@ -192,6 +220,37 @@ class ManageViewModel(
     }
 
     fun onDeleteRule(ruleId: String) {
+        if (editedRule.value?.id == ruleId) editedRule.value = null
         viewModelScope.launch { deleteRule(ruleId) }
+    }
+
+    fun onEditRule(ruleId: String) {
+        val database = (observeDatabase().value as? DatabaseState.Ready)?.database ?: return
+        editedRule.value = database.merchantRules.firstOrNull { it.id == ruleId }
+    }
+
+    fun onRuleChange(transform: (MerchantRule) -> MerchantRule) {
+        editedRule.update { it?.let(transform) }
+    }
+
+    /** Picking another category drops a subcategory that belonged to the old one. */
+    fun onRuleCategory(categoryId: String) = onRuleChange { rule ->
+        val keepsSub =
+            state.value.categories.firstOrNull { it.id == categoryId }?.subcategories?.any { it.id == rule.subcategoryId } == true
+        rule.copy(categoryId = categoryId, subcategoryId = rule.subcategoryId.takeIf { keepsSub })
+    }
+
+    fun onRuleMatch(match: RuleMatch) = onRuleChange { it.copy(match = match) }
+
+    fun onDismissRule() {
+        editedRule.value = null
+    }
+
+    /** Saves the edited rule; [applyToPast] also re-files every earlier transaction it matches. */
+    fun onSaveRule(applyToPast: Boolean) {
+        val rule = editedRule.value ?: return
+        if (rule.pattern.isBlank()) return
+        editedRule.value = null
+        viewModelScope.launch { saveRule(rule, applyToPast) }
     }
 }

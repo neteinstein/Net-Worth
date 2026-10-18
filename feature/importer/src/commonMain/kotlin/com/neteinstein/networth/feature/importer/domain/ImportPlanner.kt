@@ -11,6 +11,7 @@ import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.repository.IdGenerator
 import com.neteinstein.networth.core.domain.text.Descriptions
 import com.neteinstein.networth.core.domain.text.MovementKind
+import com.neteinstein.networth.core.domain.text.Rules
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
 import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
 import com.neteinstein.networth.feature.importer.domain.model.ParsedRow
@@ -54,6 +55,7 @@ class ImportPlanner(
         val known = existing.mapNotNull { tx -> tx.fingerprint?.let { it to tx } }.toMap()
         val added = ArrayList<Transaction>()
         val accountNames = ArrayList<String>()
+        val targetAccounts = HashMap<Int, String>() // section index → account id
         val overlapped = LinkedHashSet<String>()
         val unreconciled = ArrayList<String>()
         val sectionAccounts = HashMap<String, String>() // account number → account id
@@ -68,6 +70,7 @@ class ImportPlanner(
                 resolveAccount(accounts, target.accountId, section, statement.bank, target.name, target.type, target.ownerIds, now)
             accounts = accounts.upsert(account)
             accountNames += account.name
+            targetAccounts[target.sectionIndex] = account.id
             if (firstAccountId == null) firstAccountId = account.id
             section.accountNumber?.let { sectionAccounts[it] = account.id }
             if (!reconciles(section)) unreconciled += account.name
@@ -203,6 +206,7 @@ class ImportPlanner(
                 needReview = needReview,
                 overlappedImportIds = overlapped.toList(),
                 unreconciledAccounts = unreconciled,
+                sectionAccountIds = targetAccounts,
             ),
         )
     }

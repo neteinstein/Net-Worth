@@ -298,6 +298,8 @@ internal fun SummaryCard(
     onReview: () -> Unit,
     onImportAnother: () -> Unit,
     modifier: Modifier = Modifier,
+    /** False for all but the last of several files imported together, so the buttons show once. */
+    showActions: Boolean = true,
 ) {
     SectionCard(modifier, spacing = 12) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -358,6 +360,7 @@ internal fun SummaryCard(
         if (notes.isNotEmpty()) {
             Text(notes.joinToString(" "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+        if (!showActions) return@SectionCard
         if (pendingReview > 0) {
             Button(onClick = onReview, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                 Text(pluralStringResource(Res.plurals.importer_review_count, pendingReview, pendingReview))
