@@ -4,6 +4,7 @@ import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.feature.importer.domain.model.ParsedRow
 import com.neteinstein.networth.feature.importer.domain.model.ParsedSection
 import com.neteinstein.networth.feature.importer.domain.parse.Values
+import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextCell
 import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextLine
 import kotlinx.datetime.LocalDate
 import kotlin.math.abs
@@ -24,9 +25,11 @@ internal class MovementTable(
     private val label: String,
     private val accountNumber: String?,
     private val type: AccountType,
-    private val periodStart: LocalDate?,
-    private val periodEnd: LocalDate?,
-    private val iban: String? = null,
+    /** Settable: some statements print the period after the account's heading. */
+    var periodStart: LocalDate?,
+    var periodEnd: LocalDate?,
+    /** Settable: some banks print the IBAN under the account's heading. */
+    var iban: String? = null,
 ) {
     private class Draft(
         val date: LocalDate,
@@ -46,11 +49,15 @@ internal class MovementTable(
     private var debitX: Double? = null
     private var creditX: Double? = null
     private var continuing = false
+
+    /** True once a row carries its own sign: then the amounts are one signed column and unsigned ones are credits. */
+    private var signedColumn = false
     var closed = false
         private set
 
     /** Feeds one line; returns false if the line is not part of a movements table. */
-    fun accept(line: PdfTextLine): Boolean {
+    fun accept(raw: PdfTextLine): Boolean {
+        val line = raw.copy(cells = normalise(raw.cells))
         val cells = line.cells
         val text = line.text
         if (isHeader(line)) {
@@ -81,6 +88,7 @@ internal class MovementTable(
             val row = row(line)
             if (row != null) {
                 rows += row
+                if (row.explicitSign) signedColumn = true
                 continuing = true
                 return true
             }
@@ -99,6 +107,28 @@ internal class MovementTable(
         }
         continuing = false
         return false
+    }
+
+    /**
+     * Drops a trailing currency column ("EUR") and empty "-" cells, and folds a Débito/Crédito marker cell ("D", "C") into the amount
+     * just before it, so `36,90 EUR | D | 1.343,90 EUR` reads as `-36,90 EUR | 1.343,90 EUR`.
+     */
+    private fun normalise(cells: List<PdfTextCell>): List<PdfTextCell> {
+        val out = ArrayList<PdfTextCell>(cells.size)
+        for (cell in cells) {
+            val marker = cell.text.trim().uppercase()
+            if (marker == "-") continue
+            val previous = out.lastOrNull()
+            if (marker in SIGN_MARKERS && previous != null && Values.isAmount(previous.text)) {
+                val amount = previous.text.trim()
+                val text = if (marker.startsWith("D") && !amount.startsWith("-")) "-$amount" else amount
+                out[out.lastIndex] = previous.copy(text = text, endX = cell.endX)
+                continue
+            }
+            out += cell
+        }
+        while (out.size > 1 && out.last().text.trim().uppercase() in CURRENCIES) out.removeAt(out.lastIndex)
+        return out
     }
 
     private fun isHeader(line: PdfTextLine): Boolean {
@@ -140,10 +170,11 @@ internal class MovementTable(
                 val signed =
                     when {
                         draft.explicitSign -> draft.amountMinor
-                        draft.balanceMinor != null && previous != null && abs(draft.balanceMinor - previous!!) == magnitude ->
-                            if (draft.balanceMinor < previous!!) -magnitude else magnitude
+                        draft.balanceMinor != null && previous != null && abs(draft.balanceMinor - previous) == magnitude ->
+                            if (draft.balanceMinor < previous) -magnitude else magnitude
                         debitX != null && creditX != null ->
                             if (abs(draft.amountX - debitX!!) <= abs(draft.amountX - creditX!!)) -magnitude else magnitude
+                        signedColumn -> magnitude
                         else -> -magnitude
                     }
                 previous = draft.balanceMinor ?: previous?.plus(signed)
@@ -170,7 +201,10 @@ internal class MovementTable(
 
     companion object {
         private val OPENING = Regex("saldo\\s+(anterior|inicial)|opening balance|previous balance", RegexOption.IGNORE_CASE)
-        private val CLOSING = Regex("saldo\\s+(contabil[ií]stico|final)|closing balance", RegexOption.IGNORE_CASE)
+        private val CLOSING =
+            Regex("saldo\\s+(contabil[ií]stico|final|a(c)?tual\\s+contabil)|closing balance", RegexOption.IGNORE_CASE)
+        private val CURRENCIES = setOf("EUR", "USD", "GBP", "CHF", "BRL")
+        private val SIGN_MARKERS = setOf("D", "C", "DB", "CR")
         private val SPACES = Regex("\\s+")
     }
 }

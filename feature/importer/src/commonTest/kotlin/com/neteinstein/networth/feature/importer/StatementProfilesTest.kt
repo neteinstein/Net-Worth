@@ -140,6 +140,117 @@ class StatementProfilesTest {
     }
 
     @Test
+    fun millenniumSharesTheExtratoCombinado() {
+        val statement = PdfStatements.parse("millennium.pdf", BankStatementFixtures.millennium)
+        assertEquals("Millennium bcp", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("CONTA CORRENTE", account.label)
+        assertEquals("12345678901", account.accountNumber)
+        assertEquals("PT50003300001234567890105", account.iban)
+        assertEquals(LocalDate(2021, 12, 1), account.periodStart)
+        assertEquals(listOf(76_796L, -15_106L), account.rows.map { it.amountMinor })
+        assertEquals(LocalDate(2021, 12, 20), account.rows[1].date)
+        assertEquals(214_030, account.closingBalanceMinor)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
+    fun santanderTakesTheYearFromThePeriod() {
+        val statement = PdfStatements.parse("santander.pdf", BankStatementFixtures.santander)
+        assertEquals("Santander", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("Conta à Ordem", account.label)
+        assertEquals("000001234567001", account.accountNumber)
+        assertEquals("PT50001800000123456700195", account.iban)
+        assertEquals(LocalDate(2022, 12, 1), account.periodStart)
+        assertEquals(LocalDate(2022, 12, 30), account.periodEnd)
+        assertEquals(120_000, account.openingBalanceMinor)
+        assertEquals(130_000, account.closingBalanceMinor)
+        assertEquals(listOf(-15_025L, 30_000L, -4_975L), account.rows.map { it.amountMinor })
+        assertEquals(listOf(LocalDate(2022, 12, 5), LocalDate(2022, 12, 20), LocalDate(2022, 12, 29)), account.rows.map { it.date })
+        assertEquals(LocalDate(2023, 1, 2), account.rows[2].valueDate)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
+    fun bpiReadsTheSignedColumnAndTheAccountIban() {
+        val statement = PdfStatements.parse("bpi.pdf", BankStatementFixtures.bpi)
+        assertEquals("BPI", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("CONTA A ORDEM BPI", account.label)
+        assertEquals("11234567001001", account.accountNumber)
+        assertEquals("PT50001000001234567000187", account.iban)
+        assertEquals(LocalDate(2021, 12, 31), account.periodEnd)
+        assertEquals(250_000, account.openingBalanceMinor)
+        assertEquals(200_000, account.closingBalanceMinor)
+        assertEquals(listOf(-107_508L, -2_492L, 60_000L), account.rows.map { it.amountMinor })
+        assertEquals(LocalDate(2021, 12, 22), account.rows[0].date)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
+    fun montepioIgnoresTheCurrencyColumn() {
+        val statement = PdfStatements.parse("montepio.pdf", BankStatementFixtures.montepio)
+        assertEquals("Montepio", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("CONTA ORDENADO", account.label)
+        assertEquals("123100045678", account.accountNumber)
+        assertEquals("PT50003601230123456789012", account.iban)
+        assertEquals(LocalDate(2021, 12, 1), account.periodStart)
+        assertEquals(listOf(10_187L, -187L), account.rows.map { it.amountMinor })
+        assertEquals(110_000, account.closingBalanceMinor)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
+    fun onlineMovementListsFallBackToTheGenericReaderButKeepTheBank() {
+        val statement = PdfStatements.parse("net24.pdf", BankStatementFixtures.montepioOnline)
+        assertEquals("Montepio", statement.bank)
+        assertEquals(listOf(-187L, 10_187L), statement.sections.single().rows.map { it.amountMinor })
+    }
+
+    @Test
+    fun cgdReadsEachAccountWithItsIban() {
+        val statement = PdfStatements.parse("cgd.pdf", BankStatementFixtures.cgd)
+        assertEquals("CGD", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("CONTA EXTRACTO", account.label)
+        assertEquals("0123004567890", account.accountNumber)
+        assertEquals("PT50003501230000456789012", account.iban)
+        assertEquals(500_000, account.openingBalanceMinor)
+        assertEquals(400_000, account.closingBalanceMinor)
+        assertEquals(listOf(2_260L, -102_260L), account.rows.map { it.amountMinor })
+        assertEquals(LocalDate(2021, 11, 30), account.rows[1].valueDate)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
+    fun creditoAgricolaTakesTheSignFromTheDebitCreditColumn() {
+        val statement = PdfStatements.parse("ca.pdf", BankStatementFixtures.creditoAgricola)
+        assertEquals("Crédito Agrícola", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("12345678901", account.accountNumber)
+        assertEquals(LocalDate(2022, 12, 1), account.periodStart)
+        assertEquals(LocalDate(2022, 12, 31), account.periodEnd)
+        assertEquals(listOf(-3_690L, 10_000L), account.rows.map { it.amountMinor })
+        assertEquals(listOf("SEPA DD-EXEMPLO SA", "TRF DE EXEMPLO"), account.rows.map { it.description })
+        assertEquals(136_310, account.closingBalanceMinor)
+    }
+
+    @Test
+    fun novobancoBusinessExtractHasNoAccountHeading() {
+        val statement = PdfStatements.parse("empresa.pdf", BankStatementFixtures.novobancoBusiness)
+        assertEquals("novobanco", statement.bank)
+        val account = statement.sections.single()
+        assertEquals("000123450002", account.accountNumber)
+        assertEquals(LocalDate(2022, 12, 2), account.periodStart)
+        assertEquals(LocalDate(2023, 1, 2), account.periodEnd)
+        assertEquals(listOf(-737L, -3_908L), account.rows.map { it.amountMinor })
+        assertEquals("COM Comissão Garantia Bancária", account.rows[1].description)
+        assertTrue(ImportPlanner.reconciles(account))
+    }
+
+    @Test
     fun emptyPdfIsNotAStatement() {
         assertFailsWith<ParseException> { PdfStatements.parse("x.pdf", listOf(line(0, 800, 50.0 to "Hello"))) }
     }

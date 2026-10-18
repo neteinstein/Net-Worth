@@ -14,20 +14,43 @@ iOS and the web behave the same and every step is unit-tested on the JVM.
 
 ## PDF bank profiles
 
-`PdfStatements.profiles` picks the first profile whose `matches()` is true, else `GenericPdfProfile`.
+`PdfStatements.profiles` picks the first profile whose `matches()` is true and that finds accounts, else
+`GenericPdfProfile`.
 
 - **novobanco "Extrato Integrado"** — one section per `CONTA <name> nº <number> de dd.mm.yyyy a dd.mm.yyyy`;
   `SALDO ANTERIOR` / `SALDO CONTABILÍSTICO`; IBAN on page 1; "Agenda de movimentos previstos" → scheduled
   payments; "Crédito Habitação" detail → mortgage balance.
+  Business extracts head the current account `DEPOSITO A ORDEM DO - NORMAL` (with an `Origem` column) instead.
 - **Banco Best "Extrato Integrado"** — sections from the `N.º Conta | Designação | Data Início | Data Fim` line
   under "Detalhe de movimentos"; `Saldo inicial` / `Saldo contabilístico`; NIB → IBAN; investment funds from
   "Detalhe dos ativos".
-- **ActivoBank "Extrato Combinado"** — one section per `CONTA <name> N. <number> MOEDA: EUR` +
-  `EXTRATO DE yyyy/mm/dd A yyyy/mm/dd`; rows carry `mm.dd` dates without the year (taken from the period, also
-  across the new year) and space-separated thousands (`3 076.12`); `SALDO INICIAL` / `SALDO FINAL`, with
+- **ActivoBank / Millennium bcp "Extrato Combinado"** (same group, same layout; told apart by the BIC) — one
+  section per `CONTA <name> N. <number> MOEDA: EUR` + `EXTRATO DE yyyy/mm/dd A yyyy/mm/dd`; rows carry `mm.dd`
+  dates without the year and space-separated thousands (`3 076.12`); `SALDO INICIAL` / `SALDO FINAL`, with
   `A TRANSPORTAR` / `TRANSPORTE` between pages; IBAN on page 1 (`#S#…#E#` markers dropped); "Agenda de ordens de
-  pagamento" → scheduled payments. Checked first, because its descriptions can name other banks.
+  pagamento" → scheduled payments.
+- **Santander "Extrato"** — `CONTA Nº … PERÍODO DE yyyy-mm-dd A yyyy-mm-dd` in the page header, then "Detalhe de
+  Movimentos da Conta à Ordem" with `dd-mm` dates; `Saldo Inicial` / `Saldo Contabilístico Final`.
+- **BPI "Extracto de Conta"** — `Período De dd/mm/yyyy a dd/mm/yyyy`, per account `CONTA A ORDEM BPI Nº: …` and
+  its IBAN, `dd/mm` dates, one signed column; `SALDO ANTERIOR CONTABILISTICO` / `SALDO ACTUAL CONTABILISTICO`.
+- **Banco Montepio** — `Período : … a …`, per account `DEPÓSITO À ORDEM - MOVIMENTOS - <number> - <product>`,
+  amounts suffixed with `+`/`-` and a currency column after the balance.
+- **CGD "Extracto"** — per account `CONTA <name> 0000.000000.000` and its IBAN, ISO dates, one signed column;
+  `Saldo Anterior` / `Saldo contabilístico`.
+- **Crédito Agrícola online "Consulta de Movimentos"** — `Número de Conta:`, `De:` / `A:`, a `D`/`C` column for
+  the sign.
 - **Generic** — rows that start with a date and end with amounts; first IBAN in the file.
+
+Years missing from a row's dates (`10.01`, `05-12`, `22/12`) come from the statement period, also across the new
+year (`PartialDates`). Profiles that know their bank by its BIC are tried first, because descriptions can name
+other banks ("PAG SERV … NOVO BANCO S.A." in an ActivoBank extract); a recognised bank whose layout yields no
+accounts (e.g. a printed online "Consulta de Movimentos") falls back to the generic reader and keeps the bank's
+name. Unsigned amounts in a column where other rows carry a sign are credits, and a trailing currency column or
+`D`/`C` marker is folded into the amount.
+
+The layouts of Millennium bcp, Santander, BPI, Montepio, CGD, Crédito Agrícola and novobanco Empresas come from
+bank statements that Portuguese municipalities publish with their annual accounts (scanned, so checked by eye);
+the fixtures copy the layout with invented data.
 
 All profiles share `MovementTable`: a row starts with a date, its trailing amount cells are the movement and
 running balance, wrapped description lines are joined by column position, and the **sign comes from the

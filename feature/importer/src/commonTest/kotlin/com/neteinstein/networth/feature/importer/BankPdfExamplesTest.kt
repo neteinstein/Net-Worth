@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
- * One example PDF per bank, written from [BankStatementFixtures] with every cell where the fixture puts it,
+ * One example PDF per bank layout, written from [BankStatementFixtures] with every cell where the fixture puts it,
  * read back through the whole pipeline (file → PDF text → bank profile) like a picked file.
  */
 class BankPdfExamplesTest {
@@ -41,6 +41,30 @@ class BankPdfExamplesTest {
     fun activoBankAcrossTheNewYear() = assertReadsLikeTheLayout("activobank-2020.pdf", BankStatementFixtures.activoBankNewYear)
 
     @Test
+    fun millenniumExtratoCombinado() = assertReadsLikeTheLayout("millennium.pdf", BankStatementFixtures.millennium)
+
+    @Test
+    fun santanderExtrato() = assertReadsLikeTheLayout("santander.pdf", BankStatementFixtures.santander)
+
+    @Test
+    fun bpiExtractoDeConta() = assertReadsLikeTheLayout("bpi.pdf", BankStatementFixtures.bpi)
+
+    @Test
+    fun montepioExtrato() = assertReadsLikeTheLayout("montepio.pdf", BankStatementFixtures.montepio)
+
+    @Test
+    fun montepioOnlineMovements() = assertReadsLikeTheLayout("net24.pdf", BankStatementFixtures.montepioOnline)
+
+    @Test
+    fun cgdExtracto() = assertReadsLikeTheLayout("cgd.pdf", BankStatementFixtures.cgd)
+
+    @Test
+    fun creditoAgricolaOnlineMovements() = assertReadsLikeTheLayout("ca.pdf", BankStatementFixtures.creditoAgricola)
+
+    @Test
+    fun novobancoBusinessExtrato() = assertReadsLikeTheLayout("empresa.pdf", BankStatementFixtures.novobancoBusiness)
+
+    @Test
     fun otherBanksFallBackToTheGenericLayout() = assertReadsLikeTheLayout("other.pdf", BankStatementFixtures.generic)
 
     @Test
@@ -48,6 +72,12 @@ class BankPdfExamplesTest {
         assertEquals("novobanco", importPdf("a.pdf", BankStatementFixtures.novobanco).bank)
         assertEquals("Banco Best", importPdf("b.pdf", BankStatementFixtures.best).bank)
         assertEquals("ActivoBank", importPdf("c.pdf", BankStatementFixtures.activoBank).bank)
+        assertEquals("Millennium bcp", importPdf("e.pdf", BankStatementFixtures.millennium).bank)
+        assertEquals("Santander", importPdf("f.pdf", BankStatementFixtures.santander).bank)
+        assertEquals("BPI", importPdf("g.pdf", BankStatementFixtures.bpi).bank)
+        assertEquals("Montepio", importPdf("h.pdf", BankStatementFixtures.montepio).bank)
+        assertEquals("CGD", importPdf("i.pdf", BankStatementFixtures.cgd).bank)
+        assertEquals("Crédito Agrícola", importPdf("j.pdf", BankStatementFixtures.creditoAgricola).bank)
         assertEquals(null, importPdf("d.pdf", BankStatementFixtures.generic).bank)
     }
 

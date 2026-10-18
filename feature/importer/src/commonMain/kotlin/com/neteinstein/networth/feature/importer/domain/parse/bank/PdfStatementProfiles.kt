@@ -9,10 +9,8 @@ import com.neteinstein.networth.feature.importer.domain.model.StatementFormat
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
 import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.Values
-import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextCell
 import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextLine
 import kotlinx.datetime.LocalDate
-import kotlinx.datetime.daysUntil
 
 /** Turns the text lines of a bank's PDF statement into a [ParsedStatement]. */
 internal interface PdfStatementProfile {
@@ -25,20 +23,42 @@ internal interface PdfStatementProfile {
 }
 
 internal object PdfStatements {
-    // ActivoBank comes first: its descriptions can name other banks ("PAG SERV … NOVO BANCO S.A.").
-    val profiles: List<PdfStatementProfile> = listOf(ActivoBankProfile, NovobancoProfile, BancoBestProfile)
+    /**
+     * Profiles that recognise their bank by its BIC come first: descriptions can name other banks
+     * ("PAG SERV … NOVO BANCO S.A." in an ActivoBank extract).
+     */
+    val profiles: List<PdfStatementProfile> =
+        listOf(
+            ExtratoCombinadoProfile,
+            SantanderProfile,
+            BpiProfile,
+            MontepioProfile,
+            CgdProfile,
+            CreditoAgricolaProfile,
+            NovobancoProfile,
+            BancoBestProfile,
+        )
 
+    /**
+     * The first matching profile that finds accounts (or holdings) wins. Otherwise the generic reader takes the
+     * rows, keeping the bank's name when a profile recognised it (e.g. an online "Consulta de Movimentos" print).
+     */
     fun parse(
         fileName: String,
         lines: List<PdfTextLine>,
     ): ParsedStatement {
-        val profile = profiles.firstOrNull { it.matches(lines) } ?: GenericPdfProfile
-        val statement = profile.parse(fileName, lines)
-        if (statement.sections.isEmpty() && statement.holdings.isEmpty()) {
+        val attempts = profiles.filter { it.matches(lines) }.map { it.parse(fileName, lines) }
+        val statement =
+            attempts.firstOrNull { it.hasContent() }
+                ?: GenericPdfProfile.parse(fileName, lines).copy(bank = attempts.firstNotNullOfOrNull { it.bank })
+        if (!statement.hasContent()) {
             throw ParseException(ParseFailure.NO_PDF_MOVEMENTS, "No movements found in this PDF. Is it a bank statement?")
         }
         return statement
     }
+
+    /** An account without movements still counts: its balances are worth importing. */
+    private fun ParsedStatement.hasContent(): Boolean = sections.isNotEmpty() || holdings.isNotEmpty()
 }
 
 /**
@@ -52,7 +72,8 @@ internal object NovobancoProfile : PdfStatementProfile {
     private val sectionHeader =
         Regex("CONTA (.+?) n[º°o] ([\\d ]+?) de (\\d{2}\\.\\d{2}\\.\\d{4}) a (\\d{2}\\.\\d{2}\\.\\d{4})", RegexOption.IGNORE_CASE)
     private val primaryAccount = Regex("Conta à Ordem n[º°o] ([\\d ]+)", RegexOption.IGNORE_CASE)
-    private val statementDate = Regex("Data Extrato Atual\\s+(\\d{2}\\.\\d{2}\\.\\d{4})", RegexOption.IGNORE_CASE)
+    private val statementDate = Regex("Data Extrato Atual\\s+(\\d{2}[./]\\d{2}[./]\\d{4})", RegexOption.IGNORE_CASE)
+    private val previousDate = Regex("Data Extrato Anterior\\s+(\\d{2}[./]\\d{2}[./]\\d{4})", RegexOption.IGNORE_CASE)
 
     override fun matches(lines: List<PdfTextLine>): Boolean = lines.any {
         it.text.contains("novobanco", true) ||
@@ -64,6 +85,7 @@ internal object NovobancoProfile : PdfStatementProfile {
         lines: List<PdfTextLine>,
     ): ParsedStatement {
         val date = lines.firstNotNullOfOrNull { statementDate.find(it.text) }?.let { Values.date(it.groupValues[1]) }
+        val previous = lines.firstNotNullOfOrNull { previousDate.find(it.text) }?.let { Values.date(it.groupValues[1]) }
         val primary = lines.firstNotNullOfOrNull { primaryAccount.find(it.text) }?.groupValues?.get(1)?.let(Values::digits)
         val iban = lines.firstOrNull { it.text.startsWith("IBAN", true) }?.let { Values.iban(it.text.removePrefix("IBAN").trim()) }
 
@@ -73,6 +95,7 @@ internal object NovobancoProfile : PdfStatementProfile {
         val scheduled = ArrayList<ParsedScheduledPayment>()
         var creditType: AccountType? = null
         var agendaPage = -1
+        var inMovements = false
 
         for (line in lines) {
             val text = line.text
@@ -96,6 +119,26 @@ internal object NovobancoProfile : PdfStatementProfile {
             }
             val upper = text.uppercase()
             when {
+                upper == "MOVIMENTOS DE CONTA" -> {
+                    inMovements = true
+                    continue
+                }
+                // Business extracts head the current account "DEPOSITO A ORDEM DO - NORMAL" instead of "CONTA … nº …".
+                inMovements && primary != null && (upper.startsWith("DEPOSITO A ORDEM") || upper.startsWith("DEPÓSITO À ORDEM")) -> {
+                    current =
+                        sections.getOrPut(primary) {
+                            MovementTable(
+                                label = text,
+                                accountNumber = primary,
+                                type = AccountType.CURRENT,
+                                periodStart = previous,
+                                periodEnd = date,
+                                iban = iban,
+                            )
+                        }
+                    creditType = null
+                    continue
+                }
                 upper.startsWith("AGENDA DE MOVIMENTOS PREVISTOS") -> {
                     agendaPage = line.page
                     continue
@@ -112,6 +155,7 @@ internal object NovobancoProfile : PdfStatementProfile {
                 }
                 upper.startsWith("DETALHE DO PATRIM") || upper.startsWith("AVISOS DE LAN") || upper.startsWith("SEGUROS") -> {
                     current = null
+                    inMovements = false
                     if (!upper.startsWith("DETALHE")) creditType = null
                     continue
                 }
@@ -271,23 +315,34 @@ internal object BancoBestProfile : PdfStatementProfile {
 }
 
 /**
- * ActivoBank "Extrato Combinado". Every page starts with `yy/mm/dd EXT. N. yyyy/nnn DEPOSITO A ORDEM: <number>`;
+ * The "Extrato Combinado" of ActivoBank and Millennium bcp (same group, same layout). Every page starts with
+ * `yy/mm/dd EXT. N. yyyy/nnn DEPOSITO A ORDEM: <number>` (Millennium: `yy/mm/dd CONTA: <number> NIB: …`);
  * page 1 has the IBAN and the agenda of payment orders (`yyyy/mm/dd | amount | EUR | destination | notes`). Each
  * account starts with `CONTA <name> N. <number> MOEDA: EUR` and `EXTRATO DE yyyy/mm/dd A yyyy/mm/dd`. Rows are
  * `mm.dd | mm.dd | Descritivo | Debito | Credito | Saldo` without the year, from `SALDO INICIAL` to `SALDO FINAL`,
  * with `A TRANSPORTAR` / `TRANSPORTE` between pages; thousands are separated by a space ("3 076.12"). Some copies
  * wrap values in `#S#…#E#` markers and draw rules with underscores; both are dropped.
  */
-internal object ActivoBankProfile : PdfStatementProfile {
+internal object ExtratoCombinadoProfile : PdfStatementProfile {
     private val sectionHeader = Regex("^(.+?) N\\. ?(\\d{6,}) MOEDA: ?[A-Z]{3}", RegexOption.IGNORE_CASE)
     private val period = Regex("EXTRATO DE (\\d{4}/\\d{2}/\\d{2}) A (\\d{4}/\\d{2}/\\d{2})", RegexOption.IGNORE_CASE)
-    private val primaryAccount = Regex("DEPOSITO A ORDEM: ?(\\d{6,})", RegexOption.IGNORE_CASE)
-    private val monthDay = Regex("^(\\d{1,2})\\.(\\d{2})$")
+
+    /** ActivoBank prints "DEPOSITO A ORDEM: <number>" in the page header, Millennium bcp "CONTA: <number>". */
+    private val primaryAccount = Regex("(?:DEPOSITO A ORDEM|\\bCONTA):\\s?(\\d{6,})", RegexOption.IGNORE_CASE)
     private val markers = Regex("#[SE]#")
 
-    override fun matches(lines: List<PdfTextLine>): Boolean =
-        lines.any { it.text.contains("ACTVPTPL", true) } ||
-            (lines.any { it.text.contains("EXTRATO COMBINADO", true) } && lines.any { it.text.contains("activobank", true) })
+    /** The bank is told apart by its BIC (or its name on the page). */
+    private fun bankOf(lines: List<PdfTextLine>): String? =
+        when {
+            lines.any { it.text.contains("ACTVPTPL", true) } -> "ActivoBank"
+            lines.any { it.text.contains("BCOMPTPL", true) } -> "Millennium bcp"
+            lines.none { it.text.contains("EXTRATO COMBINADO", true) } -> null
+            lines.any { it.text.contains("activobank", true) } -> "ActivoBank"
+            lines.any { it.text.contains("millennium", true) } -> "Millennium bcp"
+            else -> null
+        }
+
+    override fun matches(lines: List<PdfTextLine>): Boolean = bankOf(lines) != null
 
     override fun parse(
         fileName: String,
@@ -343,7 +398,11 @@ internal object ActivoBankProfile : PdfStatementProfile {
                     inAgenda = true
                     continue
                 }
-                upper.startsWith("RESUMO DAS CONTAS") || upper.startsWith("PROGRAMAS DE BENEF") -> {
+                upper.startsWith(
+                    "RESUMO DAS CONTAS",
+                ) ||
+                    upper.startsWith("RESUMO DO EXTRATO") ||
+                    upper.startsWith("PROGRAMAS DE BENEF") -> {
                     inAgenda = false
                     current = null
                     continue
@@ -351,7 +410,7 @@ internal object ActivoBankProfile : PdfStatementProfile {
             }
             val table = current
             if (table != null && !table.closed) {
-                table.accept(withYears(line, start, end))
+                table.accept(PartialDates.MONTH_DAY.complete(line, start, end))
                 continue
             }
             val cells = line.cells
@@ -365,7 +424,7 @@ internal object ActivoBankProfile : PdfStatementProfile {
         return ParsedStatement(
             fileName = fileName,
             format = StatementFormat.PDF,
-            bank = "ActivoBank",
+            bank = bankOf(lines),
             sections = sections.values.map { it.build() },
             scheduled = scheduled,
         )
@@ -378,58 +437,6 @@ internal object ActivoBankProfile : PdfStatementProfile {
                 .map { it.copy(text = it.text.replace(markers, "").trim('_', ' ')) }
                 .filter { it.text.isNotEmpty() }
         return if (cells.isEmpty()) null else line.copy(cells = cells)
-    }
-
-    /**
-     * Turns the leading `mm.dd` dates of a row into full dates inside the statement period, so the shared
-     * [MovementTable] can read it. A cell that holds both dates ("10.04 10.04") is split.
-     */
-    private fun withYears(
-        line: PdfTextLine,
-        start: LocalDate?,
-        end: LocalDate?,
-    ): PdfTextLine {
-        if (start == null || end == null) return line
-        val remaining = ArrayDeque(line.cells)
-        val converted = ArrayList<PdfTextCell>()
-        while (converted.size < 2 && remaining.isNotEmpty()) {
-            val cell = remaining.first()
-            val tokens = cell.text.split(' ')
-            val leading = tokens.takeWhile { monthDay.matches(it) }.take(2 - converted.size)
-            if (leading.isEmpty()) break
-            remaining.removeFirst()
-            val width = (cell.endX - cell.x) / maxOf(1, cell.text.length)
-            var x = cell.x
-            for (token in leading) {
-                val date = dateIn(token, start, end) ?: return line
-                converted += PdfTextCell(x, x + token.length * width, date.toString())
-                x += (token.length + 1) * width
-            }
-            val rest = tokens.drop(leading.size).joinToString(" ")
-            if (rest.isNotEmpty()) {
-                remaining.addFirst(PdfTextCell(x, cell.endX, rest))
-                break
-            }
-        }
-        return if (converted.isEmpty()) line else line.copy(cells = converted + remaining)
-    }
-
-    /** The date with this month and day closest to the period (value dates can fall just before it). */
-    private fun dateIn(
-        monthDay: String,
-        start: LocalDate,
-        end: LocalDate,
-    ): LocalDate? {
-        val (month, day) = monthDay.split('.').map { it.toInt() }
-        return (start.year - 1..end.year)
-            .mapNotNull { year -> runCatching { LocalDate(year, month, day) }.getOrNull() }
-            .minByOrNull { date ->
-                when {
-                    date < start -> date.daysUntil(start)
-                    date > end -> end.daysUntil(date)
-                    else -> 0
-                }
-            }
     }
 }
 

@@ -15,7 +15,7 @@ file) or **Open a Google Drive file** (Google Picker). Setup of the Google Cloud
 [`docs/google-cloud-setup.md`](docs/google-cloud-setup.md).
 
 Delivery is phased: phase 1 = Drive database + sync, onboarding, Overview, Manage, Categories, Settings.
-Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco, Banco Best and ActivoBank statements, account owners,
+Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco, Banco Best, ActivoBank, Millennium bcp, Santander, BPI, Montepio, CGD and Crédito Agrícola statements, account owners,
 months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Phase 3 = Spending, Filters (+ a transaction
 list to re-file and tag movements) and Alerts, with the artboards' bottom bar. Phase 4 = Future + Year ahead
 (projections, what-ifs, emergency fund, 12-month forecast, 5-year table). All 10 artboards are now implemented.
