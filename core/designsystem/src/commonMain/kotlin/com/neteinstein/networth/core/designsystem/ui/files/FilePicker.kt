@@ -8,6 +8,13 @@ class PickedFile(
     val bytes: ByteArray,
 )
 
+/** A text file the app hands to the platform to share or save, e.g. an export of merchant rules. */
+class SharedFile(
+    val name: String,
+    val mimeType: String,
+    val text: String,
+)
+
 /** What the picker offers: bank statements (several at once) or one JSON file. */
 enum class FileKind(val multiple: Boolean) {
     STATEMENTS(multiple = true),

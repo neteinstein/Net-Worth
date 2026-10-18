@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -52,6 +53,7 @@ import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
 import com.neteinstein.networth.core.designsystem.ui.files.FileKind
 import com.neteinstein.networth.core.designsystem.ui.files.rememberFilePicker
+import com.neteinstein.networth.core.designsystem.ui.files.rememberFileSharer
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
@@ -84,6 +86,7 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_
 import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_child
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_empty
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_export
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_learned
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_show_all
@@ -112,6 +115,7 @@ fun ManageScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val pickRuleFile = rememberFilePicker(FileKind.JSON, viewModel::onRuleFilePicked, viewModel::onRuleFilePickFailed)
+    val share = rememberFileSharer()
     ManageContent(
         state = state,
         showAssumptionsAtStart = showAssumptions,
@@ -137,6 +141,7 @@ fun ManageScreen(
             onSaveRule = viewModel::onSaveRule,
             onDismissRule = viewModel::onDismissRule,
             onPickRuleFile = pickRuleFile,
+            onExportRules = { viewModel.exportRules()?.let(share) },
             onImportRules = viewModel::onImportRules,
             onDismissRuleImport = viewModel::onDismissRuleImport,
         ),
@@ -165,6 +170,7 @@ data class ManageActions(
     val onSaveRule: (applyToPast: Boolean) -> Unit = {},
     val onDismissRule: () -> Unit = {},
     val onPickRuleFile: () -> Unit = {},
+    val onExportRules: () -> Unit = {},
     val onImportRules: (applyToPast: Boolean) -> Unit = {},
     val onDismissRuleImport: () -> Unit = {},
 )
@@ -427,12 +433,7 @@ private fun CategoriesLink(state: ManageUiState, onClick: () -> Unit, modifier: 
 private fun RulesCard(state: ManageUiState, actions: ManageActions, modifier: Modifier) {
     var showAll by remember { mutableStateOf(false) }
     SectionCard(modifier, spacing = 4) {
-        CardTitle(
-            stringResource(Res.string.manage_rules),
-            action = stringResource(Res.string.manage_rules_import),
-            onAction = actions.onPickRuleFile,
-            trailing = stringResource(Res.string.manage_rules_learned, state.rules.size),
-        )
+        CardTitle(stringResource(Res.string.manage_rules), trailing = stringResource(Res.string.manage_rules_learned, state.rules.size))
         if (state.rules.isEmpty()) {
             Text(
                 stringResource(Res.string.manage_rules_empty),
@@ -468,17 +469,23 @@ private fun RulesCard(state: ManageUiState, actions: ManageActions, modifier: Mo
                 }
             }
         }
-        if (state.rules.size > 3) {
-            TextButton(onClick = { showAll = !showAll }) {
-                Text(
-                    if (showAll) {
-                        stringResource(
-                            Res.string.manage_rules_show_less,
-                        )
-                    } else {
-                        stringResource(Res.string.manage_rules_show_all, state.rules.size)
-                    },
-                )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (state.rules.size > 3) {
+                TextButton(onClick = { showAll = !showAll }) {
+                    Text(
+                        if (showAll) {
+                            stringResource(Res.string.manage_rules_show_less)
+                        } else {
+                            stringResource(Res.string.manage_rules_show_all, state.rules.size)
+                        },
+                    )
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = actions.onPickRuleFile) { Text(stringResource(Res.string.manage_rules_import)) }
+            // Rules whose category was deleted aren't listed and aren't exported.
+            TextButton(onClick = actions.onExportRules, enabled = state.rules.isNotEmpty()) {
+                Text(stringResource(Res.string.manage_rules_export))
             }
         }
     }

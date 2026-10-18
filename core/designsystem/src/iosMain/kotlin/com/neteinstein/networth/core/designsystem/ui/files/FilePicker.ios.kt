@@ -69,7 +69,8 @@ private class PickerDelegate(
     }
 }
 
-private fun topViewController(): UIViewController? {
+/** The view controller on top, to present pickers and share sheets from. */
+internal fun topViewController(): UIViewController? {
     var controller = UIApplication.sharedApplication.keyWindow?.rootViewController
     while (controller?.presentedViewController != null) controller = controller.presentedViewController
     return controller

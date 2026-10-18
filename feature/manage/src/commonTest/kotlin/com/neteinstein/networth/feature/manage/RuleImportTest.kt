@@ -235,4 +235,35 @@ class RuleImportTest {
         vm.onRuleFilePicked(listOf(PickedFile("notes.json", "{\"rules\": []}".encodeToByteArray())))
         assertEquals(RuleFileError.NO_RULES, vm.state.value.ruleImport!!.error)
     }
+
+    @Test
+    fun exportsRulesThatImportBackUnchanged() {
+        val db = family().let { it.copy(merchantRules = it.merchantRules + MerchantRule("gone", "OLD SHOP", RuleMatch.PREFIX, "deleted")) }
+
+        val text = RuleFile.write(db.merchantRules, db.categories)
+        val content = RuleFile.read(text)
+        val plan = RuleFile.plan(content.entries, db.categories, db.merchantRules)
+
+        // Groceries comes before Kids' activities in the household's order; the orphan rule is left out.
+        assertEquals(listOf("POSTO CEPSA", "DECATHLON"), content.entries.map { it.pattern })
+        assertEquals(RuleFileEntry("DECATHLON", RuleMatch.PREFIX, "Kids’ activities", "Sports"), content.entries.last())
+        assertNull(content.entries.first().subcategory)
+        assertEquals(2, plan.unchanged)
+        assertFalse(plan.hasChanges)
+        assertTrue("\"subcategory\"" !in text.lines().first { "POSTO CEPSA" in it }.let { text.substringAfter(it).substringBefore("}") })
+    }
+
+    @Test
+    fun viewModelSharesTheRulesAsAFile() = runTest {
+        val vm = viewModel()
+
+        val file = vm.exportRules()!!
+        assertEquals("merchant-rules.json", file.name)
+        assertEquals("application/json", file.mimeType)
+        assertEquals(2, RuleFile.read(file.text).entries.size)
+
+        vm.onDeleteRule("d")
+        vm.onDeleteRule("c")
+        assertNull(vm.exportRules())
+    }
 }

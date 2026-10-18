@@ -72,6 +72,10 @@ are never touched).
 
 ## Merchant rules files
 
+**Manage → Merchant rules → Export** writes the household's rules in this format (`merchant-rules.json`, in
+category order) and hands it to the share sheet on Android/iOS or downloads it on the web, so another family —
+or another device's household file — can import it.
+
 **Manage → Merchant rules → Import** reads a JSON file of rules, shows what it would do (new rules, rules whose
 category changes, rules already there, lines left out) and imports them for future imports only or also re-files
 the past, as the rule editor does. Categories are named, not referenced by id, so one file works for any household:

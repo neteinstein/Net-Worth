@@ -17,6 +17,7 @@
     <string name="manage_rules_show_all">Show all %1$d rules</string>
     <string name="manage_rules_show_less">Show fewer</string>
     <string name="manage_rules_import">Import</string>
+    <string name="manage_rules_export">Export</string>
     <string name="manage_rules_import_title">Import merchant rules</string>
     <plurals name="manage_rules_import_new">
         <item quantity="one">%1$d new rule</item>

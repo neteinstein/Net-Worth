@@ -9,6 +9,10 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.add
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /** One rule as a rules file writes it: the category and subcategory by name, since ids differ in every file. */
 data class RuleFileEntry(
@@ -65,6 +69,41 @@ data class RuleImportPlan(
  * "subcategory": "Supermarket"}, …]}` (or the bare list). `match` is PREFIX (the default), CONTAINS or PHONE.
  */
 object RuleFile {
+    /** The name an exported rules file is shared under. */
+    const val EXPORT_FILE_NAME = "merchant-rules.json"
+
+    private val pretty = Json { prettyPrint = true }
+
+    /**
+     * Writes [rules] as a rules file that [read] takes back: categories by name, in the household's category order,
+     * then by text. Rules whose category no longer exists are left out.
+     */
+    fun write(rules: List<MerchantRule>, categories: List<Category>): String {
+        val byId = categories.associateBy { it.id }
+        val lines = rules.mapNotNull { rule ->
+            val category = byId[rule.categoryId] ?: return@mapNotNull null
+            Triple(rule, category, category.subcategories.firstOrNull { it.id == rule.subcategoryId })
+        }.sortedWith(compareBy({ it.second.position }, { it.second.name }, { it.first.pattern }))
+        val root = buildJsonObject {
+            put(
+                "rules",
+                buildJsonArray {
+                    lines.forEach { (rule, category, subcategory) ->
+                        add(
+                            buildJsonObject {
+                                put("pattern", rule.pattern.trim())
+                                put("match", rule.match.name)
+                                put("category", category.name)
+                                subcategory?.let { put("subcategory", it.name) }
+                            },
+                        )
+                    }
+                },
+            )
+        }
+        return pretty.encodeToString(JsonElement.serializer(), root) + "\n"
+    }
+
     fun read(text: String): RuleFileContent {
         val root = runCatching { Json.parseToJsonElement(text.removePrefix("")) }.getOrNull()
             ?: return RuleFileContent(error = RuleFileError.NOT_JSON)

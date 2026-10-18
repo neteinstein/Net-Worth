@@ -3,6 +3,7 @@ package com.neteinstein.networth.feature.manage.ui.screens
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neteinstein.networth.core.designsystem.ui.files.PickedFile
+import com.neteinstein.networth.core.designsystem.ui.files.SharedFile
 import com.neteinstein.networth.core.domain.calc.balanceOf
 import com.neteinstein.networth.core.domain.calc.isChildAccount
 import com.neteinstein.networth.core.domain.format.MoneyParser
@@ -291,6 +292,13 @@ class ManageViewModel(
         if (rule.pattern.isBlank()) return
         editedRule.value = null
         viewModelScope.launch { saveRule(rule, applyToPast) }
+    }
+
+    /** The household's merchant rules as a rules file to share, or null when there are none. */
+    fun exportRules(): SharedFile? {
+        val database = (observeDatabase().value as? DatabaseState.Ready)?.database ?: return null
+        if (database.merchantRules.isEmpty()) return null
+        return SharedFile(RuleFile.EXPORT_FILE_NAME, "application/json", RuleFile.write(database.merchantRules, database.categories))
     }
 
     /** Reads a picked merchant rules file and shows what importing it would do. */
