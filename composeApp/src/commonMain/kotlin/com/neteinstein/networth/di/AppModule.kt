@@ -1,5 +1,7 @@
 package com.neteinstein.networth.di
 
+import com.neteinstein.networth.core.claude.ClaudeCategorizer
+import com.neteinstein.networth.core.claude.LocalClaudeKeyRepository
 import com.neteinstein.networth.core.database.DatabaseRemote
 import com.neteinstein.networth.core.database.DriveDatabaseRemote
 import com.neteinstein.networth.core.database.DriveFamilyDatabaseRepository
@@ -7,10 +9,12 @@ import com.neteinstein.networth.core.database.platformLocalStore
 import com.neteinstein.networth.core.designsystem.ui.theme.supportsDynamicColor
 import com.neteinstein.networth.core.domain.repository.AppClock
 import com.neteinstein.networth.core.domain.repository.AuthRepository
+import com.neteinstein.networth.core.domain.repository.ClaudeKeyRepository
 import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
 import com.neteinstein.networth.core.domain.repository.IdGenerator
 import com.neteinstein.networth.core.domain.repository.LocalStore
 import com.neteinstein.networth.core.domain.repository.SystemAppClock
+import com.neteinstein.networth.core.domain.repository.TransactionCategorizer
 import com.neteinstein.networth.core.domain.repository.UuidGenerator
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
@@ -33,6 +37,7 @@ import com.neteinstein.networth.feature.future.domain.usecase.BuildFutureUseCase
 import com.neteinstein.networth.feature.future.ui.screens.FutureViewModel
 import com.neteinstein.networth.feature.future.ui.screens.YearAheadViewModel
 import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
+import com.neteinstein.networth.feature.importer.domain.usecase.CategoriseWithClaudeUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
@@ -65,8 +70,10 @@ import com.neteinstein.networth.feature.settings.data.LocalSettingsRepository
 import com.neteinstein.networth.feature.settings.domain.repository.SettingsRepository
 import com.neteinstein.networth.feature.settings.domain.usecase.CloseDatabaseUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.ObserveClaudeKeyHintUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetClaudeKeyUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
@@ -125,6 +132,9 @@ val appModule = module {
     }
     // Explicit lambda: LocalSettingsRepository is device-local, not a singleOf() candidate with defaults.
     single<SettingsRepository> { LocalSettingsRepository(get()) }
+    // Claude auto-categorisation: the key is device-local; the client reuses the platform HTTP engine.
+    single<ClaudeKeyRepository> { LocalClaudeKeyRepository(get()) }
+    single<TransactionCategorizer> { ClaudeCategorizer(googleHttpClient()) }
 
     // Shared use cases
     factoryOf(::RestoreSessionUseCase)
@@ -150,6 +160,7 @@ val appModule = module {
     single { StatementParser() }
     // Explicit lambda: ParseStatementUseCase has a default dispatcher argument.
     factory { ParseStatementUseCase(get()) }
+    factoryOf(::CategoriseWithClaudeUseCase)
     factoryOf(::CommitImportUseCase)
     factoryOf(::SaveReviewUseCase)
 
@@ -193,6 +204,8 @@ val appModule = module {
     factoryOf(::CloseDatabaseUseCase)
     factoryOf(::RenameHouseholdUseCase)
     factoryOf(::SaveMemberUseCase)
+    factoryOf(::ObserveClaudeKeyHintUseCase)
+    factoryOf(::SetClaudeKeyUseCase)
 
     // UI
     viewModelOf(::AppViewModel)
@@ -222,6 +235,8 @@ val appModule = module {
             renameHousehold = get(),
             saveMember = get(),
             signOut = get(),
+            observeClaudeKeyHint = get(),
+            setClaudeKey = get(),
             dynamicColorAvailable = supportsDynamicColor,
         )
     }

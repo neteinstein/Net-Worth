@@ -24,6 +24,17 @@ class ScreenshotTest {
         SettingsContent(state = state(AppLanguage.SYSTEM), actions = SettingsActions())
     }
 
+    /** Tall enough to reach the Claude section at the bottom: the key field, then a saved key. */
+    @Test
+    fun settingsClaude() {
+        screenshot("settings_claude", heightDp = 1800) {
+            SettingsContent(state = state(AppLanguage.SYSTEM), actions = SettingsActions())
+        }
+        screenshot("settings_claude_saved", heightDp = 1700) {
+            SettingsContent(state = state(AppLanguage.SYSTEM).copy(claudeKeyHint = "sk-ant-…x7Kq"), actions = SettingsActions())
+        }
+    }
+
     /** The whole app is translated; this checks the Portuguese strings load when the language is switched. */
     @Test
     fun settingsInPortuguese() {

@@ -53,6 +53,13 @@ number, else bank + format + section name), which are then imported without aski
 4. Opening/closing balances, mortgage/fund balances and scheduled payments are stored; one `ImportRecord` per
    account records the period, which drives the **months uploaded** grid (`Coverage`: full / partly / missing
    for the last 12 months).
+5. **Claude (optional).** When this device has a Claude API key (Settings → Claude), the outflows no rule
+   filed are sent to the Anthropic Messages API (`core:claude` → `ClaudeCategorizer`, model `claude-opus-5-5`,
+   low effort, structured output constrained to the household's categories) with their description and amount.
+   Claude's choices are applied to movements that are still uncategorised (`CategoriseWithClaudeUseCase`);
+   movements it isn't sure about are left out, and no rules are learned. A failure (refused key, no credit,
+   offline) never undoes the import: the summary card says why, and the movements wait in Review & learn. The
+   key is device-local (`LocalClaudeKeyRepository` → `LocalStore`), never in the family database.
 
 Uncategorised outflows wait in **Review & learn** (`ReviewQueue`): suggestions come from past choices for the
 same merchant, else from `KnownMerchants` (several hundred Portuguese brands and shop words — Continente,

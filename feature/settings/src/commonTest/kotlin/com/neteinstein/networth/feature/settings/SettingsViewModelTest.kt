@@ -10,6 +10,7 @@ import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.core.domain.usecase.SyncDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeAuthRepository
+import com.neteinstein.networth.core.testing.FakeClaudeKeyRepository
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
@@ -18,8 +19,10 @@ import com.neteinstein.networth.feature.settings.domain.model.AppLanguage
 import com.neteinstein.networth.feature.settings.domain.model.ThemeMode
 import com.neteinstein.networth.feature.settings.domain.usecase.CloseDatabaseUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.ObserveClaudeKeyHintUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetClaudeKeyUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
@@ -50,6 +53,7 @@ class SettingsViewModelTest {
     private val auth = FakeAuthRepository(signedIn = true)
     private val database = FakeDatabaseRepository.ready(designFamily())
     private val edit = EditDatabaseUseCase(database)
+    private val claudeKeys = FakeClaudeKeyRepository()
 
     private fun TestScope.viewModel(dynamicColorAvailable: Boolean = true) = SettingsViewModel(
         observeAppearance = ObserveAppearanceUseCase(settings),
@@ -64,6 +68,8 @@ class SettingsViewModelTest {
         renameHousehold = RenameHouseholdUseCase(edit),
         saveMember = SaveMemberUseCase(edit, SequentialIds("m")),
         signOut = SignOutUseCase(auth, database),
+        observeClaudeKeyHint = ObserveClaudeKeyHintUseCase(claudeKeys),
+        setClaudeKey = SetClaudeKeyUseCase(claudeKeys),
         dynamicColorAvailable = dynamicColorAvailable,
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 
@@ -72,6 +78,23 @@ class SettingsViewModelTest {
 
     @AfterTest
     fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun claudeKeyIsSavedOnlyAsAHint() = runTest {
+        val vm = viewModel()
+        assertNull(vm.state.value.claudeKeyHint)
+
+        vm.onSaveClaudeKey("  ")
+        assertNull(claudeKeys.key.value)
+        vm.onSaveClaudeKey(" sk-ant-api03-abcdefghijklmnop-x7Kq ")
+        assertEquals("sk-ant-api03-abcdefghijklmnop-x7Kq", claudeKeys.key.value)
+        assertEquals("sk-ant-…x7Kq", vm.state.value.claudeKeyHint)
+
+        vm.onRemoveClaudeKey()
+        assertNull(claudeKeys.key.value)
+        assertNull(vm.state.value.claudeKeyHint)
+        assertEquals("••••", ObserveClaudeKeyHintUseCase.hint("short"))
+    }
 
     @Test
     fun appearanceIsPersistedOnThisDevice() = runTest {

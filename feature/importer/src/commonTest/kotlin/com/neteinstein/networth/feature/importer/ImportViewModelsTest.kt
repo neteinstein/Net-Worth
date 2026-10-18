@@ -11,6 +11,8 @@ import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeAuthRepository
+import com.neteinstein.networth.core.testing.FakeCategorizer
+import com.neteinstein.networth.core.testing.FakeClaudeKeyRepository
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.FixedClock
 import com.neteinstein.networth.core.testing.SequentialIds
@@ -18,6 +20,7 @@ import com.neteinstein.networth.core.testing.designFamily
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
 import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
+import com.neteinstein.networth.feature.importer.domain.usecase.CategoriseWithClaudeUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
@@ -55,6 +58,8 @@ class ImportViewModelsTest {
     private val repository = FakeDatabaseRepository.ready(family)
     private val edit = EditDatabaseUseCase(repository)
     private val clock = FixedClock(LocalDate(2026, 10, 1))
+    private val noClaude =
+        CategoriseWithClaudeUseCase(FakeClaudeKeyRepository(), FakeCategorizer(), ObserveDatabaseUseCase(repository), edit)
 
     private val csv =
         """
@@ -75,7 +80,13 @@ class ImportViewModelsTest {
         return ImportViewModel(
             observeDatabase = ObserveDatabaseUseCase(repository),
             parse = ParseStatementUseCase(StatementParser(), dispatcher),
-            commit = CommitImportUseCase(edit, SequentialIds("imp"), clock, ObserveAuthUseCase(FakeAuthRepository(signedIn = true))),
+            commit = CommitImportUseCase(
+                edit,
+                SequentialIds("imp"),
+                clock,
+                ObserveAuthUseCase(FakeAuthRepository(signedIn = true)),
+                noClaude,
+            ),
             addMember = AddMemberUseCase(edit, SequentialIds("person")),
             clock = clock,
         ).also { vm -> backgroundScope.launch(dispatcher) { vm.state.collect {} } }
@@ -317,7 +328,7 @@ class ImportViewModelsTest {
     fun commitNeedsAnOpenDatabase() =
         runTest {
             repository.state.value = DatabaseState.NotSelected
-            val commit = CommitImportUseCase(edit, SequentialIds(), clock, ObserveAuthUseCase(FakeAuthRepository()))
+            val commit = CommitImportUseCase(edit, SequentialIds(), clock, ObserveAuthUseCase(FakeAuthRepository()), noClaude)
             val statement = StatementParser().parse("a.csv", csv)
             assertFailsWith<IllegalStateException> { commit(ImportRequest(statement, emptyList())) }
             assertTrue(FakeAuthRepository().state.value is AuthState.SignedOut)
