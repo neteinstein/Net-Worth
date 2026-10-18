@@ -43,9 +43,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -72,6 +74,16 @@ import com.neteinstein.networth.feature.settings.generated.resources.settings_ap
 import com.neteinstein.networth.feature.settings.generated.resources.settings_back
 import com.neteinstein.networth.feature.settings.generated.resources.settings_cancel
 import com.neteinstein.networth.feature.settings.generated.resources.settings_children
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_body
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_how_steps
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_how_title
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_key
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_key_help
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_open_console
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_remove
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_saved
+import com.neteinstein.networth.feature.settings.generated.resources.settings_claude_title
 import com.neteinstein.networth.feature.settings.generated.resources.settings_database
 import com.neteinstein.networth.feature.settings.generated.resources.settings_database_file
 import com.neteinstein.networth.feature.settings.generated.resources.settings_dynamic_color
@@ -124,6 +136,8 @@ fun SettingsScreen(
             onRenameHousehold = viewModel::onRenameHousehold,
             onSaveMember = viewModel::onSaveMember,
             onSignOut = viewModel::onSignOut,
+            onSaveClaudeKey = viewModel::onSaveClaudeKey,
+            onRemoveClaudeKey = viewModel::onRemoveClaudeKey,
         ),
     )
 }
@@ -140,6 +154,8 @@ data class SettingsActions(
     val onRenameHousehold: (String) -> Unit = {},
     val onSaveMember: (String?, String, MemberRole) -> Unit = { _, _, _ -> },
     val onSignOut: () -> Unit = {},
+    val onSaveClaudeKey: (String) -> Unit = {},
+    val onRemoveClaudeKey: () -> Unit = {},
 )
 
 /** A member being renamed (id set) or added (id null). */
@@ -217,6 +233,7 @@ fun SettingsContent(
                         ) { Text(stringResource(language.label)) }
                     }
                 }
+                ClaudeSection(state.claudeKeyHint, actions.onSaveClaudeKey, actions.onRemoveClaudeKey)
                 if (state.email != null) {
                     SectionHeader(stringResource(Res.string.settings_account))
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -290,6 +307,70 @@ private fun DatabaseSection(file: DatabaseFile, sync: SyncStatus?, sharing: Bool
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+/** Where Anthropic API keys are created (sign-in first if needed). */
+private const val ANTHROPIC_KEYS_URL = "https://console.anthropic.com/settings/keys"
+
+/** The device's own Claude API key: a field to save one, or a hint of the saved one and a way to remove it. */
+@Composable
+private fun ClaudeSection(keyHint: String?, onSave: (String) -> Unit, onRemove: () -> Unit) {
+    SectionHeader(stringResource(Res.string.settings_claude))
+    SectionCard(spacing = 8) {
+        Text(stringResource(Res.string.settings_claude_title), style = MaterialTheme.typography.titleSmall)
+        Text(
+            stringResource(Res.string.settings_claude_body),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        if (keyHint != null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(Res.string.settings_claude_saved, keyHint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = NetWorthTheme.monoFamily,
+                    modifier = Modifier.weight(1f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                OutlinedButton(onClick = onRemove) { Text(stringResource(Res.string.settings_claude_remove)) }
+            }
+        } else {
+            // Not saveable: the key shouldn't outlive the screen in saved instance state.
+            var key by remember { mutableStateOf("") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                OutlinedTextField(
+                    value = key,
+                    onValueChange = { key = it },
+                    label = { Text(stringResource(Res.string.settings_claude_key)) },
+                    supportingText = { Text(stringResource(Res.string.settings_claude_key_help)) },
+                    singleLine = true,
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
+                    modifier = Modifier.weight(1f),
+                )
+                Button(
+                    onClick = {
+                        onSave(key)
+                        key = ""
+                    },
+                    enabled = key.isNotBlank(),
+                ) { Text(stringResource(Res.string.settings_save)) }
+            }
+        }
+        if (keyHint == null) {
+            Text(stringResource(Res.string.settings_claude_how_title), style = MaterialTheme.typography.titleSmall)
+            Text(
+                stringResource(Res.string.settings_claude_how_steps),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            val uriHandler = LocalUriHandler.current
+            TextButton(onClick = { uriHandler.openUri(ANTHROPIC_KEYS_URL) }) {
+                Text(stringResource(Res.string.settings_claude_open_console))
+            }
         }
     }
 }

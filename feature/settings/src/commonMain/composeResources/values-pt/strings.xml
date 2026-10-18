@@ -34,4 +34,14 @@
     <string name="settings_sign_out">Terminar sessão</string>
     <string name="settings_save">Guardar</string>
     <string name="settings_cancel">Cancelar</string>
+    <string name="settings_claude">Claude</string>
+    <string name="settings_claude_title">Classificar automaticamente com o Claude</string>
+    <string name="settings_claude_body">Quando uma importação deixa movimentos que nenhuma regra conhece, o Net Worth pede ao Claude que os classifique, com a sua própria chave da API da Anthropic. As descrições e os montantes são enviados à Anthropic. A chave fica guardada apenas neste dispositivo.</string>
+    <string name="settings_claude_key">Chave da API</string>
+    <string name="settings_claude_key_help">Começa por sk-ant-</string>
+    <string name="settings_claude_how_title">Como obter uma chave</string>
+    <string name="settings_claude_how_steps">1. Inicie sessão ou crie uma conta em console.anthropic.com.\n2. Adicione crédito em Billing: o Claude é pago por utilização.\n3. Abra API keys, escolha Create key e depois copie-a e cole-a aqui.</string>
+    <string name="settings_claude_open_console">Abrir a Anthropic Console</string>
+    <string name="settings_claude_saved">Chave guardada: %1$s</string>
+    <string name="settings_claude_remove">Remover</string>
 </resources>

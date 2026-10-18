@@ -17,8 +17,10 @@ import com.neteinstein.networth.feature.settings.domain.model.AppearanceSettings
 import com.neteinstein.networth.feature.settings.domain.model.ThemeMode
 import com.neteinstein.networth.feature.settings.domain.usecase.CloseDatabaseUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.ObserveClaudeKeyHintUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetClaudeKeyUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
@@ -43,6 +45,8 @@ data class SettingsUiState(
     val members: List<Member> = emptyList(),
     val sharing: Boolean = false,
     val shareResult: ShareResult? = null,
+    /** A hint of the Claude API key saved on this device, or null when Claude isn't set up. */
+    val claudeKeyHint: String? = null,
 )
 
 class SettingsViewModel(
@@ -58,15 +62,24 @@ class SettingsViewModel(
     private val renameHousehold: RenameHouseholdUseCase,
     private val saveMember: SaveMemberUseCase,
     private val signOut: SignOutUseCase,
+    observeClaudeKeyHint: ObserveClaudeKeyHintUseCase,
+    private val setClaudeKey: SetClaudeKeyUseCase,
     dynamicColorAvailable: Boolean,
 ) : ViewModel() {
     private val sharing = MutableStateFlow(false to null as ShareResult?)
 
-    val state: StateFlow<SettingsUiState> = combine(observeAppearance(), observeAuth(), observeDatabase(), sharing) {
+    val state: StateFlow<SettingsUiState> = combine(
+        observeAppearance(),
+        observeAuth(),
+        observeDatabase(),
+        sharing,
+        observeClaudeKeyHint(),
+    ) {
         appearance,
         auth,
         db,
         share,
+        claudeKeyHint,
         ->
         val ready = db as? DatabaseState.Ready
         SettingsUiState(
@@ -79,6 +92,7 @@ class SettingsViewModel(
             members = ready?.database?.members.orEmpty(),
             sharing = share.first,
             shareResult = share.second,
+            claudeKeyHint = claudeKeyHint,
         )
     }.stateIn(
         viewModelScope,
@@ -132,6 +146,15 @@ class SettingsViewModel(
 
     fun onSaveMember(id: String?, name: String, role: MemberRole) {
         viewModelScope.launch { saveMember(id, name, role) }
+    }
+
+    fun onSaveClaudeKey(key: String) {
+        if (key.isBlank()) return
+        viewModelScope.launch { setClaudeKey(key) }
+    }
+
+    fun onRemoveClaudeKey() {
+        viewModelScope.launch { setClaudeKey(null) }
     }
 
     fun onSignOut() {

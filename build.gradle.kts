@@ -34,6 +34,7 @@ allprojects {
 
 dependencies {
     kover(projects.composeApp)
+    kover(projects.core.claude)
     kover(projects.core.database)
     kover(projects.core.designsystem)
     kover(projects.core.domain)

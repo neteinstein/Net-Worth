@@ -34,4 +34,14 @@
     <string name="settings_sign_out">Sign out</string>
     <string name="settings_save">Save</string>
     <string name="settings_cancel">Cancel</string>
+    <string name="settings_claude">Claude</string>
+    <string name="settings_claude_title">Auto-categorise with Claude</string>
+    <string name="settings_claude_body">When an import leaves movements no rule knows, Net Worth asks Claude to file them, using your own Anthropic API key. Their descriptions and amounts are sent to Anthropic. The key is kept on this device only.</string>
+    <string name="settings_claude_key">API key</string>
+    <string name="settings_claude_key_help">Starts with sk-ant-</string>
+    <string name="settings_claude_how_title">How to get a key</string>
+    <string name="settings_claude_how_steps">1. Sign in or create an account at console.anthropic.com.\n2. Add credit under Billing: Claude is paid per use.\n3. Open API keys, choose Create key, then copy it and paste it here.</string>
+    <string name="settings_claude_open_console">Open the Anthropic Console</string>
+    <string name="settings_claude_saved">Key saved: %1$s</string>
+    <string name="settings_claude_remove">Remove</string>
 </resources>

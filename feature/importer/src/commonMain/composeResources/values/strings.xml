@@ -121,4 +121,13 @@
         <item quantity="one">Filed %1$d transaction.</item>
         <item quantity="other">Filed %1$d transactions.</item>
     </plurals>
+    <!-- Claude auto-categorisation (not in the design: the Claude API key is set in Settings) -->
+    <plurals name="importer_claude_filed">
+        <item quantity="one">Claude filed %1$d movement no rule knew. Check it in Spending.</item>
+        <item quantity="other">Claude filed %1$d movements no rule knew. Check them in Spending.</item>
+    </plurals>
+    <string name="importer_claude_invalid_key">Claude couldn’t file the rest: the API key was refused. Check it in Settings.</string>
+    <string name="importer_claude_rate_limited">Claude couldn’t file the rest: your Anthropic account hit its limit or is out of credit.</string>
+    <string name="importer_claude_network">Claude couldn’t be reached, so the rest wait for you in Review &amp; learn.</string>
+    <string name="importer_claude_unknown">Claude couldn’t file the rest this time. They wait for you in Review &amp; learn.</string>
 </resources>
