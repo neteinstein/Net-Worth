@@ -8,7 +8,7 @@ Shared setup (JDK 21, Gradle with caching, Firebase config) is the composite act
 | Workflow | Trigger | Purpose |
 | --- | --- | --- |
 | [`pr.yml`](.github/workflows/pr.yml) | pull requests to `main`, manual | Every check a PR must pass |
-| [`release.yml`](.github/workflows/release.yml) | push to `main`, manual | Signed `github`-flavor APK → GitHub Release |
+| [`release.yml`](.github/workflows/release.yml) | push to `main`, manual | Signed `github`-flavor APK → GitHub Release (**disabled for now**, see Releases) |
 | [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) | push to `main`, manual | Wasm web app → GitHub Pages |
 | [`dependabot.yml`](.github/dependabot.yml) | weekly | Gradle and GitHub Actions update PRs |
 
@@ -53,7 +53,11 @@ Play release notes live in `androidApp/src/playstore/play/release-notes/en-US/de
 
 ## Releases (`release.yml`)
 
-On every push to `main` (or a manual run), the **`release`** job:
+**Disabled for now.** The **`release`** job runs only when the repository variable `ANDROID_RELEASE_ENABLED`
+is `true`; until then pushes to `main` build no Android release and upload nothing to Play. The TestFlight
+job needs it, so it is skipped too. Set the variable to turn both back on.
+
+When enabled, on every push to `main` (or a manual run), the **`release`** job:
 
 1. Fails fast if the signing secrets are missing.
 2. Re-runs `ktlintCheck` and `testDebugUnitTest` on the exact merged commit.
@@ -123,6 +127,7 @@ Settings → Pages → Source = **GitHub Actions**. For Google sign-in on the de
 | `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` | secret | release | **Yes** | Read by `androidApp/build.gradle.kts` (with `KEYSTORE_FILE`, set by the workflow) |
 | `ANDROID_PUBLISHER_CREDENTIALS` | secret | release | No | Play service-account JSON key. Without it the Play upload is skipped (see Releases → One-time Google Play setup) |
 | `PLAY_TRACK` | variable | release | No | Play track for uploads; default `internal` |
+| `ANDROID_RELEASE_ENABLED` | variable | release | No | `true` turns the Android release job on; off for now |
 | `IOS_RELEASE_ENABLED` | variable | release (testflight) | No | `true` turns the TestFlight job on; off by default |
 | `APPLE_TEAM_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_P8` | secret | release (testflight) | Only with `IOS_RELEASE_ENABLED` | App Store Connect API key (Admin) and team (see Releases → iOS) |
 | `GOOGLE_SERVICES_JSON` | secret | release (and setup action) | No | Real `google-services.json`; otherwise the committed `androidApp/google-services.json.ci` placeholder is used |
