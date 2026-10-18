@@ -67,7 +67,7 @@ internal object TableStatement {
                 val columns = row.mapNotNull(::columnOf).toSet()
                 Column.DATE in columns && (Column.AMOUNT in columns || Column.DEBIT in columns || Column.CREDIT in columns)
             }
-        if (headerIndex < 0) throw ParseException("Couldn't find the header row (a date and an amount column)")
+        if (headerIndex < 0) throw ParseException(ParseFailure.NO_HEADER_ROW, "Couldn't find the header row (a date and an amount column)")
         val header = table[headerIndex]
         val columns = HashMap<Column, Int>()
         header.forEachIndexed { i, name ->
@@ -114,7 +114,7 @@ internal object TableStatement {
                     balanceMinor = Values.amountMinor(cell(row, Column.BALANCE)),
                 )
             }
-        if (rows.isEmpty()) throw ParseException("No movements found under the header row")
+        if (rows.isEmpty()) throw ParseException(ParseFailure.NO_ROWS, "No movements found under the header row")
         // Banks export newest-first as often as oldest-first; keep the file order of same-day rows.
         val ordered = if (rows.first().date > rows.last().date) rows.reversed() else rows
         val first = ordered.first()

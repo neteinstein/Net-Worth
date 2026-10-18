@@ -1,6 +1,7 @@
 package com.neteinstein.networth.feature.importer.domain.parse.pdf
 
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -27,7 +28,7 @@ object PdfText {
     fun lines(data: ByteArray): List<PdfTextLine> {
         val doc = PdfDocument.open(data)
         val pages = doc.pages()
-        if (pages.isEmpty()) throw ParseException("This PDF has no pages")
+        if (pages.isEmpty()) throw ParseException(ParseFailure.PDF_NO_PAGES, "This PDF has no pages")
         return pages.flatMapIndexed { index, page ->
             val runs = ArrayList<Run>()
             Interpreter(doc, runs).run(doc.contents(page), page.resources, IDENTITY, depth = 0)

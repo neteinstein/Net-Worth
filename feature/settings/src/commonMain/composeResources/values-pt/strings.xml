@@ -1,0 +1,37 @@
+<resources>
+    <string name="settings_title">Definições</string>
+    <string name="settings_back">Voltar</string>
+    <string name="settings_appearance">Aspeto</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Escuro</string>
+    <string name="settings_dynamic_color">Cor dinâmica</string>
+    <string name="settings_dynamic_color_body">Usar as cores da imagem de fundo</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_system">Sistema</string>
+    <string name="settings_language_english">English</string>
+    <string name="settings_language_portuguese">Português</string>
+    <string name="settings_database">Base de dados da família</string>
+    <string name="settings_database_file">Ficheiro do Google Drive</string>
+    <string name="settings_sync_now">Sincronizar agora</string>
+    <string name="settings_share_title">Partilhar com o seu parceiro ou parceira</string>
+    <string name="settings_share_body">Recebe acesso de edição ao ficheiro no Google Drive e depois escolhe “Abrir um ficheiro do Google Drive” no Net Worth.</string>
+    <string name="settings_share_email">O email Google da outra pessoa</string>
+    <string name="settings_share">Partilhar</string>
+    <string name="settings_shared">Partilhado. Vai receber um email do Google Drive.</string>
+    <string name="settings_share_failed">Não foi possível partilhar o ficheiro. Verifique o endereço e a ligação.</string>
+    <string name="settings_switch_database">Usar outra base de dados</string>
+    <string name="settings_switch_database_body">Esquece o ficheiro neste dispositivo. Continua no Google Drive.</string>
+    <string name="settings_household">Agregado familiar</string>
+    <string name="settings_household_name">Nome da família</string>
+    <string name="settings_adults">Adultos</string>
+    <string name="settings_children">Crianças</string>
+    <string name="settings_add_adult">Adicionar adulto</string>
+    <string name="settings_add_child">Adicionar criança</string>
+    <string name="settings_member_name">Nome</string>
+    <string name="settings_account">Conta Google</string>
+    <string name="settings_sign_out">Terminar sessão</string>
+    <string name="settings_save">Guardar</string>
+    <string name="settings_cancel">Cancelar</string>
+</resources>

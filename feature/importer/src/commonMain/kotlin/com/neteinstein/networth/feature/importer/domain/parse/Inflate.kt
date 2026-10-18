@@ -9,7 +9,7 @@ package com.neteinstein.networth.feature.importer.domain.parse
 object Inflate {
     /** Inflates a zlib stream (2-byte header, deflate data, Adler-32). The checksum is not verified. */
     fun zlib(data: ByteArray): ByteArray {
-        if (data.size < 2) throw ParseException("Compressed data is truncated")
+        if (data.size < 2) throw ParseException(ParseFailure.DAMAGED, "Compressed data is truncated")
         val cmf = data[0].toInt() and 0xFF
         val flg = data[1].toInt() and 0xFF
         val looksLikeZlib = cmf and 0x0F == 8 && ((cmf shl 8) or flg) % 31 == 0
@@ -49,7 +49,7 @@ object Inflate {
                         0 -> stored()
                         1 -> codes(FIXED_LIT, FIXED_DIST)
                         2 -> dynamic()
-                        else -> throw ParseException("Invalid deflate block type")
+                        else -> throw ParseException(ParseFailure.DAMAGED, "Invalid deflate block type")
                     }
                 } while (last == 0)
             } catch (_: EndOfInput) {
@@ -99,7 +99,7 @@ object Inflate {
                 first = first shl 1
                 code = code shl 1
             }
-            throw ParseException("Invalid deflate code")
+            throw ParseException(ParseFailure.DAMAGED, "Invalid deflate code")
         }
 
         private fun codes(
@@ -113,12 +113,12 @@ object Inflate {
                     symbol == 256 -> return
                     else -> {
                         val s = symbol - 257
-                        if (s >= 29) throw ParseException("Invalid deflate length")
+                        if (s >= 29) throw ParseException(ParseFailure.DAMAGED, "Invalid deflate length")
                         val len = LENGTH_BASE[s] + bits(LENGTH_EXTRA[s])
                         val d = decode(dist)
-                        if (d >= 30) throw ParseException("Invalid deflate distance")
+                        if (d >= 30) throw ParseException(ParseFailure.DAMAGED, "Invalid deflate distance")
                         val distance = DIST_BASE[d] + bits(DIST_EXTRA[d])
-                        if (distance > outLen) throw ParseException("Deflate distance too far back")
+                        if (distance > outLen) throw ParseException(ParseFailure.DAMAGED, "Deflate distance too far back")
                         repeat(len) { put(out[outLen - distance].toInt()) }
                     }
                 }
@@ -143,14 +143,14 @@ object Inflate {
                     val times =
                         when (symbol) {
                             16 -> {
-                                if (index == 0) throw ParseException("Invalid deflate repeat")
+                                if (index == 0) throw ParseException(ParseFailure.DAMAGED, "Invalid deflate repeat")
                                 repeatValue = all[index - 1]
                                 3 + bits(2)
                             }
                             17 -> 3 + bits(3)
                             else -> 11 + bits(7)
                         }
-                    if (index + times > nlen + ndist) throw ParseException("Invalid deflate lengths")
+                    if (index + times > nlen + ndist) throw ParseException(ParseFailure.DAMAGED, "Invalid deflate lengths")
                     repeat(times) { all[index++] = repeatValue }
                 }
             }
@@ -203,8 +203,32 @@ object Inflate {
     private val FIXED_DIST = Huffman(IntArray(30) { 5 })
 }
 
-/** A statement, archive or document that could not be read. The message is shown to the user. */
+/** Why a statement could not be read; the UI shows a translated message for each. */
+enum class ParseFailure {
+    EMPTY_FILE,
+    OLD_XLS,
+    NO_HEADER_ROW,
+    NO_ROWS,
+    NO_OFX_STATEMENT,
+    NO_PDF_MOVEMENTS,
+    NOT_XLSX,
+    XLSX_COMPRESSION,
+    XLSX_NO_WORKSHEET,
+    NOT_PDF,
+    PDF_NO_PAGES,
+    PDF_NO_CONTENT,
+    PDF_NO_PAGE_TREE,
+    PDF_PROTECTED,
+    PDF_AES_256,
+    PDF_PROTECTION_DAMAGED,
+
+    /** Corrupt compressed data inside an XLSX or PDF. */
+    DAMAGED,
+}
+
+/** A statement, archive or document that could not be read. [failure] is what the user is told. */
 class ParseException(
+    val failure: ParseFailure,
     message: String,
 ) : Exception(message)
 

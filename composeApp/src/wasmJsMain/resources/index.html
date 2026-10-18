@@ -8,6 +8,20 @@
     <meta name="description" content="Net Worth — your family’s finances in one shared Google Drive file.">
     <title>Net Worth</title>
     <link type="text/css" rel="stylesheet" href="styles.css">
+    <!-- Lets the in-app language setting override the browser's (see core:designsystem LocalAppLocale). -->
+    <script>
+        var currentLanguagesImplementation = Object.getOwnPropertyDescriptor(Navigator.prototype, "languages");
+        var newLanguagesImplementation = Object.assign({}, currentLanguagesImplementation, {
+            get: function () {
+                if (window.__customLocale) {
+                    return [window.__customLocale];
+                } else {
+                    return currentLanguagesImplementation.get.apply(this);
+                }
+            }
+        });
+        Object.defineProperty(Navigator.prototype, "languages", newLanguagesImplementation);
+    </script>
     <!-- Google sign-in (Identity Services) and the Google Picker, used by core:google on the web. -->
     <script src="https://accounts.google.com/gsi/client" async></script>
     <script src="https://apis.google.com/js/api.js" async></script>

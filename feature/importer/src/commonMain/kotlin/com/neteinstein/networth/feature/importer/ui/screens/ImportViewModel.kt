@@ -21,6 +21,7 @@ import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
 import com.neteinstein.networth.feature.importer.domain.model.ParsedStatement
 import com.neteinstein.networth.feature.importer.domain.model.SectionTarget
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import kotlinx.coroutines.CancellationException
@@ -66,8 +67,8 @@ data class ImportHistoryLine(
 data class ImportUiState(
     val ready: Boolean = false,
     val stage: ImportStage = ImportStage.PICK,
-    /** A parse or save error to show, already user-readable. Null with [errorUnknown] false = no error. */
-    val error: String? = null,
+    /** Why the file couldn't be read. Null with [errorUnknown] false = no error. */
+    val error: ParseFailure? = null,
     val errorUnknown: Boolean = false,
     val fileName: String? = null,
     val sections: List<SectionUi> = emptyList(),
@@ -93,7 +94,7 @@ private data class ImportSession(
     val statement: ParsedStatement? = null,
     val choices: List<SectionChoice> = emptyList(),
     val summary: ImportSummary? = null,
-    val error: String? = null,
+    val error: ParseFailure? = null,
     val errorUnknown: Boolean = false,
 )
 
@@ -172,7 +173,7 @@ class ImportViewModel(
                 try {
                     parse(name, bytes)
                 } catch (e: ParseException) {
-                    session.value = ImportSession(fileName = name, error = e.message)
+                    session.value = ImportSession(fileName = name, error = e.failure)
                     return@launch
                 } catch (e: CancellationException) {
                     throw e
