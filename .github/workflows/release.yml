@@ -4,7 +4,8 @@ name: Release
 # - "github": the APK published as a GitHub Release tagged v1.0.<run number>, with R8's mapping file.
 # - "playstore": the app bundle, attached to that Release and uploaded to the Play Console's internal
 #   track when ANDROID_PUBLISHER_CREDENTIALS is set.
-# iOS (TestFlight) is wired up but disabled until the IOS_RELEASE_ENABLED variable is "true".
+# Android is disabled for now: the release job runs only when the ANDROID_RELEASE_ENABLED variable is
+# "true". iOS (TestFlight) is wired up but disabled until the IOS_RELEASE_ENABLED variable is "true".
 # See CI_CD.md → Releases.
 on:
   push:
@@ -28,6 +29,8 @@ env:
 jobs:
   release:
     name: Build and publish release
+    # Disabled for now: set the repository variable ANDROID_RELEASE_ENABLED to "true" to turn it back on.
+    if: vars.ANDROID_RELEASE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     permissions:

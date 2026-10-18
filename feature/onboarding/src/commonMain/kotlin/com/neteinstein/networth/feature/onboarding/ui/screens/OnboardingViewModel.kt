@@ -15,6 +15,7 @@ import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.feature.onboarding.domain.model.HouseholdForm
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.PickDatabaseFolderUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -56,6 +57,7 @@ class OnboardingViewModel(
     private val signOut: SignOutUseCase,
     private val createHousehold: CreateHouseholdUseCase,
     private val openSharedDatabase: OpenSharedDatabaseUseCase,
+    private val pickDatabaseFolder: PickDatabaseFolderUseCase,
 ) : ViewModel() {
     private val startingFresh = MutableStateFlow(false)
     private val form = MutableStateFlow(HouseholdForm())
@@ -101,7 +103,7 @@ class OnboardingViewModel(
     fun onCreate(jointSavingsName: String) {
         val current = form.value
         if (!current.canSubmit) return
-        run { createHousehold(current.toSetup(jointSavingsName)) }
+        run { createHousehold(current.toSetup(jointSavingsName), current.toNewFile()) }
     }
 
     fun onSignOut() = run {
@@ -130,6 +132,18 @@ class OnboardingViewModel(
     fun onCurrencySelected(code: String) = form.update { it.copy(currencyCode = code) }
 
     fun onCreateAccountsChange(create: Boolean) = form.update { it.copy(createAccounts = create) }
+
+    /** "Choose for me" (false) or "Let me choose" (true) for the new file's name and folder. */
+    fun onChooseFileChange(choose: Boolean) = form.update { it.copy(chooseFile = choose) }
+
+    fun onFileNameChange(name: String) = form.update { it.copy(fileName = name) }
+
+    fun onPickFolder() = run {
+        val folder = pickDatabaseFolder() ?: return@run
+        form.update { it.copy(folder = folder) }
+    }
+
+    fun onUseMyDrive() = form.update { it.copy(folder = null) }
 
     /** Runs one action at a time, mapping failures to a message the screen can show. */
     private fun run(action: suspend () -> Unit) {

@@ -14,8 +14,9 @@ import kotlin.time.Clock
 
 /**
  * Web: Google Identity Services token client for access tokens and the Google Picker for opening an
- * existing file. Both scripts are loaded by `index.html`. GIS has no refresh tokens, so a new token
- * is requested (silently when the Google session allows it) whenever the old one expires.
+ * existing file or choosing the folder for a new one. Both scripts are loaded by `index.html`. GIS
+ * has no refresh tokens, so a new token is requested (silently when the Google session allows it)
+ * whenever the old one expires.
  */
 internal class WebGoogleAuth(
     private val http: HttpClient,
@@ -43,9 +44,19 @@ internal class WebGoogleAuth(
         if (!forceRefresh && cached != null && now() < tokenExpiresAt) cached else request(SIGN_IN_SCOPES, prompt = "")
     }
 
-    override suspend fun pickFile(): String? {
+    override suspend fun pickFile(): String? = pick(folders = false)
+
+    override suspend fun pickFolder(): String? = pick(folders = true)
+
+    private suspend fun pick(folders: Boolean): String? {
         val accessToken = accessToken(forceRefresh = false)
-        val picked = jsPickFile(accessToken, GoogleConfig.API_KEY, GoogleConfig.PROJECT_NUMBER, DriveClient.JSON_MIME).await<JsString?>()
+        val picked = jsPick(
+            accessToken,
+            GoogleConfig.API_KEY,
+            GoogleConfig.PROJECT_NUMBER,
+            DriveClient.JSON_MIME,
+            folders,
+        ).await<JsString?>()
         return picked?.toString()?.takeIf { it.isNotEmpty() }
     }
 
@@ -96,12 +107,14 @@ internal class WebGoogleAuth(
 )
 private external fun jsRequestToken(clientId: String, scope: String, prompt: String, hint: String): Promise<JsString>
 
-/** Resolves to the picked file id, or null when the picker is closed. */
+/** Resolves to the picked file (or, with [folders], folder) id, or null when the picker is closed. */
 @JsFun(
-    """(token, apiKey, appId, mimeTypes) => new Promise((resolve, reject) => {
+    """(token, apiKey, appId, mimeTypes, folders) => new Promise((resolve, reject) => {
         if (!window.gapi) { reject(new Error('Google API loader not loaded')); return; }
         gapi.load('picker', () => {
-            const view = new google.picker.DocsView(google.picker.ViewId.DOCS).setMimeTypes(mimeTypes).setMode(google.picker.DocsViewMode.LIST);
+            const view = folders
+                ? new google.picker.DocsView(google.picker.ViewId.FOLDERS).setSelectFolderEnabled(true).setMode(google.picker.DocsViewMode.LIST)
+                : new google.picker.DocsView(google.picker.ViewId.DOCS).setMimeTypes(mimeTypes).setMode(google.picker.DocsViewMode.LIST);
             const picker = new google.picker.PickerBuilder()
                 .addView(view)
                 .setOAuthToken(token)
@@ -117,7 +130,7 @@ private external fun jsRequestToken(clientId: String, scope: String, prompt: Str
         });
     })""",
 )
-private external fun jsPickFile(token: String, apiKey: String, appId: String, mimeTypes: String): Promise<JsString?>
+private external fun jsPick(token: String, apiKey: String, appId: String, mimeTypes: String, folders: Boolean): Promise<JsString?>
 
 @JsFun("(token) => { if (window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(token, () => {}); }")
 private external fun jsRevoke(token: String)

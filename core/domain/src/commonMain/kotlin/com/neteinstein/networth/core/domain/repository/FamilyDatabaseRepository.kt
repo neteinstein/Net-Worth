@@ -11,6 +11,43 @@ data class DatabaseFile(
     val webViewLink: String? = null,
 )
 
+/** A Google Drive folder the user picked to hold a new database file. */
+data class DatabaseFolder(
+    val id: String,
+    val name: String,
+)
+
+/**
+ * Where "Start fresh" puts the new file. A null [name] is chosen by the app
+ * ([DatabaseFileName.forHousehold]); a null [folderId] is the root of the user's My Drive.
+ */
+data class NewDatabaseFile(
+    val name: String? = null,
+    val folderId: String? = null,
+)
+
+/** Names of database files: `Net Worth – The Vicentes.networth.json`, without characters Drive or exports dislike. */
+object DatabaseFileName {
+    const val SUFFIX = ".networth.json"
+    private const val JSON = ".json"
+    private val UNSAFE = Regex("[\\\\/:*?\"<>|]")
+    private val SPACES = Regex("\\s+")
+
+    /** The name the app picks for [householdName]'s database. */
+    fun forHousehold(householdName: String): String = "Net Worth – ${clean(householdName).ifEmpty { "Family" }}$SUFFIX"
+
+    /** A name the user typed, made safe and ending in [SUFFIX]; null when nothing usable is left. */
+    fun custom(name: String): String? {
+        val trimmed = name.trim()
+        val ending = listOf(SUFFIX, JSON).firstOrNull { trimmed.endsWith(it, ignoreCase = true) }
+        val base = if (ending == null) trimmed else trimmed.dropLast(ending.length)
+        val safe = clean(base).ifEmpty { return null }
+        return "$safe$SUFFIX"
+    }
+
+    private fun clean(name: String) = name.replace(UNSAFE, " ").replace(SPACES, " ").trim()
+}
+
 enum class SyncStatus {
     /** Local copy matches Drive. */
     SYNCED,
@@ -78,8 +115,11 @@ interface FamilyDatabaseRepository {
     /** Reopens the last used file from the local cache (then syncs), or reports [DatabaseState.NotSelected]. */
     suspend fun restore()
 
-    /** Creates a new database file in the signed-in user's Drive and opens it. */
-    suspend fun createNew(setup: HouseholdSetup): DatabaseFile
+    /** Creates a new database file in the signed-in user's Drive, named and placed as [file] says, and opens it. */
+    suspend fun createNew(setup: HouseholdSetup, file: NewDatabaseFile = NewDatabaseFile()): DatabaseFile
+
+    /** The name of a folder the user picked ([AuthRepository.pickDatabaseFolder]). */
+    suspend fun folder(folderId: String): DatabaseFolder
 
     /** Opens an existing database file (e.g. one picked with the Google Picker). */
     suspend fun open(fileId: String)

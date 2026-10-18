@@ -1,5 +1,6 @@
 package com.neteinstein.networth.feature.onboarding.ui.screens
 
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.core.testing.screenshot
 import com.neteinstein.networth.feature.onboarding.domain.model.HouseholdForm
@@ -26,6 +27,23 @@ class ScreenshotTest {
             OnboardingUiState(
                 step = OnboardingStep.START_FRESH,
                 form = HouseholdForm("The Vicentes", listOf("Pedro", "Maria"), listOf("Inês", "")),
+            ),
+            OnboardingActions(),
+        )
+    }
+
+    @Test
+    fun startFreshChooseFile() = screenshot("start_fresh_choose_file") {
+        OnboardingContent(
+            OnboardingUiState(
+                step = OnboardingStep.START_FRESH,
+                form = HouseholdForm(
+                    householdName = "The Vicentes",
+                    adults = listOf("Pedro"),
+                    chooseFile = true,
+                    fileName = "Our money",
+                    folder = DatabaseFolder("folder-1", "Finances"),
+                ),
             ),
             OnboardingActions(),
         )

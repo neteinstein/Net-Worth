@@ -7,10 +7,13 @@ import com.neteinstein.networth.core.domain.repository.AuthState
 import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.DatabaseException
 import com.neteinstein.networth.core.domain.repository.DatabaseFile
+import com.neteinstein.networth.core.domain.repository.DatabaseFileName
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
 import com.neteinstein.networth.core.domain.repository.IdGenerator
 import com.neteinstein.networth.core.domain.repository.LocalStore
+import com.neteinstein.networth.core.domain.repository.NewDatabaseFile
 import com.neteinstein.networth.core.domain.repository.SyncStatus
 import com.neteinstein.networth.core.domain.seed.HouseholdSetup
 import com.neteinstein.networth.core.domain.seed.toDatabase
@@ -70,14 +73,17 @@ class DriveFamilyDatabaseRepository(
         scope.launch { sync() }
     }
 
-    override suspend fun createNew(setup: HouseholdSetup): DatabaseFile {
+    override suspend fun createNew(setup: HouseholdSetup, file: NewDatabaseFile): DatabaseFile {
         val database = setup.toDatabase(ids, clock.nowMillis(), userEmail)
-        val info = guard(creating = true) { remote.create(fileNameFor(setup.householdName), FamilyDatabaseCodec.encode(database)) }
+        val name = file.name?.let(DatabaseFileName::custom) ?: DatabaseFileName.forHousehold(setup.householdName)
+        val info = guard(creating = true) { remote.create(name, FamilyDatabaseCodec.encode(database), file.folderId) }
         val cached = CachedDatabase(info.id, info.name, info.webViewLink, info.version, pending = false, database = database)
         replaceCurrent(cached)
         publish(cached, SyncStatus.SYNCED)
         return cached.file
     }
+
+    override suspend fun folder(folderId: String): DatabaseFolder = guard { DatabaseFolder(folderId, remote.info(folderId).name) }
 
     override suspend fun open(fileId: String) {
         val info = guard { remote.info(fileId) }
@@ -190,15 +196,5 @@ class DriveFamilyDatabaseRepository(
     } catch (e: Exception) {
         val error = remote.errorOf(e)
         throw DatabaseException(if (creating && error == DatabaseError.NOT_ACCESSIBLE) DatabaseError.NO_DRIVE_PERMISSION else error, e)
-    }
-
-    companion object {
-        const val FILE_SUFFIX = ".networth.json"
-
-        /** `Net Worth – The Vicentes.networth.json`, without characters Drive or exports dislike. */
-        fun fileNameFor(householdName: String): String {
-            val safe = householdName.replace(Regex("[\\\\/:*?\"<>|]"), " ").trim().ifEmpty { "Family" }
-            return "Net Worth – $safe$FILE_SUFFIX"
-        }
     }
 }

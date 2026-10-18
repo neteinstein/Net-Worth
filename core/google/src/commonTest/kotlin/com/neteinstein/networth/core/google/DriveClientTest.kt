@@ -52,7 +52,17 @@ class DriveClientTest {
         val body = (request.body as TextContent).text
         assertTrue(""""appProperties":{"netWorthDatabase":"1"}""" in body)
         assertTrue("""{"a":1}""" in body)
+        assertTrue("parents" !in body)
         assertEquals("multipart/related; boundary=networth-boundary", request.body.contentType.toString())
+    }
+
+    @Test
+    fun createsFileInAChosenFolder() = runTest {
+        val drive = client { json(meta) }
+
+        drive.create("Family.networth.json", "{}", folderId = "folder-1")
+
+        assertTrue(""""parents":["folder-1"]""" in (requests.single().body as TextContent).text)
     }
 
     @Test
