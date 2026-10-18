@@ -15,12 +15,17 @@ android {
         versionName = providers.environmentVariable("APP_VERSION_NAME").orNull ?: "0.1.0"
     }
 
-    // Distribution channels. For now only "github": the APK published on GitHub Releases by
-    // .github/workflows/release.yml. A "playstore" flavor (and the Play Console upload, see the
-    // `play { }` block below) is added when the app is ready for the store, as in FamilyMoments.
+    // Distribution channels, built by .github/workflows/release.yml:
+    // - "github": the sideloaded APK published on GitHub Releases.
+    // - "playstore": the app bundle uploaded to the Play Console (see the `play { }` block below).
+    // Both share the application id; the Play build is re-signed by Play App Signing, so a device
+    // switching from the sideloaded APK to the store install has to uninstall first.
     flavorDimensions += "distribution"
     productFlavors {
         create("github") {
+            dimension = "distribution"
+        }
+        create("playstore") {
             dimension = "distribution"
         }
     }
@@ -56,6 +61,13 @@ android {
         buildConfig = false
     }
 
+    // The only flavor Gradle Play Publisher may upload (it is off for everything else, see `play { }`).
+    playConfigs {
+        register("playstore") {
+            enabled.set(true)
+        }
+    }
+
     lint {
         checkDependencies = true
         abortOnError = true
@@ -63,11 +75,11 @@ android {
     }
 }
 
-// Gradle Play Publisher, disabled until a "playstore" flavor exists: the "github" flavor must never be
-// uploaded to the Play Console. To publish, add that flavor, enable it with
-// `playConfigs { register("playstore") { enabled.set(true) } }` and run `publishPlaystoreReleaseBundle`
-// with ANDROID_PUBLISHER_CREDENTIALS (a Play service-account JSON key) set. Goes to the "internal"
-// track unless PLAY_TRACK overrides it, so nothing reaches production without a manual promotion.
+// Gradle Play Publisher: off by default and enabled for the "playstore" flavor only, so the "github"
+// flavor can never be uploaded to the Play Console. `publishPlaystoreReleaseBundle` reads the
+// ANDROID_PUBLISHER_CREDENTIALS env var (a Play service-account JSON key) and uploads to the
+// "internal" track unless PLAY_TRACK overrides it, so nothing reaches production without a manual
+// promotion in the Play Console. Release notes: src/playstore/play/release-notes/.
 play {
     enabled.set(false)
     track.set(providers.environmentVariable("PLAY_TRACK").orNull?.takeIf { it.isNotBlank() } ?: "internal")
