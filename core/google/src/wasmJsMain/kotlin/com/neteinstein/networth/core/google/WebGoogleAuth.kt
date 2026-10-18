@@ -50,13 +50,18 @@ internal class WebGoogleAuth(
 
     private suspend fun pick(folders: Boolean): String? {
         val accessToken = accessToken(forceRefresh = false)
-        val picked = jsPick(
-            accessToken,
-            GoogleConfig.API_KEY,
-            GoogleConfig.PROJECT_NUMBER,
-            DriveClient.JSON_MIME,
-            folders,
-        ).await<JsString?>()
+        val picked = try {
+            jsPick(
+                accessToken,
+                GoogleConfig.API_KEY,
+                GoogleConfig.PROJECT_NUMBER,
+                DriveClient.JSON_MIME,
+                folders,
+            ).await<JsString?>()
+        } catch (e: JsException) {
+            // A JS rejection is not an Exception; rethrow as one so callers can report it.
+            throw IllegalStateException(e.message, e)
+        }
         return picked?.toString()?.takeIf { it.isNotEmpty() }
     }
 
@@ -107,26 +112,46 @@ internal class WebGoogleAuth(
 )
 private external fun jsRequestToken(clientId: String, scope: String, prompt: String, hint: String): Promise<JsString>
 
-/** Resolves to the picked file (or, with [folders], folder) id, or null when the picker is closed. */
+/**
+ * Resolves to the picked file (or, with [folders], folder) id, or null when the picker is closed;
+ * rejects when the picker reports an error, so the caller is never left waiting.
+ *
+ * Folders: My Drive opens at its root, so top-level folders can be picked as well as the ones inside
+ * them; a second tab lists shared drives.
+ */
 @JsFun(
     """(token, apiKey, appId, mimeTypes, folders) => new Promise((resolve, reject) => {
         if (!window.gapi) { reject(new Error('Google API loader not loaded')); return; }
         gapi.load('picker', () => {
-            const view = folders
-                ? new google.picker.DocsView(google.picker.ViewId.FOLDERS).setSelectFolderEnabled(true).setMode(google.picker.DocsViewMode.LIST)
-                : new google.picker.DocsView(google.picker.ViewId.DOCS).setMimeTypes(mimeTypes).setMode(google.picker.DocsViewMode.LIST);
-            const picker = new google.picker.PickerBuilder()
-                .addView(view)
+            const folderView = () => new google.picker.DocsView(google.picker.ViewId.DOCS)
+                .setIncludeFolders(true)
+                .setSelectFolderEnabled(true)
+                .setMimeTypes('application/vnd.google-apps.folder')
+                .setMode(google.picker.DocsViewMode.LIST);
+            const builder = new google.picker.PickerBuilder()
                 .setOAuthToken(token)
                 .setDeveloperKey(apiKey)
                 .setAppId(appId)
                 .setCallback((data) => {
                     const action = data[google.picker.Response.ACTION];
-                    if (action === google.picker.Action.PICKED) resolve(data[google.picker.Response.DOCUMENTS][0][google.picker.Document.ID]);
-                    else if (action === google.picker.Action.CANCEL) resolve(null);
-                })
-                .build();
-            picker.setVisible(true);
+                    if (action === google.picker.Action.PICKED) {
+                        const docs = data[google.picker.Response.DOCUMENTS] || [];
+                        resolve(docs.length ? docs[0][google.picker.Document.ID] : null);
+                    } else if (action === google.picker.Action.CANCEL) {
+                        resolve(null);
+                    } else if (action === google.picker.Action.ERROR) {
+                        reject(new Error('Google Picker error'));
+                    }
+                });
+            if (folders) {
+                builder
+                    .addView(folderView().setParent('root'))
+                    .addView(folderView().setEnableDrives(true))
+                    .enableFeature(google.picker.Feature.SUPPORT_DRIVES);
+            } else {
+                builder.addView(new google.picker.DocsView(google.picker.ViewId.DOCS).setMimeTypes(mimeTypes).setMode(google.picker.DocsViewMode.LIST));
+            }
+            builder.build().setVisible(true);
         });
     })""",
 )
