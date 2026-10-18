@@ -76,7 +76,7 @@ you picked, nothing else in your Drive. Details: [docs/database.md](docs/databas
 | Platform | How |
 | --- | --- |
 | 🤖 Android | Release pipeline disabled for now (see [CI_CD.md](CI_CD.md)); earlier builds → [Releases](https://github.com/neteinstein/Net-Worth/releases) |
-| 🌐 Web | Deployed to [GitHub Pages](https://neteinstein.github.io/Net-Worth/) on every push to `main` |
+| 🌐 Web | Deployed to [GitHub Pages](https://neteinstein.github.io/Net-Worth/) and Cloudflare on every push to `main` |
 | 🍎 iOS | Build from source with Xcode (below) |
 
 ## Build from source

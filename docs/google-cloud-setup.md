@@ -20,10 +20,10 @@ Without this configuration the app builds and runs, but "Sign in with Google" sh
 
 | What | Where | Used by |
 | --- | --- | --- |
-| **Web application** client | Authorised JavaScript origins: `http://localhost:8080` (dev server) and your hosting origin | Web sign-in, and as the *server client id* for Android's Credential Manager |
+| **Web application** client | Authorised JavaScript origins: `http://localhost:8080` (dev server) and every hosting origin (GitHub Pages and Cloudflare while both are live) | Web sign-in, and as the *server client id* for Android's Credential Manager |
 | **Android** client | Package `com.neteinstein.networth` (and `com.neteinstein.networth.debug`) + the SHA-1 of each signing key (`./gradlew :androidApp:signingReport`) | Android authorisation (no value goes in the app; Google matches package + SHA-1) |
 | **iOS** client | Bundle id of `iosApp` | iOS sign-in and Picker (redirects to the reversed client id) |
-| **API key** | Restrict to the Google Picker API and your web origin | Web Picker |
+| **API key** | Restrict to the Google Picker API and your web origin(s) | Web Picker |
 | **Project number** | Project settings | Web Picker `appId` |
 
 ## 3. Give the values to the build
