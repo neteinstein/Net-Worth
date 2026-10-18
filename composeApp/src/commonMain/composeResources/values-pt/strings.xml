@@ -1,0 +1,10 @@
+<resources>
+    <!-- Bottom bar of the artboards. -->
+    <string name="nav_overview">Resumo</string>
+    <string name="nav_spending">Gastos</string>
+    <string name="nav_import">Importar extrato</string>
+    <string name="nav_alerts">Alertas</string>
+    <string name="nav_future">Futuro</string>
+    <!-- Top bar of the tab screens. -->
+    <string name="nav_settings">Definições</string>
+</resources>

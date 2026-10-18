@@ -1,6 +1,7 @@
 package com.neteinstein.networth.feature.importer.domain.parse.pdf
 
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 
 /**
  * Standard security handler, revisions 2–4, opened with the empty user password (ISO 32000-1 §7.6.3).
@@ -37,11 +38,15 @@ internal class Decryptor private constructor(
             id: PdfObject,
         ): Decryptor {
             if (encrypt == null || encrypt.name("Filter") != "Standard") {
-                throw ParseException("This PDF is protected in a way Net Worth can't open")
+                throw ParseException(ParseFailure.PDF_PROTECTED, "This PDF is protected in a way Net Worth can't open")
             }
             val v = encrypt.int("V") ?: 0
             val r = encrypt.int("R") ?: 2
-            if (v >= 5 || r >= 5) throw ParseException("This PDF uses AES-256 protection, which isn't supported yet")
+            if (v >= 5 ||
+                r >= 5
+            ) {
+                throw ParseException(ParseFailure.PDF_AES_256, "This PDF uses AES-256 protection, which isn't supported yet")
+            }
             var aes = false
             var lengthBits = encrypt.int("Length") ?: 40
             if (v == 4) {
@@ -50,7 +55,9 @@ internal class Decryptor private constructor(
                 lengthBits = 128
             }
             val n = if (r == 2) 5 else lengthBits / 8
-            val o = (encrypt["O"] as? PdfString)?.bytes ?: throw ParseException("This PDF's protection is damaged")
+            val o =
+                (encrypt["O"] as? PdfString)?.bytes
+                    ?: throw ParseException(ParseFailure.PDF_PROTECTION_DAMAGED, "This PDF's protection is damaged")
             val p = (encrypt["P"] as? PdfNumber)?.value?.toLong()?.toInt() ?: 0
             val firstId = ((id as? PdfArray)?.items?.firstOrNull() as? PdfString)?.bytes ?: ByteArray(0)
             val input = ByteBuilder(128)

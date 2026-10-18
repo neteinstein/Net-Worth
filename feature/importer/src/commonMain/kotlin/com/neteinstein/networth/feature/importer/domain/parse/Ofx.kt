@@ -50,7 +50,7 @@ internal object Ofx {
                     rows = rows,
                 )
             }.filter { it.rows.isNotEmpty() || it.closingBalanceMinor != null }.toList()
-        if (sections.isEmpty()) throw ParseException("No statement found in this OFX file")
+        if (sections.isEmpty()) throw ParseException(ParseFailure.NO_OFX_STATEMENT, "No statement found in this OFX file")
         return ParsedStatement(fileName = fileName, format = StatementFormat.OFX, sections = sections)
     }
 

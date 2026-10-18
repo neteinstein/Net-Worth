@@ -14,12 +14,14 @@ import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
 import com.neteinstein.networth.feature.settings.data.LocalSettingsRepository
+import com.neteinstein.networth.feature.settings.domain.model.AppLanguage
 import com.neteinstein.networth.feature.settings.domain.model.ThemeMode
 import com.neteinstein.networth.feature.settings.domain.usecase.CloseDatabaseUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import com.neteinstein.networth.feature.settings.ui.screens.SettingsViewModel
@@ -55,6 +57,7 @@ class SettingsViewModelTest {
         observeDatabase = ObserveDatabaseUseCase(database),
         setThemeMode = SetThemeModeUseCase(settings),
         setDynamicColor = SetDynamicColorUseCase(settings),
+        setLanguage = SetLanguageUseCase(settings),
         shareDatabase = ShareDatabaseUseCase(database),
         syncDatabase = SyncDatabaseUseCase(database),
         closeDatabase = CloseDatabaseUseCase(database),
@@ -85,6 +88,25 @@ class SettingsViewModelTest {
         assertEquals(
             ThemeMode.SYSTEM,
             LocalSettingsRepository(InMemoryLocalStore(mapOf("appearance.txt" to "junk"))).observeAppearance().first().themeMode,
+        )
+    }
+
+    @Test
+    fun languageIsPersistedOnThisDevice() = runTest {
+        val vm = viewModel()
+        assertEquals(AppLanguage.SYSTEM, vm.state.value.appearance.language)
+
+        vm.onLanguageSelected(AppLanguage.PORTUGUESE)
+        vm.onThemeModeSelected(ThemeMode.LIGHT)
+
+        assertEquals(AppLanguage.PORTUGUESE, vm.state.value.appearance.language)
+        val reloaded = LocalSettingsRepository(store).observeAppearance().first()
+        assertEquals(AppLanguage.PORTUGUESE, reloaded.language)
+        assertEquals("pt", reloaded.language.tag)
+        assertEquals(ThemeMode.LIGHT, reloaded.themeMode)
+        assertEquals(
+            AppLanguage.SYSTEM,
+            LocalSettingsRepository(InMemoryLocalStore(mapOf("appearance.txt" to "language=KLINGON"))).observeAppearance().first().language,
         )
     }
 

@@ -1,0 +1,51 @@
+<resources>
+    <string name="overview_title">Net Worth</string>
+    <plurals name="overview_family">
+        <item quantity="one">%1$s · %2$d pessoa</item>
+        <item quantity="other">%1$s · família de %2$d</item>
+    </plurals>
+    <string name="overview_change_period">Mudar período, %1$s</string>
+    <string name="overview_import_extract">Importar extrato</string>
+    <plurals name="overview_review_banner">
+        <item quantity="one">%1$d movimento precisa de categoria</item>
+        <item quantity="other">%1$d movimentos precisam de categoria</item>
+    </plurals>
+    <string name="overview_review">Rever</string>
+    <string name="overview_manage">Gerir contas, categorias e filtros</string>
+    <string name="overview_scope_all">Todas as contas</string>
+    <string name="overview_scope_children">Poupanças dos filhos</string>
+    <string name="overview_saved_in">Poupado em %1$s</string>
+    <string name="overview_overspent_in">Gastou mais do que entrou, %1$s</string>
+    <string name="overview_percent_of_income">%1$d% do rendimento</string>
+    <string name="overview_income">Rendimento</string>
+    <string name="overview_spent">Gasto</string>
+    <string name="overview_spike_title">Pico de gastos: %1$s</string>
+    <string name="overview_spike_body">%1$s este mês — %2$s× a sua média de 12 meses de %3$s.</string>
+    <string name="overview_mark_seasonal">Marcar como sazonal</string>
+    <string name="overview_where_it_went">Para onde foi</string>
+    <string name="overview_uncategorised">Ainda sem categoria</string>
+    <plurals name="overview_more_categories">
+        <item quantity="one">+ %1$d outra categoria · %2$s</item>
+        <item quantity="other">+ %1$d outras categorias · %2$s</item>
+    </plurals>
+    <string name="overview_nothing_spent">Nada gasto este mês.</string>
+    <string name="overview_last_months">Últimos 6 meses</string>
+    <string name="overview_twelve_month_average">Média 12 meses %1$s</string>
+    <string name="overview_trend_description">Gastos nos últimos 6 meses, %1$s este mês</string>
+    <string name="overview_net_worth">Património líquido</string>
+    <string name="overview_manage_accounts">Gerir contas</string>
+    <plurals name="overview_account_count">
+        <item quantity="one">%1$d conta</item>
+        <item quantity="other">%1$d contas</item>
+    </plurals>
+    <string name="overview_projection">A este ritmo, as poupanças chegam a %1$s em %2$d anos</string>
+    <string name="overview_empty_title">Ainda sem movimentos</string>
+    <string name="overview_empty_body">Depois de importar extratos bancários, aqui vê o que entrou, para onde foi e como cada mês se compara.</string>
+    <string name="overview_no_accounts">Ainda sem contas. Adicione uma em Gerir.</string>
+    <string name="overview_type_current">À ordem</string>
+    <string name="overview_type_savings">Poupança</string>
+    <string name="overview_type_term_deposit">Depósito a prazo</string>
+    <string name="overview_type_investment">Investimentos</string>
+    <string name="overview_type_mortgage">Crédito habitação</string>
+    <string name="overview_type_loan">Empréstimo</string>
+</resources>

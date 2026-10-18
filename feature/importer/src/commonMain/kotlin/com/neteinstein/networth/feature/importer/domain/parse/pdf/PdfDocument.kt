@@ -1,6 +1,7 @@
 package com.neteinstein.networth.feature.importer.domain.parse.pdf
 
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 
 /**
  * Reads a PDF file well enough to walk its pages and decode their content streams.
@@ -21,7 +22,7 @@ internal class PdfDocument private constructor(
     private var decryptor: Decryptor? = null
 
     private fun load() {
-        if (!startsWith("%PDF")) throw ParseException("This file isn't a PDF")
+        if (!startsWith("%PDF")) throw ParseException(ParseFailure.NOT_PDF, "This file isn't a PDF")
         scanObjects()
         trailer = findTrailer()
         val encrypt = trailer["Encrypt"]
@@ -59,7 +60,7 @@ internal class PdfDocument private constructor(
             }
             i++
         }
-        if (offsets.isEmpty()) throw ParseException("This PDF has no readable content")
+        if (offsets.isEmpty()) throw ParseException(ParseFailure.PDF_NO_CONTENT, "This PDF has no readable content")
     }
 
     /** Parses "<num> <gen> " backwards from the "obj" keyword at [objAt]; returns (number, generation). */
@@ -106,7 +107,7 @@ internal class PdfDocument private constructor(
 
     private fun findRootFallback(): PdfDict {
         val catalog = offsets.keys.firstOrNull { (get(it) as? PdfDict)?.name("Type") == "Catalog" }
-            ?: throw ParseException("This PDF has no page tree")
+            ?: throw ParseException(ParseFailure.PDF_NO_PAGE_TREE, "This PDF has no page tree")
         return PdfDict(mapOf("Root" to PdfRef(catalog, 0)))
     }
 
@@ -254,7 +255,8 @@ internal class PdfDocument private constructor(
 
     /** Pages in order, each with its inherited resources. */
     fun pages(): List<PdfPage> {
-        val catalog = resolve(trailer["Root"]) as? PdfDict ?: throw ParseException("This PDF has no page tree")
+        val catalog =
+            resolve(trailer["Root"]) as? PdfDict ?: throw ParseException(ParseFailure.PDF_NO_PAGE_TREE, "This PDF has no page tree")
         val result = ArrayList<PdfPage>()
         walk(catalog["Pages"], null, result, HashSet())
         return result

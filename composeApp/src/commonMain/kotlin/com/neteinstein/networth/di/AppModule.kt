@@ -65,6 +65,7 @@ import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanc
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import com.neteinstein.networth.feature.settings.ui.screens.SettingsViewModel
@@ -181,6 +182,7 @@ val appModule = module {
     factoryOf(::ObserveAppearanceUseCase)
     factoryOf(::SetThemeModeUseCase)
     factoryOf(::SetDynamicColorUseCase)
+    factoryOf(::SetLanguageUseCase)
     factoryOf(::ShareDatabaseUseCase)
     factoryOf(::CloseDatabaseUseCase)
     factoryOf(::RenameHouseholdUseCase)
@@ -207,6 +209,7 @@ val appModule = module {
             observeDatabase = get(),
             setThemeMode = get(),
             setDynamicColor = get(),
+            setLanguage = get(),
             shareDatabase = get(),
             syncDatabase = get(),
             closeDatabase = get(),

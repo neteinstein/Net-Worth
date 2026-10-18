@@ -12,7 +12,7 @@ internal object Zip {
                 break
             }
         }
-        if (eocd < 0) throw ParseException("This file isn't a valid XLSX (ZIP) file")
+        if (eocd < 0) throw ParseException(ParseFailure.NOT_XLSX, "This file isn't a valid XLSX (ZIP) file")
         val count = u16(data, eocd + 10)
         var p = u32(data, eocd + 16).toInt()
         val result = LinkedHashMap<String, () -> ByteArray>()
@@ -33,7 +33,7 @@ internal object Zip {
                 when (method) {
                     0 -> raw
                     8 -> Inflate.raw(raw)
-                    else -> throw ParseException("Unsupported compression in this XLSX file")
+                    else -> throw ParseException(ParseFailure.XLSX_COMPRESSION, "Unsupported compression in this XLSX file")
                 }
             }
             p += 46 + nameLength + extraLength + commentLength
@@ -77,7 +77,7 @@ internal object Xlsx {
         val sheetName =
             entries.keys.filter { it.startsWith("xl/worksheets/sheet") && it.endsWith(".xml") }
                 .minByOrNull { it.filter(Char::isDigit).toIntOrNull() ?: Int.MAX_VALUE }
-                ?: throw ParseException("This XLSX file has no worksheet")
+                ?: throw ParseException(ParseFailure.XLSX_NO_WORKSHEET, "This XLSX file has no worksheet")
         val xml = entries.getValue(sheetName)().decodeToString()
         return rowPattern.findAll(xml).map { row ->
             val cells = ArrayList<String>()

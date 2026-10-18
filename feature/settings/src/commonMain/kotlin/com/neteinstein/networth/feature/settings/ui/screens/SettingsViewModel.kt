@@ -12,6 +12,7 @@ import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
 import com.neteinstein.networth.core.domain.usecase.SyncDatabaseUseCase
+import com.neteinstein.networth.feature.settings.domain.model.AppLanguage
 import com.neteinstein.networth.feature.settings.domain.model.AppearanceSettings
 import com.neteinstein.networth.feature.settings.domain.model.ThemeMode
 import com.neteinstein.networth.feature.settings.domain.usecase.CloseDatabaseUseCase
@@ -19,6 +20,7 @@ import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanc
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import kotlinx.coroutines.CancellationException
@@ -49,6 +51,7 @@ class SettingsViewModel(
     observeDatabase: ObserveDatabaseUseCase,
     private val setThemeMode: SetThemeModeUseCase,
     private val setDynamicColor: SetDynamicColorUseCase,
+    private val setLanguage: SetLanguageUseCase,
     private val shareDatabase: ShareDatabaseUseCase,
     private val syncDatabase: SyncDatabaseUseCase,
     private val closeDatabase: CloseDatabaseUseCase,
@@ -89,6 +92,10 @@ class SettingsViewModel(
 
     fun onDynamicColorToggled(enabled: Boolean) {
         viewModelScope.launch { setDynamicColor(enabled) }
+    }
+
+    fun onLanguageSelected(language: AppLanguage) {
+        viewModelScope.launch { setLanguage(language) }
     }
 
     fun onShare(email: String) {

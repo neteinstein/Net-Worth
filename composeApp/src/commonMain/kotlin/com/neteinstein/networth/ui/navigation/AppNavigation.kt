@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
@@ -84,9 +85,18 @@ internal val navSavedStateConfiguration = SavedStateConfiguration {
     }
 }
 
+/** The app's back stack, starting on Overview. */
 @Composable
-fun AppNavigation() {
-    val backStack = rememberNavBackStack(navSavedStateConfiguration, Route.Overview)
+fun rememberAppBackStack(): NavBackStack<NavKey> = rememberNavBackStack(navSavedStateConfiguration, Route.Overview)
+
+/** Drops everything but Overview, e.g. after signing out so the next session starts there. */
+fun NavBackStack<NavKey>.resetToOverview() {
+    add(Route.Overview)
+    while (size > 1) removeAt(0)
+}
+
+@Composable
+fun AppNavigation(backStack: NavBackStack<NavKey> = rememberAppBackStack()) {
     val back: () -> Unit = { backStack.removeLastOrNull() }
     val current = backStack.lastOrNull() as? Route
     val onTab = current != null && current in TABS
