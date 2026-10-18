@@ -34,12 +34,48 @@ data class DriveFileMetadata(
     val trashed: Boolean = false,
 )
 
-/** A Drive API error. 401/403/404 mean the file can't be reached with the current grant. */
+/** Why Drive refused a call, read from the status and the `reason`s in Google's error body. */
+enum class DriveProblem {
+    /** The Google Drive API is not enabled in the app's Google Cloud project. */
+    API_DISABLED,
+
+    /** The access token lacks the drive.file scope (the user unticked Drive on the consent screen). */
+    SCOPE_MISSING,
+
+    /** The user's Drive is out of storage. */
+    STORAGE_FULL,
+
+    /** 401/403/404 for any other reason: the file can't be reached with the current grant. */
+    NO_ACCESS,
+
+    /** Anything else, including rate limits: worth retrying later. */
+    OTHER,
+}
+
+/** A Drive API error. [body] is Google's JSON error, whose `reason`s say what went wrong. */
 class DriveException(
     val status: Int,
-    message: String,
-) : Exception("Drive API $status: $message") {
-    val isAccessProblem: Boolean get() = status == 401 || status == 403 || status == 404
+    body: String,
+) : Exception("Drive API $status: ${body.take(500)}") {
+    val reasons: Set<String> = REASON.findAll(body).map { it.groupValues[1] }.toSet()
+
+    val problem: DriveProblem
+        get() = when {
+            reasons.any { it in API_DISABLED_REASONS } -> DriveProblem.API_DISABLED
+            reasons.any { it in SCOPE_REASONS } -> DriveProblem.SCOPE_MISSING
+            reasons.any { it in STORAGE_REASONS } -> DriveProblem.STORAGE_FULL
+            reasons.any { it in RATE_LIMIT_REASONS } -> DriveProblem.OTHER
+            status == 401 || status == 403 || status == 404 -> DriveProblem.NO_ACCESS
+            else -> DriveProblem.OTHER
+        }
+
+    private companion object {
+        val REASON = Regex("\"reason\"\\s*:\\s*\"([A-Za-z_]+)\"")
+        val API_DISABLED_REASONS = setOf("accessNotConfigured", "SERVICE_DISABLED")
+        val SCOPE_REASONS = setOf("insufficientPermissions", "insufficientScopes", "ACCESS_TOKEN_SCOPE_INSUFFICIENT")
+        val STORAGE_REASONS = setOf("storageQuotaExceeded")
+        val RATE_LIMIT_REASONS = setOf("userRateLimitExceeded", "rateLimitExceeded", "dailyLimitExceeded", "RATE_LIMIT_EXCEEDED")
+    }
 }
 
 /**
@@ -98,7 +134,7 @@ class DriveClient(
         if (response.status == HttpStatusCode.Unauthorized) {
             response = send(method, url, tokens.token(forceRefresh = true), block)
         }
-        if (!response.status.isSuccess()) throw DriveException(response.status.value, response.bodyAsText().take(500))
+        if (!response.status.isSuccess()) throw DriveException(response.status.value, response.bodyAsText())
         return response
     }
 
@@ -135,7 +171,7 @@ private val userInfoJson = Json { ignoreUnknownKeys = true }
 /** The signed-in user's profile from an access token that includes the openid/email/profile scopes. */
 suspend fun fetchGoogleUserInfo(http: HttpClient, accessToken: String): UserProfile {
     val response = http.request("https://openidconnect.googleapis.com/v1/userinfo") { bearerAuth(accessToken) }
-    if (!response.status.isSuccess()) throw DriveException(response.status.value, response.bodyAsText().take(300))
+    if (!response.status.isSuccess()) throw DriveException(response.status.value, response.bodyAsText())
     val info = userInfoJson.decodeFromString<UserInfo>(response.bodyAsText())
     return UserProfile(info.sub, info.email, info.name, info.picture)
 }

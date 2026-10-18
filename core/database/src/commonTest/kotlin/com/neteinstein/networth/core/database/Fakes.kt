@@ -3,6 +3,7 @@ package com.neteinstein.networth.core.database
 import com.neteinstein.networth.core.domain.repository.AppClock
 import com.neteinstein.networth.core.domain.repository.AuthRepository
 import com.neteinstein.networth.core.domain.repository.AuthState
+import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.IdGenerator
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,7 +11,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.datetime.LocalDate
 
 class FakeRemote : DatabaseRemote {
-    class Problem(val access: Boolean) : Exception("remote problem")
+    class Problem(
+        val access: Boolean,
+        val error: DatabaseError? = null,
+    ) : Exception("remote problem")
 
     val files = mutableMapOf<String, String>()
     val versions = mutableMapOf<String, Int>()
@@ -61,7 +65,12 @@ class FakeRemote : DatabaseRemote {
         shares += fileId to email
     }
 
-    override fun isAccessProblem(error: Throwable) = error is Problem && error.access
+    override fun errorOf(error: Throwable) = when {
+        error !is Problem -> DatabaseError.UNKNOWN
+        error.error != null -> error.error
+        error.access -> DatabaseError.NOT_ACCESSIBLE
+        else -> DatabaseError.UNKNOWN
+    }
 }
 
 class FakeAuth(email: String = "ana@example.com") : AuthRepository {

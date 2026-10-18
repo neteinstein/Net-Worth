@@ -163,6 +163,19 @@ class DriveFamilyDatabaseRepositoryTest {
     }
 
     @Test
+    fun createReportsDriveRefusalsAsPermissionProblems() = runTest {
+        val repo = repository()
+
+        // Creating in your own Drive: "ask the owner to share it" would make no sense.
+        remote.failWith = FakeRemote.Problem(access = true)
+        assertEquals(DatabaseError.NO_DRIVE_PERMISSION, assertFailsWith<DatabaseException> { repo.createNew(setup) }.error)
+        remote.failWith = FakeRemote.Problem(access = true, error = DatabaseError.DRIVE_API_DISABLED)
+        assertEquals(DatabaseError.DRIVE_API_DISABLED, assertFailsWith<DatabaseException> { repo.createNew(setup) }.error)
+        remote.failWith = FakeRemote.Problem(access = true, error = DatabaseError.DRIVE_FULL)
+        assertEquals(DatabaseError.DRIVE_FULL, assertFailsWith<DatabaseException> { repo.createNew(setup) }.error)
+    }
+
+    @Test
     fun shareAndClose() = runTest {
         val repo = repository()
         val file = repo.createNew(setup)

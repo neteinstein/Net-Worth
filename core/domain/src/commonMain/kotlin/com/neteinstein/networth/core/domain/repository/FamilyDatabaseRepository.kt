@@ -50,6 +50,15 @@ enum class DatabaseError {
     /** Drive refused access or the file no longer exists. */
     NOT_ACCESSIBLE,
 
+    /** The signed-in account didn't give the app access to its files in Google Drive. */
+    NO_DRIVE_PERMISSION,
+
+    /** The Google Drive API is not enabled in the app's Google Cloud project (a setup problem). */
+    DRIVE_API_DISABLED,
+
+    /** The user's Google Drive is out of storage. */
+    DRIVE_FULL,
+
     /** Network or other unexpected failure. */
     UNKNOWN,
 }

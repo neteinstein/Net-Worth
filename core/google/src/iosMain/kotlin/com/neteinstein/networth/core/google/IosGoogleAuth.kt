@@ -49,6 +49,7 @@ internal class IosGoogleAuth(
 
     override suspend fun signIn(): UserProfile {
         val tokens = authorize(listOf("openid", "email", "profile", DRIVE_FILE_SCOPE), mapOf("prompt" to "consent")).second
+        requireDriveScope(tokens.scope)
         val profile = fetchGoogleUserInfo(http, tokens.accessToken)
         profiles.save(profile)
         return profile

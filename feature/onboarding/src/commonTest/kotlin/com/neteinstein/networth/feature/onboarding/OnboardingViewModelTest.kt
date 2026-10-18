@@ -5,6 +5,7 @@ import com.neteinstein.networth.core.domain.repository.AuthNotConfiguredExceptio
 import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.DatabaseException
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.repository.DriveAccessNotGrantedException
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.SignInUseCase
 import com.neteinstein.networth.core.domain.usecase.SignOutUseCase
@@ -78,6 +79,12 @@ class OnboardingViewModelTest {
         assertEquals(OnboardingError.SIGN_IN_FAILED, vm.state.value.error)
 
         vm.onErrorShown()
+        auth.signInResult = { throw DriveAccessNotGrantedException() }
+        vm.onSignIn()
+        assertEquals(OnboardingError.NO_DRIVE_PERMISSION, vm.state.value.error)
+        assertEquals(OnboardingStep.SIGN_IN, vm.state.value.step)
+
+        vm.onErrorShown()
         auth.signInResult = { throw AuthCancelledException() }
         vm.onSignIn()
         assertNull(vm.state.value.error)
@@ -144,6 +151,9 @@ class OnboardingViewModelTest {
             DatabaseError.NOT_A_DATABASE to OnboardingError.NOT_A_DATABASE,
             DatabaseError.NEWER_SCHEMA to OnboardingError.NEWER_SCHEMA,
             DatabaseError.NOT_ACCESSIBLE to OnboardingError.NOT_ACCESSIBLE,
+            DatabaseError.NO_DRIVE_PERMISSION to OnboardingError.NO_DRIVE_PERMISSION,
+            DatabaseError.DRIVE_API_DISABLED to OnboardingError.DRIVE_API_DISABLED,
+            DatabaseError.DRIVE_FULL to OnboardingError.DRIVE_FULL,
             DatabaseError.UNKNOWN to OnboardingError.NETWORK,
         )) {
             database.failure = DatabaseException(error)

@@ -23,6 +23,9 @@ class AuthCancelledException : Exception("Cancelled by the user")
 /** This build has no Google OAuth client configured (see docs/google-cloud-setup.md). */
 class AuthNotConfiguredException : IllegalStateException("Google sign-in is not configured for this build")
 
+/** The user signed in but left Google Drive unticked on Google's consent screen. */
+class DriveAccessNotGrantedException : Exception("Google Drive access was not granted")
+
 /** Google sign-in and Drive file picking. */
 interface AuthRepository {
     val state: StateFlow<AuthState>
@@ -30,7 +33,10 @@ interface AuthRepository {
     /** Silently restores a previous session; ends in [AuthState.SignedIn] or [AuthState.SignedOut]. */
     suspend fun restore()
 
-    /** Interactive Google sign-in. Throws [AuthCancelledException] if the user backs out. */
+    /**
+     * Interactive Google sign-in. Throws [AuthCancelledException] if the user backs out and
+     * [DriveAccessNotGrantedException] if they sign in without allowing Drive access.
+     */
     suspend fun signIn(): UserProfile
 
     /** Shows the Google Picker; returns the picked file id, or null if nothing was picked. */

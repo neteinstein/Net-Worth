@@ -1,7 +1,9 @@
 package com.neteinstein.networth.core.database
 
+import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.google.DriveClient
 import com.neteinstein.networth.core.google.DriveException
+import com.neteinstein.networth.core.google.DriveProblem
 
 /** Where the database file lives; Google Drive in the app, a fake in tests. */
 interface DatabaseRemote {
@@ -22,8 +24,8 @@ interface DatabaseRemote {
 
     suspend fun share(fileId: String, email: String)
 
-    /** True when the failure means "no access / not found" rather than a transient problem. */
-    fun isAccessProblem(error: Throwable): Boolean
+    /** What a failure means to the user; [DatabaseError.UNKNOWN] for transient problems. */
+    fun errorOf(error: Throwable): DatabaseError
 }
 
 class DriveDatabaseRemote(private val drive: DriveClient) : DatabaseRemote {
@@ -41,7 +43,13 @@ class DriveDatabaseRemote(private val drive: DriveClient) : DatabaseRemote {
 
     override suspend fun share(fileId: String, email: String) = drive.shareWith(fileId, email)
 
-    override fun isAccessProblem(error: Throwable) = error is DriveException && error.isAccessProblem
+    override fun errorOf(error: Throwable) = when ((error as? DriveException)?.problem) {
+        DriveProblem.API_DISABLED -> DatabaseError.DRIVE_API_DISABLED
+        DriveProblem.SCOPE_MISSING -> DatabaseError.NO_DRIVE_PERMISSION
+        DriveProblem.STORAGE_FULL -> DatabaseError.DRIVE_FULL
+        DriveProblem.NO_ACCESS -> DatabaseError.NOT_ACCESSIBLE
+        DriveProblem.OTHER, null -> DatabaseError.UNKNOWN
+    }
 
     private fun com.neteinstein.networth.core.google.DriveFileMetadata.toInfo() = DatabaseRemote.FileInfo(id, name, version, webViewLink)
 }
