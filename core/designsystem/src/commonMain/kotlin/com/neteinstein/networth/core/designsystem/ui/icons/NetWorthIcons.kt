@@ -34,6 +34,18 @@ object NetWorthIcons {
     val Download: ImageVector by lazy { strokeIcon("Download", "M12 4v11", "M7 10l5 5 5-5", "M5 20h14") }
     val Bell: ImageVector by lazy { strokeIcon("Bell", "M6 16v-5a6 6 0 1 1 12 0v5l2 2H4z", "M10 21h4") }
     val Refresh: ImageVector by lazy { strokeIcon("Refresh", "M20 11a8 8 0 1 0-2.3 5.7", "M20 4v7h-7") }
+    val Settings: ImageVector by lazy {
+        strokeIcon(
+            "Settings",
+            "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38" +
+                "a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38" +
+                "a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18" +
+                "a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08" +
+                "a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08" +
+                "a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
+            "M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6z",
+        )
+    }
 
     private fun strokeIcon(name: String, vararg paths: String): ImageVector {
         val builder = ImageVector.Builder(name, 24.dp, 24.dp, 24f, 24f)

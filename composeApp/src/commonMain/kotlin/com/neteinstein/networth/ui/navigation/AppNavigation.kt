@@ -8,14 +8,21 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,6 +39,7 @@ import com.neteinstein.networth.composeapp.generated.resources.nav_alerts
 import com.neteinstein.networth.composeapp.generated.resources.nav_future
 import com.neteinstein.networth.composeapp.generated.resources.nav_import
 import com.neteinstein.networth.composeapp.generated.resources.nav_overview
+import com.neteinstein.networth.composeapp.generated.resources.nav_settings
 import com.neteinstein.networth.composeapp.generated.resources.nav_spending
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.feature.alerts.ui.screens.AlertsScreen
@@ -81,6 +89,7 @@ fun AppNavigation() {
     val backStack = rememberNavBackStack(navSavedStateConfiguration, Route.Overview)
     val back: () -> Unit = { backStack.removeLastOrNull() }
     val current = backStack.lastOrNull() as? Route
+    val onTab = current != null && current in TABS
 
     // Tabs sit on top of Overview, so back from a tab returns to Overview.
     fun selectTab(tab: Route) {
@@ -89,8 +98,11 @@ fun AppNavigation() {
     }
 
     Scaffold(
+        topBar = {
+            if (onTab) TopBar(onOpenSettings = { backStack.add(Route.Settings) })
+        },
         bottomBar = {
-            if (current != null && current in TABS) {
+            if (current != null && onTab) {
                 BottomBar(
                     current = current,
                     onSelect = ::selectTab,
@@ -102,7 +114,9 @@ fun AppNavigation() {
         NavDisplay(
             backStack = backStack,
             onBack = back,
-            modifier = Modifier.padding(bottom = padding.calculateBottomPadding()).consumeWindowInsets(padding),
+            modifier = Modifier
+                .padding(top = if (onTab) padding.calculateTopPadding() else 0.dp, bottom = padding.calculateBottomPadding())
+                .consumeWindowInsets(padding),
             transitionSpec = { forward() },
             popTransitionSpec = { backward() },
             predictivePopTransitionSpec = { backward() },
@@ -188,6 +202,19 @@ private fun Route.Transactions.toRequest() =
         accountIds = accountIds,
         fromFilters = fromFilters,
     )
+
+/** Sits above the tab screens: the Settings button in the top-right corner. */
+@Composable
+private fun TopBar(onOpenSettings: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars).padding(horizontal = 20.dp).padding(top = 8.dp),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        OutlinedIconButton(onClick = onOpenSettings, modifier = Modifier.size(44.dp)) {
+            Icon(NetWorthIcons.Settings, contentDescription = stringResource(Res.string.nav_settings), modifier = Modifier.size(20.dp))
+        }
+    }
+}
 
 /** The artboards' bottom bar: Overview, Spending, the Import action in the middle, Alerts, Future. */
 @Composable
