@@ -1,8 +1,11 @@
-name: Deploy Web (GitHub Pages)
+name: Deploy Web (GitHub Pages + Cloudflare Pages)
 
-# Publishes the Wasm production bundle to GitHub Pages on every push to main. Requires repo
-# Settings → Pages → Build and deployment → Source = "GitHub Actions". For Google sign-in to work on
-# the deployed site, add its origin (https://<owner>.github.io) to the Web OAuth client's authorised
+# Publishes the Wasm production bundle on every push to main, to GitHub Pages and (while we move over)
+# to Cloudflare Pages too. Both deploy the same build. GitHub Pages requires repo Settings → Pages →
+# Build and deployment → Source = "GitHub Actions". Cloudflare runs only when the repo variable
+# CLOUDFLARE_PAGES_ENABLED is 'true' and needs the CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets
+# (CI_CD.md → Web). For Google sign-in to work on a deployed site, add its origin
+# (https://<owner>.github.io, https://<project>.pages.dev) to the Web OAuth client's authorised
 # JavaScript origins (docs/google-cloud-setup.md).
 on:
   push:
@@ -35,6 +38,11 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Wasm production distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
+      - uses: actions/upload-artifact@v5
+        with:
+          name: web-dist
+          path: composeApp/build/dist/wasmJs/productionExecutable
+          retention-days: 7
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
         with:
@@ -51,3 +59,32 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  deploy-cloudflare:
+    name: Deploy to Cloudflare Pages
+    needs: build
+    if: vars.CLOUDFLARE_PAGES_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    environment:
+      name: cloudflare-pages
+      url: ${{ steps.deployment.outputs.deployment-url }}
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: web-dist
+          path: dist
+      - name: Deploy to Cloudflare Pages
+        id: deployment
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          command: >-
+            pages deploy dist
+            --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT || 'net-worth' }}
+            --branch=main
+            --commit-hash=${{ github.sha }}
