@@ -337,5 +337,25 @@ class ImportEngineTest {
         val groceriesCategory = family.categories.first { c -> c.subcategories.any { it.name == "Supermarket" } }
         assertEquals(groceriesCategory.id, item.suggestedCategoryId)
         assertNull(item.history)
+
+        // A household that renamed its subcategories into Portuguese still gets the suggestion.
+        val renamed =
+            family.categories.map { c ->
+                c.copy(
+                    subcategories = c.subcategories.map { s ->
+                        if (s.name ==
+                            "Supermarket"
+                        ) {
+                            s.copy(name = "Supermercado")
+                        } else {
+                            s
+                        }
+                    },
+                )
+            }
+        val inPortuguese = ReviewQueue.build(family.copy(categories = renamed, transactions = listOf(waiting))).single()
+        assertEquals(groceriesCategory.id, inPortuguese.suggestedCategoryId)
+        assertEquals(listOf("Misc", "Diversos"), KnownMerchants.namesOf("Misc"))
+        assertEquals(listOf("Unknown"), KnownMerchants.namesOf("Unknown"))
     }
 }

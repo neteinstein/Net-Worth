@@ -70,6 +70,10 @@
     <string name="importer_error_pdf_protection_damaged">A proteção deste PDF está danificada</string>
     <string name="importer_error_damaged">Os dados comprimidos deste ficheiro estão danificados</string>
     <string name="importer_error_dismiss">Escolher outro ficheiro</string>
+    <string name="importer_file_error">%1$s — %2$s</string>
+    <string name="importer_file_progress">Ficheiro %1$d de %2$d · %3$s</string>
+    <string name="importer_skip_file">Saltar este ficheiro</string>
+    <string name="importer_reuse_choices">Usar as mesmas contas e titulares nos próximos ficheiros destas contas</string>
     <string name="importer_months_title">Meses carregados</string>
     <string name="importer_months_body">Últimos 12 meses por conta. Carregue os que faltam para que as médias e os alertas vejam o quadro completo.</string>
     <string name="importer_month_full">Carregado</string>

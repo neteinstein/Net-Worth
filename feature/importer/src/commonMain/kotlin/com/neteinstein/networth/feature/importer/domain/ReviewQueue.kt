@@ -70,8 +70,10 @@ object ReviewQueue {
         database: FamilyDatabase,
         info: DescriptionInfo,
     ): String? {
-        val subcategory = KnownMerchants.subcategoryFor(info) ?: return null
-        return database.categories.firstOrNull { c -> c.subcategories.any { it.name.equals(subcategory, ignoreCase = true) } }?.id
+        val names = KnownMerchants.subcategoryFor(info)?.let(KnownMerchants::namesOf) ?: return null
+        return database.categories.firstOrNull { c ->
+            c.subcategories.any { sub -> names.any { it.equals(sub.name.trim(), ignoreCase = true) } }
+        }?.id
     }
 
     /** Number of merchants Net Worth can already file on its own (learned rules + merchants with history). */

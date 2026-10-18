@@ -27,6 +27,25 @@
     <string name="manage_save">Guardar</string>
     <string name="manage_cancel">Cancelar</string>
     <string name="manage_delete">Apagar</string>
+    <string name="manage_edit_rule">Editar regra de comerciante</string>
+    <string name="manage_edit_rule_named">Editar a regra %1$s</string>
+    <string name="manage_rule_pattern">Texto do comerciante</string>
+    <string name="manage_rule_match">Aplica-se quando</string>
+    <string name="manage_rule_match_prefix">O nome do comerciante começa por este texto</string>
+    <string name="manage_rule_match_contains">A descrição do banco contém este texto</string>
+    <string name="manage_rule_match_phone">É o telemóvel ou a pessoa do MB WAY</string>
+    <string name="manage_rule_category">Categoria</string>
+    <string name="manage_rule_subcategory">Subcategoria</string>
+    <string name="manage_rule_no_subcategory">Nenhuma</string>
+    <plurals name="manage_rule_past">
+        <item quantity="one">%1$d movimento anterior corresponde a esta regra.</item>
+        <item quantity="other">%1$d movimentos anteriores correspondem a esta regra.</item>
+    </plurals>
+    <string name="manage_rule_save_future">Guardar · só a partir de agora</string>
+    <plurals name="manage_rule_save_past">
+        <item quantity="one">Guardar · reclassificar também %1$d movimento anterior</item>
+        <item quantity="other">Guardar · reclassificar também %1$d movimentos anteriores</item>
+    </plurals>
     <string name="manage_account_name">Nome</string>
     <string name="manage_account_type">Tipo</string>
     <string name="manage_account_owners">Pertence a</string>

@@ -1373,6 +1373,54 @@ object KnownMerchants {
         return patterns.firstOrNull { (pattern) -> text.containsRun(pattern) }?.second
     }
 
+    /**
+     * The default subcategory's name in English and European Portuguese, so households that renamed their
+     * categories into Portuguese still get suggestions.
+     */
+    fun namesOf(subcategory: String): List<String> = listOfNotNull(subcategory, portugueseNames[subcategory])
+
+    private val portugueseNames: Map<String, String> =
+        mapOf(
+            "Rent / mortgage" to "Renda / prestação da casa",
+            "Condo fees" to "Condomínio",
+            "Electricity" to "Eletricidade",
+            "Water" to "Água",
+            "Gas" to "Gás",
+            "Internet & phone" to "Internet e telemóvel",
+            "Insurance" to "Seguros",
+            "Supermarket" to "Supermercado",
+            "Bakery & market" to "Padaria e mercado",
+            "Household supplies" to "Artigos para a casa",
+            "Books & materials" to "Livros e material",
+            "Canteen" to "Cantina",
+            "Parents’ association" to "Associação de pais",
+            "School trips" to "Visitas de estudo",
+            "After-school (ATL)" to "ATL",
+            "Fuel" to "Combustível",
+            "Tolls" to "Portagens",
+            "Public transport" to "Transportes públicos",
+            "Parking" to "Estacionamento",
+            "Car maintenance" to "Manutenção do carro",
+            "Adults" to "Adultos",
+            "Kids" to "Crianças",
+            "Shoes" to "Calçado",
+            "Sports" to "Desporto",
+            "Music" to "Música",
+            "Camps" to "Campos de férias",
+            "Restaurants" to "Restaurantes",
+            "Takeaway" to "Take-away",
+            "Outings" to "Passeios",
+            "Subscriptions" to "Subscrições",
+            "Pharmacy" to "Farmácia",
+            "Doctor & dentist" to "Médico e dentista",
+            "Optician" to "Ótica",
+            "Travel" to "Viagens",
+            "Accommodation" to "Alojamento",
+            "Activities" to "Atividades",
+            "Gifts" to "Presentes",
+            "Misc" to "Diversos",
+        )
+
     /** Number of brand patterns known (for tests and the "knows N merchants" line). */
     val size: Int get() = patterns.size
 
