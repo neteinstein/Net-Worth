@@ -11,6 +11,7 @@ import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.SyncStatus
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.SyncDatabaseUseCase
+import com.neteinstein.networth.feature.overview.domain.model.OverviewPeriod
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.Overview
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 
 data class OverviewUiState(
     val overview: Overview? = null,
@@ -34,24 +36,30 @@ class OverviewViewModel(
     private val clock: AppClock,
 ) : ViewModel() {
     /** Null until the user picks one: follow the latest month that has data. */
-    private val selectedMonth = MutableStateFlow<CalendarMonth?>(null)
+    private val selectedPeriod = MutableStateFlow<OverviewPeriod?>(null)
     private val selectedScope = MutableStateFlow<AccountScope>(AccountScope.All)
 
-    val state: StateFlow<OverviewUiState> = combine(observeDatabase(), selectedMonth, selectedScope) { db, month, scope ->
+    val state: StateFlow<OverviewUiState> = combine(observeDatabase(), selectedPeriod, selectedScope) { db, period, scope ->
         val ready = db as? DatabaseState.Ready ?: return@combine OverviewUiState()
-        OverviewUiState(buildOverview(ready.database, month ?: defaultMonth(ready.database), scope), ready.sync)
+        val effective = period ?: OverviewPeriod.Month(defaultMonth(ready.database))
+        OverviewUiState(buildOverview(ready.database, effective, scope, clock.today()), ready.sync)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), OverviewUiState())
 
-    fun onMonthSelected(month: CalendarMonth) {
-        selectedMonth.value = month
+    fun onPeriodSelected(period: OverviewPeriod) {
+        selectedPeriod.value = period
     }
+
+    fun onMonthSelected(month: CalendarMonth) = onPeriodSelected(OverviewPeriod.Month(month))
+
+    /** A range picked in the date range picker, in either order. */
+    fun onCustomRange(start: LocalDate, end: LocalDate) = onPeriodSelected(OverviewPeriod.Custom(minOf(start, end), maxOf(start, end)))
 
     fun onScopeSelected(scope: AccountScope) {
         selectedScope.value = scope
     }
 
     fun onMarkSeasonal(categoryId: String) {
-        val month = state.value.overview?.month ?: return
+        val month = (state.value.overview?.period as? OverviewPeriod.Month)?.month ?: return
         viewModelScope.launch { markSeasonal(categoryId, month) }
     }
 

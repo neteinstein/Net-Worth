@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -32,28 +33,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.ChipRow
 import com.neteinstein.networth.core.designsystem.ui.components.ChoiceChip
+import com.neteinstein.networth.core.designsystem.ui.components.DateRangePickerDialog
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.SyncIndicator
+import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthYear
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.calc.AccountScope
-import com.neteinstein.networth.core.domain.model.CalendarMonth
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.repository.SyncStatus
+import com.neteinstein.networth.feature.overview.domain.model.OverviewPeriod
 import com.neteinstein.networth.feature.overview.domain.usecase.Overview
 import com.neteinstein.networth.feature.overview.generated.resources.Res
+import com.neteinstein.networth.feature.overview.generated.resources.overview_all_time
+import com.neteinstein.networth.feature.overview.generated.resources.overview_cancel
 import com.neteinstein.networth.feature.overview.generated.resources.overview_change_period
+import com.neteinstein.networth.feature.overview.generated.resources.overview_custom_period
 import com.neteinstein.networth.feature.overview.generated.resources.overview_family
 import com.neteinstein.networth.feature.overview.generated.resources.overview_manage
+import com.neteinstein.networth.feature.overview.generated.resources.overview_ok
 import com.neteinstein.networth.feature.overview.generated.resources.overview_scope_all
 import com.neteinstein.networth.feature.overview.generated.resources.overview_scope_children
 import com.neteinstein.networth.feature.overview.generated.resources.overview_title
+import com.neteinstein.networth.feature.overview.ui.OverviewLabels
 import com.neteinstein.networth.feature.overview.ui.components.EmptyHistoryCard
 import com.neteinstein.networth.feature.overview.ui.components.NetWorthCard
 import com.neteinstein.networth.feature.overview.ui.components.ReviewBanner
@@ -61,7 +70,9 @@ import com.neteinstein.networth.feature.overview.ui.components.SavedHeroCard
 import com.neteinstein.networth.feature.overview.ui.components.SpikeCard
 import com.neteinstein.networth.feature.overview.ui.components.TrendCard
 import com.neteinstein.networth.feature.overview.ui.components.WhereItWentCard
+import com.neteinstein.networth.feature.overview.ui.components.previewAllTimeOverview
 import com.neteinstein.networth.feature.overview.ui.components.previewOverview
+import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -77,7 +88,8 @@ fun OverviewScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     OverviewContent(
         state = state,
-        onMonthSelected = viewModel::onMonthSelected,
+        onPeriodSelected = viewModel::onPeriodSelected,
+        onCustomRange = viewModel::onCustomRange,
         onScopeSelected = viewModel::onScopeSelected,
         onMarkSeasonal = viewModel::onMarkSeasonal,
         onSyncNow = viewModel::onSyncNow,
@@ -91,7 +103,7 @@ fun OverviewScreen(
 @Composable
 fun OverviewContent(
     state: OverviewUiState,
-    onMonthSelected: (CalendarMonth) -> Unit,
+    onPeriodSelected: (OverviewPeriod) -> Unit,
     onScopeSelected: (AccountScope) -> Unit,
     onMarkSeasonal: (String) -> Unit,
     onSyncNow: () -> Unit,
@@ -100,7 +112,9 @@ fun OverviewContent(
     onOpenImport: () -> Unit = {},
     onOpenReview: () -> Unit = {},
     onOpenFuture: () -> Unit = {},
+    onCustomRange: (LocalDate, LocalDate) -> Unit = { _, _ -> },
 ) {
+    var pickingRange by remember { mutableStateOf(false) }
     Scaffold(modifier = modifier) { padding ->
         val overview = state.overview
         if (overview == null) {
@@ -118,7 +132,16 @@ fun OverviewContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                item { Header(overview, state.sync, onMonthSelected, onSyncNow, onOpenManage) }
+                item {
+                    Header(
+                        overview,
+                        state.sync,
+                        onPeriodSelected = onPeriodSelected,
+                        onPickRange = { pickingRange = true },
+                        onSyncNow = onSyncNow,
+                        onOpenManage = onOpenManage,
+                    )
+                }
                 if (overview.scopes.size > 1) {
                     item {
                         ChipRow {
@@ -143,6 +166,19 @@ fun OverviewContent(
                 item { NetWorthCard(overview, currency, onOpenFuture, cards) }
             }
         }
+        if (pickingRange) {
+            DateRangePickerDialog(
+                start = overview.from,
+                end = overview.to,
+                confirmLabel = stringResource(Res.string.overview_ok),
+                dismissLabel = stringResource(Res.string.overview_cancel),
+                onPicked = { start, end ->
+                    pickingRange = false
+                    onCustomRange(start, end)
+                },
+                onDismiss = { pickingRange = false },
+            )
+        }
     }
 }
 
@@ -150,7 +186,8 @@ fun OverviewContent(
 private fun Header(
     overview: Overview,
     sync: SyncStatus?,
-    onMonthSelected: (CalendarMonth) -> Unit,
+    onPeriodSelected: (OverviewPeriod) -> Unit,
+    onPickRange: () -> Unit,
     onSyncNow: () -> Unit,
     onOpenManage: () -> Unit,
 ) {
@@ -171,7 +208,7 @@ private fun Header(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            MonthPicker(overview.month, overview.months, onMonthSelected)
+            PeriodPicker(overview, onPeriodSelected, onPickRange)
             Spacer(Modifier.size(6.dp))
             OutlinedIconButton(onClick = onOpenManage, modifier = Modifier.size(44.dp)) {
                 Icon(
@@ -185,18 +222,33 @@ private fun Header(
     }
 }
 
+/** The period pill: all time, a custom range, a year or a month (newest first). */
 @Composable
-private fun MonthPicker(selected: CalendarMonth, months: List<CalendarMonth>, onSelected: (CalendarMonth) -> Unit) {
+private fun PeriodPicker(overview: Overview, onSelected: (OverviewPeriod) -> Unit, onPickRange: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val label = shortMonthYear(selected.month, selected.year)
+    val short = shortMonthNames()
+    val allTime = stringResource(Res.string.overview_all_time)
+    val label = OverviewLabels.title(overview.period, short, allTime)
+
+    fun pick(period: OverviewPeriod) {
+        expanded = false
+        onSelected(period)
+    }
     Box {
         OutlinedButton(
             onClick = { expanded = true },
             shape = CircleShape,
             contentPadding = PaddingValues(horizontal = 14.dp),
-            modifier = Modifier.heightIn(min = 44.dp).semantics { },
+            modifier = Modifier.heightIn(min = 44.dp).widthIn(max = 200.dp),
         ) {
-            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                label,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
+            )
             Icon(
                 NetWorthIcons.ChevronDown,
                 contentDescription = stringResource(Res.string.overview_change_period, label),
@@ -204,13 +256,23 @@ private fun MonthPicker(selected: CalendarMonth, months: List<CalendarMonth>, on
             )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            months.forEach { month ->
+            DropdownMenuItem(text = { Text(allTime) }, onClick = { pick(OverviewPeriod.AllTime) })
+            DropdownMenuItem(
+                text = { Text(stringResource(Res.string.overview_custom_period)) },
+                onClick = {
+                    expanded = false
+                    onPickRange()
+                },
+            )
+            if (overview.years.isNotEmpty()) HorizontalDivider()
+            overview.years.forEach { year ->
+                DropdownMenuItem(text = { Text(year.toString()) }, onClick = { pick(OverviewPeriod.Year(year)) })
+            }
+            if (overview.months.isNotEmpty()) HorizontalDivider()
+            overview.months.forEach { month ->
                 DropdownMenuItem(
                     text = { Text(shortMonthYear(month.month, month.year)) },
-                    onClick = {
-                        expanded = false
-                        onSelected(month)
-                    },
+                    onClick = { pick(OverviewPeriod.Month(month)) },
                 )
             }
         }
@@ -239,5 +301,13 @@ private fun OverviewPreview() {
 private fun OverviewEmptyDarkPreview() {
     NetWorthTheme(darkTheme = true) {
         OverviewContent(OverviewUiState(previewOverview().copy(hasTransactions = false), SyncStatus.OFFLINE), {}, {}, {}, {}, {})
+    }
+}
+
+@Preview
+@Composable
+private fun OverviewAllTimePreview() {
+    NetWorthTheme {
+        OverviewContent(OverviewUiState(previewAllTimeOverview(), SyncStatus.SYNCED), {}, {}, {}, {}, {})
     }
 }

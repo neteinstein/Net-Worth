@@ -48,4 +48,17 @@
     <string name="overview_type_investment">Investimentos</string>
     <string name="overview_type_mortgage">Crédito habitação</string>
     <string name="overview_type_loan">Empréstimo</string>
+    <string name="overview_all_time">Desde sempre</string>
+    <string name="overview_custom_period">Período personalizado…</string>
+    <string name="overview_ok">OK</string>
+    <string name="overview_cancel">Cancelar</string>
+    <string name="overview_saved_all_time">Poupado, desde sempre</string>
+    <string name="overview_overspent_all_time">Gastou mais do que entrou, desde sempre</string>
+    <string name="overview_nothing_spent_period">Nada gasto neste período.</string>
+    <string name="overview_by_month">Por mês</string>
+    <string name="overview_by_quarter">Por trimestre</string>
+    <string name="overview_by_year">Por ano</string>
+    <string name="overview_quarter">T</string>
+    <string name="overview_monthly_average">Média %1$s por mês</string>
+    <string name="overview_period_trend_description">Gastos neste período, %1$s no total</string>
 </resources>

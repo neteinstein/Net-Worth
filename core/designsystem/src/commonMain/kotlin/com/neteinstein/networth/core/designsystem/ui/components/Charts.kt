@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -128,7 +129,9 @@ fun ColumnBarChart(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1,
+                            // May spill into the gap between bars rather than lose its last characters ("€11.9k").
                             modifier = Modifier
+                                .wrapContentWidth(unbounded = true)
                                 .padding(bottom = chartHeight * (bar.value / max))
                                 .clip(RoundedCornerShape(4.dp))
                                 .background(labelBackground)

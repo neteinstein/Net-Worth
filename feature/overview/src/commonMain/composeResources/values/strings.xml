@@ -48,4 +48,17 @@
     <string name="overview_type_investment">Investments</string>
     <string name="overview_type_mortgage">Mortgage</string>
     <string name="overview_type_loan">Loan</string>
+    <string name="overview_all_time">All time</string>
+    <string name="overview_custom_period">Custom period…</string>
+    <string name="overview_ok">OK</string>
+    <string name="overview_cancel">Cancel</string>
+    <string name="overview_saved_all_time">Saved, all time</string>
+    <string name="overview_overspent_all_time">Spent more than came in, all time</string>
+    <string name="overview_nothing_spent_period">Nothing spent in this period.</string>
+    <string name="overview_by_month">By month</string>
+    <string name="overview_by_quarter">By quarter</string>
+    <string name="overview_by_year">By year</string>
+    <string name="overview_quarter">Q</string>
+    <string name="overview_monthly_average">Avg %1$s a month</string>
+    <string name="overview_period_trend_description">Spending in this period, %1$s in total</string>
 </resources>
