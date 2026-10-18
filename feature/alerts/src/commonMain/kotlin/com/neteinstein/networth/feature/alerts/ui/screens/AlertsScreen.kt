@@ -68,6 +68,8 @@ import com.neteinstein.networth.feature.alerts.generated.resources.alerts_mostly
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_new_recurring
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_no_spikes
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_other
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_over_budget_body
+import com.neteinstein.networth.feature.alerts.generated.resources.alerts_over_budget_title
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_purchases_between
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_recurring_body
 import com.neteinstein.networth.feature.alerts.generated.resources.alerts_repeats
@@ -320,6 +322,21 @@ private fun InsightCard(
     val months = shortMonthNames()
     SectionCard(modifier, spacing = 4) {
         when (insight) {
+            is Insight.OverBudget -> {
+                Text(
+                    stringResource(Res.string.alerts_over_budget_title, insight.name, MoneyFormatter.whole(insight.overMinor, currency)),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+                Text(
+                    stringResource(
+                        Res.string.alerts_over_budget_body,
+                        MoneyFormatter.whole(insight.spentMinor, currency),
+                        MoneyFormatter.whole(insight.budgetMinor, currency),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             is Insight.NewRecurring -> {
                 Text(stringResource(Res.string.alerts_new_recurring), style = MaterialTheme.typography.titleSmall)
                 Text(
@@ -464,6 +481,7 @@ internal fun previewAlerts(): Alerts {
             ),
         worthALook =
             listOf(
+                Insight.OverBudget("Groceries", 920_00, 900_00),
                 Insight.NewRecurring("Disney+", 13_99, LocalDate(2026, 9, 8), AccountName("Pedro", true)),
                 Insight.Rising("Fuel", listOf(212_00, 226_00, 238_00), CalendarMonth(2026, 7), sep),
             ),

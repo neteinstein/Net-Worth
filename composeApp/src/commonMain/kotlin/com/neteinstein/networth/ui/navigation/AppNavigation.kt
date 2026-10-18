@@ -61,6 +61,7 @@ internal val navSavedStateConfiguration = SavedStateConfiguration {
         polymorphic(NavKey::class) {
             subclass(Route.Overview::class, Route.Overview.serializer())
             subclass(Route.Manage::class, Route.Manage.serializer())
+            subclass(Route.ManageAssumptions::class, Route.ManageAssumptions.serializer())
             subclass(Route.Categories::class, Route.Categories.serializer())
             subclass(Route.Settings::class, Route.Settings.serializer())
             subclass(Route.Import::class, Route.Import.serializer())
@@ -121,6 +122,14 @@ fun AppNavigation() {
                         onOpenSettings = { backStack.add(Route.Settings) },
                     )
                 }
+                entry<Route.ManageAssumptions> {
+                    ManageScreen(
+                        onBack = back,
+                        onOpenCategories = { backStack.add(Route.Categories) },
+                        onOpenSettings = { backStack.add(Route.Settings) },
+                        showAssumptions = true,
+                    )
+                }
                 entry<Route.Categories> {
                     CategoriesScreen(onBack = back)
                 }
@@ -156,7 +165,10 @@ fun AppNavigation() {
                     )
                 }
                 entry<Route.Future> {
-                    FutureScreen(onOpenYearAhead = { backStack.add(Route.YearAhead) })
+                    FutureScreen(
+                        onOpenYearAhead = { backStack.add(Route.YearAhead) },
+                        onChangeAssumptions = { backStack.add(Route.ManageAssumptions) },
+                    )
                 }
                 entry<Route.YearAhead> {
                     YearAheadScreen(onBack = back)

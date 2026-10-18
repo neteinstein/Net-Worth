@@ -166,6 +166,17 @@ class AlertsTest {
     }
 
     @Test
+    fun categoriesOverTheirBudgetAreWorthALook() {
+        val budgets = mapOf(groceries.id to 200_00L, dining.id to 150_00L, school.id to 300_00L)
+        val db = history().let { db -> db.copy(categories = db.categories.map { it.copy(monthlyBudgetMinor = budgets[it.id]) }) }
+        val over = BuildAlertsUseCase()(db).worthALook.filterIsInstance<Insight.OverBudget>()
+        // Groceries €230 of €200; dining is under; School is over but already has its spike card.
+        assertEquals(listOf(Insight.OverBudget("Groceries", 230_00, 200_00)), over)
+        assertEquals(30_00, over.single().overMinor)
+        assertTrue(BuildAlertsUseCase()(history()).worthALook.none { it is Insight.OverBudget })
+    }
+
+    @Test
     fun emptyHistoryHasNoAlerts() {
         val alerts = BuildAlertsUseCase()(family)
         assertNull(alerts.month)

@@ -87,4 +87,15 @@
     <string name="manage_colour_name_violet">Violet</string>
     <string name="manage_colour_name_ink">Ink</string>
     <string name="manage_colour_name_other">Colour %1$s</string>
+    <!-- Projection assumptions (not on the artboards; flagged in the PR). Ranges follow the design canvas controls. -->
+    <string name="manage_assumptions">Projection assumptions</string>
+    <string name="manage_assumptions_summary">%1$s% return · income +%2$s% · prices +%3$s% · %4$d-month emergency fund</string>
+    <string name="manage_assumptions_body">Future and Year ahead use these for every projection. They apply to the whole family.</string>
+    <string name="manage_assumption_return">Savings earn %1$s% a year</string>
+    <string name="manage_assumption_income">Income grows %1$s% a year</string>
+    <string name="manage_assumption_prices">Prices rise %1$s% a year</string>
+    <plurals name="manage_assumption_fund">
+        <item quantity="one">Emergency fund: %1$d month of spending</item>
+        <item quantity="other">Emergency fund: %1$d months of spending</item>
+    </plurals>
 </resources>

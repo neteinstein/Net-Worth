@@ -8,6 +8,7 @@ import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
+import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.SavedFilter
@@ -19,6 +20,7 @@ import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCa
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -70,6 +72,7 @@ data class ManageUiState(
     val rules: List<RuleLine> = emptyList(),
     val savedFilters: List<SavedFilter> = emptyList(),
     val alerts: AlertSettings = AlertSettings(),
+    val assumptions: Assumptions = Assumptions(),
     val editor: AccountEditor? = null,
 )
 
@@ -79,6 +82,7 @@ class ManageViewModel(
     private val deleteAccount: DeleteAccountUseCase,
     private val setAskAccount: SetAskAccountOnImportUseCase,
     private val saveAlertSettings: SaveAlertSettingsUseCase,
+    private val saveAssumptions: SaveAssumptionsUseCase,
     private val deleteRule: DeleteMerchantRuleUseCase,
     private val addMember: AddMemberUseCase,
 ) : ViewModel() {
@@ -112,6 +116,7 @@ class ManageViewModel(
             },
             savedFilters = database.savedFilters,
             alerts = database.settings.alerts,
+            assumptions = database.settings.assumptions,
             editor = editor,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ManageUiState())
@@ -180,6 +185,10 @@ class ManageViewModel(
 
     fun onSaveAlerts(spikeThresholdPct: Int, largePaymentMinor: Long, newSubscriptions: Boolean) {
         viewModelScope.launch { saveAlertSettings(spikeThresholdPct, largePaymentMinor, newSubscriptions) }
+    }
+
+    fun onSaveAssumptions(assumptions: Assumptions) {
+        viewModelScope.launch { saveAssumptions(assumptions) }
     }
 
     fun onDeleteRule(ruleId: String) {

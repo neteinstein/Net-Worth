@@ -39,6 +39,7 @@
     <string name="future_fund_never">Not reached at this pace</string>
     <string name="future_empty_title">Nothing to project yet</string>
     <string name="future_empty_body">Import a few months of extracts and Future shows where your savings are heading.</string>
+    <string name="future_change_assumptions">Change assumptions</string>
     <string name="future_and">%1$s and %2$s</string>
 
     <!-- Year ahead (docs/design/Forecast.dc.html) -->

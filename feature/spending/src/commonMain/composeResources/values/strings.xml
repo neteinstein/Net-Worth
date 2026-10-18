@@ -21,6 +21,8 @@
     <string name="spending_transfers_note">Transfers between your own accounts (e.g. to joint or kids’ savings) are not counted as spending.</string>
     <!-- Not on the artboard (flagged in the PR) -->
     <string name="spending_savings_flow">In %1$s %2$s received %3$s and paid out %4$s.</string>
+    <string name="spending_budget_left">%1$s left of the %2$s budget</string>
+    <string name="spending_budget_over">%1$s over the %2$s budget</string>
     <string name="spending_uncategorised">Not categorised yet</string>
     <string name="spending_no_history">No average yet</string>
     <string name="spending_previous">Previous period</string>

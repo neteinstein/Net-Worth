@@ -1,6 +1,7 @@
 package com.neteinstein.networth.feature.manage
 
 import com.neteinstein.networth.core.domain.model.AccountType
+import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.FamilyDatabase
 import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.MerchantRule
@@ -18,7 +19,10 @@ import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCa
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
+import com.neteinstein.networth.feature.manage.ui.components.halfSteps
+import com.neteinstein.networth.feature.manage.ui.components.percent
 import com.neteinstein.networth.feature.manage.ui.screens.ManageViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -63,6 +67,7 @@ class ManageTest {
         deleteAccount = DeleteAccountUseCase(edit),
         setAskAccount = SetAskAccountOnImportUseCase(edit),
         saveAlertSettings = SaveAlertSettingsUseCase(edit),
+        saveAssumptions = SaveAssumptionsUseCase(edit),
         deleteRule = DeleteMerchantRuleUseCase(edit),
         addMember = AddMemberUseCase(edit, SequentialIds("person")),
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
@@ -175,6 +180,28 @@ class ManageTest {
         assertFalse(settings.alerts.newSubscriptions)
         assertEquals(listOf("r2", "orphan"), repository.database.merchantRules.map { it.id })
         assertTrue("r1" in repository.database.tombstones)
+    }
+
+    @Test
+    fun assumptionsAreSavedWithinTheDesignRanges() = runTest {
+        val vm = viewModel()
+        assertEquals(Assumptions(), vm.state.value.assumptions)
+
+        vm.onSaveAssumptions(Assumptions(returnRatePct = 4.5, incomeGrowthPct = 1.0, priceRisePct = 3.0, emergencyFundMonths = 9))
+        assertEquals(Assumptions(4.5, 1.0, 3.0, 9), repository.database.settings.assumptions)
+        assertEquals(Assumptions(4.5, 1.0, 3.0, 9), vm.state.value.assumptions)
+
+        vm.onSaveAssumptions(Assumptions(returnRatePct = 20.0, incomeGrowthPct = -1.0, priceRisePct = 9.0, emergencyFundMonths = 0))
+        assertEquals(Assumptions(7.0, 0.0, 6.0, 1), repository.database.settings.assumptions)
+    }
+
+    @Test
+    fun assumptionFormatting() {
+        assertEquals(2.5, halfSteps(2.4f))
+        assertEquals(3.0, halfSteps(2.9f))
+        assertEquals("3", percent(3.0))
+        assertEquals("2.5", percent(2.5))
+        assertEquals("2.5", percent(2.46))
     }
 
     @Test

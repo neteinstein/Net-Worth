@@ -55,6 +55,7 @@ import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
+import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
@@ -66,6 +67,8 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_alert_
 import com.neteinstein.networth.feature.manage.generated.resources.manage_alert_rules_summary
 import com.neteinstein.networth.feature.manage.generated.resources.manage_ask_account
 import com.neteinstein.networth.feature.manage.generated.resources.manage_ask_account_body
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumptions
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumptions_summary
 import com.neteinstein.networth.feature.manage.generated.resources.manage_back
 import com.neteinstein.networth.feature.manage.generated.resources.manage_categories
 import com.neteinstein.networth.feature.manage.generated.resources.manage_categories_summary
@@ -83,7 +86,9 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_settin
 import com.neteinstein.networth.feature.manage.generated.resources.manage_title
 import com.neteinstein.networth.feature.manage.ui.components.AccountEditorDialog
 import com.neteinstein.networth.feature.manage.ui.components.AlertRulesDialog
+import com.neteinstein.networth.feature.manage.ui.components.AssumptionsDialog
 import com.neteinstein.networth.feature.manage.ui.components.label
+import com.neteinstein.networth.feature.manage.ui.components.percent
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -92,11 +97,14 @@ fun ManageScreen(
     onBack: () -> Unit,
     onOpenCategories: () -> Unit,
     onOpenSettings: () -> Unit,
+    /** Opens straight into the assumptions editor (from Future's "Change assumptions"). */
+    showAssumptions: Boolean = false,
     viewModel: ManageViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ManageContent(
         state = state,
+        showAssumptionsAtStart = showAssumptions,
         actions = ManageActions(
             onBack = onBack,
             onOpenCategories = onOpenCategories,
@@ -110,6 +118,7 @@ fun ManageScreen(
             onDeleteAccount = viewModel::onDeleteAccount,
             onAskAccountChange = viewModel::onAskAccountChange,
             onSaveAlerts = viewModel::onSaveAlerts,
+            onSaveAssumptions = viewModel::onSaveAssumptions,
             onDeleteRule = viewModel::onDeleteRule,
         ),
     )
@@ -128,6 +137,7 @@ data class ManageActions(
     val onDeleteAccount: () -> Unit = {},
     val onAskAccountChange: (Boolean) -> Unit = {},
     val onSaveAlerts: (Int, Long, Boolean) -> Unit = { _, _, _ -> },
+    val onSaveAssumptions: (Assumptions) -> Unit = {},
     val onDeleteRule: (String) -> Unit = {},
 )
 
@@ -136,8 +146,10 @@ fun ManageContent(
     state: ManageUiState,
     actions: ManageActions,
     modifier: Modifier = Modifier,
+    showAssumptionsAtStart: Boolean = false,
 ) {
     var showAlertRules by rememberSaveable { mutableStateOf(false) }
+    var showAssumptions by rememberSaveable { mutableStateOf(showAssumptionsAtStart) }
     val currency = CurrencyCode.of(state.currencyCode)
     Scaffold(modifier = modifier) { padding ->
         if (state.loading) {
@@ -200,6 +212,21 @@ fun ManageContent(
                         modifier = card,
                     )
                 }
+                item {
+                    val a = state.assumptions
+                    LinkCard(
+                        title = stringResource(Res.string.manage_assumptions),
+                        subtitle = stringResource(
+                            Res.string.manage_assumptions_summary,
+                            percent(a.returnRatePct),
+                            percent(a.incomeGrowthPct),
+                            percent(a.priceRisePct),
+                            a.emergencyFundMonths,
+                        ),
+                        onClick = { showAssumptions = true },
+                        modifier = card,
+                    )
+                }
             }
         }
     }
@@ -223,6 +250,16 @@ fun ManageContent(
                 actions.onSaveAlerts(threshold, large, subscriptions)
             },
             onDismiss = { showAlertRules = false },
+        )
+    }
+    if (showAssumptions && !state.loading) {
+        AssumptionsDialog(
+            assumptions = state.assumptions,
+            onSave = {
+                showAssumptions = false
+                actions.onSaveAssumptions(it)
+            },
+            onDismiss = { showAssumptions = false },
         )
     }
 }

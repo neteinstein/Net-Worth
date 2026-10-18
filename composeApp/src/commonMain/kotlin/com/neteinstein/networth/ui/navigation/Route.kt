@@ -12,6 +12,10 @@ sealed interface Route : NavKey {
     @Serializable
     data object Manage : Route
 
+    /** Manage with the projection assumptions editor open (from Future). */
+    @Serializable
+    data object ManageAssumptions : Route
+
     @Serializable
     data object Categories : Route
 

@@ -59,6 +59,15 @@ data class SpikeAlert(
 
 /** "Worth a look" cards. */
 sealed interface Insight {
+    /** A category past its monthly budget: "Groceries €1,040 of a €900 budget". */
+    data class OverBudget(
+        val name: String,
+        val spentMinor: Long,
+        val budgetMinor: Long,
+    ) : Insight {
+        val overMinor: Long get() = spentMinor - budgetMinor
+    }
+
     data class NewRecurring(
         val name: String,
         val amountMinor: Long,
@@ -127,6 +136,7 @@ class BuildAlertsUseCase {
         val spikeIds = spikes.map { it.categoryId }.toSet()
         val worth =
             buildList {
+                addAll(overBudget(database, month, spikeIds))
                 if (settings.newSubscriptions) addAll(newRecurring(database, month))
                 addAll(rising(database, month, spikeIds))
                 addAll(largePayments(database, month))
@@ -276,6 +286,22 @@ class BuildAlertsUseCase {
             .sortedBy { it.amountMinor }
             .take(MAX_LARGE)
             .map { Insight.LargePayment(it.description, -it.amountMinor, it.date, database.account(it.accountId)?.name.orEmpty()) }
+    }
+
+    /** Categories over their monthly budget, largest overrun first; spikes already have their own card. */
+    private fun overBudget(
+        database: FamilyDatabase,
+        month: CalendarMonth,
+        spikeIds: Set<String>,
+    ): List<Insight.OverBudget> {
+        val spent = database.totals(AccountScope.All, month).spentByCategory
+        return database.categories
+            .filter { it.id !in spikeIds }
+            .mapNotNull { category ->
+                val budget = category.monthlyBudgetMinor?.takeIf { it > 0 } ?: return@mapNotNull null
+                val amount = spent[category.id] ?: return@mapNotNull null
+                if (amount > budget) Insight.OverBudget(category.name, amount, budget) else null
+            }.sortedByDescending { it.overMinor }
     }
 
     private fun underAverage(

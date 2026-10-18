@@ -65,6 +65,8 @@ import com.neteinstein.networth.feature.spending.domain.usecase.SavingsFlow
 import com.neteinstein.networth.feature.spending.domain.usecase.Spending
 import com.neteinstein.networth.feature.spending.generated.resources.Res
 import com.neteinstein.networth.feature.spending.generated.resources.spending_all_accounts
+import com.neteinstein.networth.feature.spending.generated.resources.spending_budget_left
+import com.neteinstein.networth.feature.spending.generated.resources.spending_budget_over
 import com.neteinstein.networth.feature.spending.generated.resources.spending_cancel
 import com.neteinstein.networth.feature.spending.generated.resources.spending_custom
 import com.neteinstein.networth.feature.spending.generated.resources.spending_delta_down
@@ -374,6 +376,28 @@ private fun CategoriesCard(
                     )
                 }
                 ProportionBar(row.amountMinor.toFloat() / max, color, Modifier.padding(start = 18.dp))
+                row.budgetMinor?.let { budget ->
+                    val over = row.overBudgetMinor ?: 0L
+                    Text(
+                        if (over > 0) {
+                            stringResource(
+                                Res.string.spending_budget_over,
+                                MoneyFormatter.whole(over, currency),
+                                MoneyFormatter.whole(budget, currency),
+                            )
+                        } else {
+                            stringResource(
+                                Res.string.spending_budget_left,
+                                MoneyFormatter.whole(-over, currency),
+                                MoneyFormatter.whole(budget, currency),
+                            )
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = if (over > 0) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (over > 0) finance.negative else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = 18.dp),
+                    )
+                }
             }
         }
     }

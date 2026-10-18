@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -59,6 +60,7 @@ import com.neteinstein.networth.feature.future.domain.model.Future
 import com.neteinstein.networth.feature.future.domain.model.FutureScope
 import com.neteinstein.networth.feature.future.generated.resources.Res
 import com.neteinstein.networth.feature.future.generated.resources.future_and
+import com.neteinstein.networth.feature.future.generated.resources.future_change_assumptions
 import com.neteinstein.networth.feature.future.generated.resources.future_chart_description
 import com.neteinstein.networth.feature.future.generated.resources.future_chart_now
 import com.neteinstein.networth.feature.future.generated.resources.future_chart_year
@@ -103,6 +105,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun FutureScreen(
     onOpenYearAhead: () -> Unit,
+    onChangeAssumptions: () -> Unit,
     viewModel: FutureViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -114,6 +117,7 @@ fun FutureScreen(
         onToggleExtra = viewModel::onToggleExtra,
         onToggleSetAside = viewModel::onToggleSetAside,
         onOpenYearAhead = onOpenYearAhead,
+        onChangeAssumptions = onChangeAssumptions,
     )
 }
 
@@ -127,6 +131,7 @@ fun FutureContent(
     onToggleSetAside: () -> Unit,
     onOpenYearAhead: () -> Unit,
     modifier: Modifier = Modifier,
+    onChangeAssumptions: () -> Unit = {},
 ) {
     Scaffold(modifier = modifier) { padding ->
         val future = state.future
@@ -182,12 +187,16 @@ fun FutureContent(
                 future.emergencyFund?.let { fund -> item { EmergencyFundCard(fund, currency, cards) } }
                 item { TenYearSpendCard(future, currency, cards) }
                 item {
-                    Text(
-                        stringResource(Res.string.future_disclaimer),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = cards,
-                    )
+                    Column(cards) {
+                        Text(
+                            stringResource(Res.string.future_disclaimer),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(onClick = onChangeAssumptions, contentPadding = PaddingValues(0.dp)) {
+                            Text(stringResource(Res.string.future_change_assumptions), style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                 }
             }
         }

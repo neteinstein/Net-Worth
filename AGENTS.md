@@ -19,6 +19,7 @@ Phase 2 = Import + Review & learn (CSV/OFX/XLSX/PDF incl. novobanco and Banco Be
 months-uploaded coverage; see [`docs/importing.md`](docs/importing.md)). Phase 3 = Spending, Filters (+ a transaction
 list to re-file and tag movements) and Alerts, with the artboards' bottom bar. Phase 4 = Future + Year ahead
 (projections, what-ifs, emergency fund, 12-month forecast, 5-year table). All 10 artboards are now implemented.
+Since then: screenshot tests, editable projection assumptions, and budgets vs spending (Spending rows, Alerts).
 
 ## Stack
 
@@ -70,7 +71,8 @@ feature/alerts/        Alerts artboard: spikes (subcategories, accounts, last ye
 feature/future/        Future + Year ahead artboards: savings projections (all / joint / kids, 2–10 years, with and
                        without return), what-ifs, emergency fund, 10-year spend; 12-month forecast from last year's
                        months × price rise, expected peaks, and a 5-year table from the household's assumptions.
-feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, categories).
+feature/manage/        Manage + Categories artboards (accounts, rules, alert rules, projection assumptions, categories
+                       and their monthly budgets).
 feature/settings/      Appearance (device-local), database file, sharing, household members, sign out.
 iosApp/                Hand-authored Xcode project wrapping ComposeApp.framework (SwiftUI host).
 build-logic/           Convention plugins: networth.kmp.library, networth.kmp.compose, networth.android.application.

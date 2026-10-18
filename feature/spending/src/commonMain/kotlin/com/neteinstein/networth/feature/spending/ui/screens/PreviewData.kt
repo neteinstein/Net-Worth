@@ -15,8 +15,8 @@ import kotlinx.datetime.LocalDate
 internal fun previewSpendingState(): SpendingUiState {
     val rows =
         listOf(
-            CategoryRow("h", "Housing", "#141B2D", 1_180_00, 1_170_00, false),
-            CategoryRow("g", "Groceries", "#2D55D6", 920_00, 905_00, false),
+            CategoryRow("h", "Housing", "#141B2D", 1_180_00, 1_170_00, false, budgetMinor = 1_200_00),
+            CategoryRow("g", "Groceries", "#2D55D6", 920_00, 905_00, false, budgetMinor = 900_00),
             CategoryRow("s", "School", "#D9652B", 610_00, 285_00, true),
             CategoryRow("t", "Transport", "#7D9BF2", 395_00, 380_00, false),
             CategoryRow("c", "Clothes", "#A8487A", 285_00, 195_00, true),
