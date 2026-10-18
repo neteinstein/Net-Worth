@@ -1,5 +1,6 @@
 package com.neteinstein.networth.feature.overview.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,9 +18,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -52,6 +58,7 @@ import com.neteinstein.networth.feature.overview.generated.resources.overview_by
 import com.neteinstein.networth.feature.overview.generated.resources.overview_by_year
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_body
 import com.neteinstein.networth.feature.overview.generated.resources.overview_empty_title
+import com.neteinstein.networth.feature.overview.generated.resources.overview_fewer_categories
 import com.neteinstein.networth.feature.overview.generated.resources.overview_import_extract
 import com.neteinstein.networth.feature.overview.generated.resources.overview_income
 import com.neteinstein.networth.feature.overview.generated.resources.overview_last_months
@@ -200,49 +207,67 @@ internal fun WhereItWentCard(overview: Overview, currency: CurrencyCode, modifie
             return@SectionCard
         }
         StackedBar(overview.shares.map { BarSegment(it.amountMinor.toFloat(), it.color()) })
+        // The categories past the top ones fold into one line; tapping it lists them all.
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        val others = overview.otherShares
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            overview.topShares.forEach { share ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ColorKey(share.color())
+            (if (expanded) overview.shares else overview.topShares).forEach { share -> ShareRow(share, currency) }
+            if (others.isNotEmpty()) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .heightIn(min = 32.dp)
+                        .clickable(role = Role.Button) { expanded = !expanded },
+                ) {
                     Text(
-                        share.name?.let { categoryName(it) } ?: stringResource(Res.string.overview_uncategorised),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        "${share.percent}%",
-                        style = MaterialTheme.typography.bodyMedium,
+                        if (expanded) {
+                            stringResource(Res.string.overview_fewer_categories)
+                        } else {
+                            pluralStringResource(
+                                Res.plurals.overview_more_categories,
+                                others.size,
+                                others.size,
+                                MoneyFormatter.whole(others.sumOf { it.amountMinor }, currency),
+                            )
+                        },
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.width(40.dp),
                     )
-                    Text(
-                        MoneyFormatter.whole(share.amountMinor, currency),
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        textAlign = TextAlign.End,
-                        modifier = Modifier.width(72.dp),
+                    Icon(
+                        if (expanded) NetWorthIcons.ChevronUp else NetWorthIcons.ChevronDown,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp),
                     )
                 }
             }
-            val others = overview.otherShares
-            if (others.isNotEmpty()) {
-                Text(
-                    pluralStringResource(
-                        Res.plurals.overview_more_categories,
-                        others.size,
-                        others.size,
-                        MoneyFormatter.whole(
-                            others.sumOf {
-                                it.amountMinor
-                            },
-                            currency,
-                        ),
-                    ),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
         }
+    }
+}
+
+@Composable
+private fun ShareRow(share: CategoryShare, currency: CurrencyCode) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        ColorKey(share.color())
+        Text(
+            share.name?.let { categoryName(it) } ?: stringResource(Res.string.overview_uncategorised),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f),
+        )
+        Text(
+            "${share.percent}%",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(40.dp),
+        )
+        Text(
+            MoneyFormatter.whole(share.amountMinor, currency),
+            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+            textAlign = TextAlign.End,
+            modifier = Modifier.width(72.dp),
+        )
     }
 }
 
