@@ -37,9 +37,27 @@ import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.feature.importer.domain.model.AccountCoverage
 import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
 import com.neteinstein.networth.feature.importer.domain.model.MonthCoverage
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.generated.resources.Res
 import com.neteinstein.networth.feature.importer.generated.resources.importer_back
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_damaged
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_empty_file
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_no_header_row
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_no_ofx_statement
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_no_pdf_movements
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_no_rows
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_not_pdf
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_not_xlsx
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_old_xls
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_aes_256
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_no_content
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_no_page_tree
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_no_pages
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_protected
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_pdf_protection_damaged
 import com.neteinstein.networth.feature.importer.generated.resources.importer_error_unknown
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_xlsx_compression
+import com.neteinstein.networth.feature.importer.generated.resources.importer_error_xlsx_no_worksheet
 import com.neteinstein.networth.feature.importer.generated.resources.importer_file_error
 import com.neteinstein.networth.feature.importer.generated.resources.importer_file_progress
 import com.neteinstein.networth.feature.importer.generated.resources.importer_import
@@ -57,6 +75,7 @@ import com.neteinstein.networth.feature.importer.ui.components.SectionCardConten
 import com.neteinstein.networth.feature.importer.ui.components.SummaryCard
 import com.neteinstein.networth.feature.importer.ui.components.rememberStatementPicker
 import kotlinx.datetime.LocalDate
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -140,7 +159,7 @@ fun ImportContent(
                     )
                 }
                 items(state.errors) { error ->
-                    val message = error.message ?: stringResource(Res.string.importer_error_unknown)
+                    val message = stringResource(error.failure?.message ?: Res.string.importer_error_unknown)
                     val text =
                         if (state.fileCount > 1 && error.fileName != null) {
                             stringResource(Res.string.importer_file_error, error.fileName, message)
@@ -311,6 +330,27 @@ internal fun previewImportState(stage: ImportStage): ImportUiState {
         pendingReview = 18,
     )
 }
+
+private val ParseFailure.message: StringResource
+    get() = when (this) {
+        ParseFailure.EMPTY_FILE -> Res.string.importer_error_empty_file
+        ParseFailure.OLD_XLS -> Res.string.importer_error_old_xls
+        ParseFailure.NO_HEADER_ROW -> Res.string.importer_error_no_header_row
+        ParseFailure.NO_ROWS -> Res.string.importer_error_no_rows
+        ParseFailure.NO_OFX_STATEMENT -> Res.string.importer_error_no_ofx_statement
+        ParseFailure.NO_PDF_MOVEMENTS -> Res.string.importer_error_no_pdf_movements
+        ParseFailure.NOT_XLSX -> Res.string.importer_error_not_xlsx
+        ParseFailure.XLSX_COMPRESSION -> Res.string.importer_error_xlsx_compression
+        ParseFailure.XLSX_NO_WORKSHEET -> Res.string.importer_error_xlsx_no_worksheet
+        ParseFailure.NOT_PDF -> Res.string.importer_error_not_pdf
+        ParseFailure.PDF_NO_PAGES -> Res.string.importer_error_pdf_no_pages
+        ParseFailure.PDF_NO_CONTENT -> Res.string.importer_error_pdf_no_content
+        ParseFailure.PDF_NO_PAGE_TREE -> Res.string.importer_error_pdf_no_page_tree
+        ParseFailure.PDF_PROTECTED -> Res.string.importer_error_pdf_protected
+        ParseFailure.PDF_AES_256 -> Res.string.importer_error_pdf_aes_256
+        ParseFailure.PDF_PROTECTION_DAMAGED -> Res.string.importer_error_pdf_protection_damaged
+        ParseFailure.DAMAGED -> Res.string.importer_error_damaged
+    }
 
 @Preview
 @Composable

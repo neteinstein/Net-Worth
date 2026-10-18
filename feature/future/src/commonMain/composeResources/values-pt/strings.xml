@@ -1,0 +1,79 @@
+<resources>
+    <!-- Future (docs/design/Future.dc.html) -->
+    <string name="future_title">Futuro</string>
+    <string name="future_subtitle">Se os próximos anos forem como os últimos 12 meses: poupa em média %1$s por mês.</string>
+    <string name="future_scope_all">Todas as poupanças</string>
+    <string name="future_scope_joint">Poupança conjunta</string>
+    <string name="future_scope_kids">Poupanças dos filhos</string>
+    <string name="future_years">%1$d anos</string>
+    <string name="future_when">Daqui a %1$d anos (%2$d) a este ritmo</string>
+    <string name="future_if_earn">%1$s se as poupanças renderem %2$s% ao ano</string>
+    <string name="future_chart_description">Poupanças previstas a 10 anos, com e sem rendimento</string>
+    <string name="future_chart_now">Hoje</string>
+    <string name="future_chart_year">%1$da</string>
+    <string name="future_legend_return">Com %1$s% de rendimento</string>
+    <string name="future_legend_flat">Só poupança</string>
+    <string name="future_kid_now">%1$s · agora %2$s</string>
+    <string name="future_year_ahead">O próximo ano, mês a mês</string>
+    <string name="future_year_ahead_peaks">Segundo os vossos padrões · picos em %1$s</string>
+    <string name="future_what_if">E se…</string>
+    <string name="future_cut_dining">Restauração e lazer −20%</string>
+    <string name="future_cut_dining_body">Mais %1$s poupados por mês</string>
+    <string name="future_extra">Passar mais %1$s para a poupança conjunta</string>
+    <string name="future_extra_body">Transferência automática no dia do ordenado</string>
+    <string name="future_set_aside">Pôr de parte %1$s/mês para %2$s</string>
+    <string name="future_fund_title">Fundo de emergência</string>
+    <plurals name="future_fund_months">
+        <item quantity="one">%1$d mês de gastos</item>
+        <item quantity="other">%1$d meses de gastos</item>
+    </plurals>
+    <string name="future_fund_progress">Poupança conjunta %1$s de %2$s</string>
+    <string name="future_fund_reached">Atingido em %1$s</string>
+    <string name="future_spend_title">A este ritmo, a família gasta em 10 anos</string>
+    <string name="future_spend_prices">Cerca de %1$s se os preços subirem %2$s% ao ano.</string>
+    <string name="future_disclaimer">Estimativas com base no vosso histórico, não aconselhamento financeiro. Assume-se que os rendimentos e os gastos se mantêm na média dos últimos 12 meses.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="future_year_ahead_plain">Segundo os vossos padrões</string>
+    <string name="future_set_aside_body">Suaviza o pico de %1$s</string>
+    <string name="future_fund_covered">Já coberto</string>
+    <string name="future_fund_never">Não é atingido a este ritmo</string>
+    <string name="future_empty_title">Ainda nada para prever</string>
+    <string name="future_empty_body">Importe alguns meses de extratos e o Futuro mostra para onde vão as vossas poupanças.</string>
+    <string name="future_change_assumptions">Alterar pressupostos</string>
+    <string name="future_and">%1$s e %2$s</string>
+
+    <!-- Year ahead (docs/design/Forecast.dc.html) -->
+    <string name="forecast_title">Próximo ano</string>
+    <string name="forecast_back">Voltar ao Futuro</string>
+    <string name="forecast_subtitle">%1$s – %2$s · segundo os vossos padrões</string>
+    <string name="forecast_all_accounts">Todas as contas</string>
+    <string name="forecast_kids_savings">Poupanças dos filhos</string>
+    <string name="forecast_predicted_spending">Gastos previstos</string>
+    <string name="forecast_vs_last_up">+%1$d% vs últimos 12 meses</string>
+    <string name="forecast_predicted_savings">Poupança prevista</string>
+    <string name="forecast_down_from">abaixo de %1$s</string>
+    <string name="forecast_share">Parte dos gastos da família</string>
+    <string name="forecast_share_note">pagos a partir desta conta</string>
+    <string name="forecast_month_by_month">Mês a mês</string>
+    <string name="forecast_income">Rendimento %1$s</string>
+    <string name="forecast_over_income">Custa mais do que o rendimento</string>
+    <string name="forecast_typical">Mês típico</string>
+    <string name="forecast_peaks">Picos esperados</string>
+    <plurals name="forecast_set_aside">
+        <item quantity="one">Ponha de parte %1$s por mês a partir de agora e %2$s fica coberto sem mexer nas poupanças.</item>
+        <item quantity="other">Ponha de parte %1$s por mês a partir de agora e %2$s ficam cobertos sem mexer nas poupanças.</item>
+    </plurals>
+    <string name="forecast_year_by_year">Ano a ano</string>
+    <string name="forecast_year">Ano</string>
+    <string name="forecast_spend">Gastos</string>
+    <string name="forecast_save">Poupança</string>
+    <string name="forecast_savings">Poupanças</string>
+    <string name="forecast_trend_flat">Os rendimentos e os preços crescem a um ritmo semelhante, por isso a poupança anual mantém-se mais ou menos estável.</string>
+    <string name="forecast_trend_shrinking">Os preços devem subir mais depressa do que os rendimentos: a poupança anual diminui cerca de %1$s por ano.</string>
+    <string name="forecast_trend_growing">Os rendimentos crescem mais depressa do que os preços: a poupança anual aumenta cerca de %1$s por ano.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="forecast_vs_last_down">−%1$d% vs últimos 12 meses</string>
+    <string name="forecast_up_from">acima de %1$s</string>
+    <string name="forecast_peak_other">Mais movimentado do que o habitual</string>
+    <string name="forecast_chart_description">Gastos previstos para cada um dos próximos 12 meses</string>
+</resources>

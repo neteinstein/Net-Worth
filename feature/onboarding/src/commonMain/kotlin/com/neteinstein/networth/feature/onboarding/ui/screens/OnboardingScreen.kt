@@ -54,6 +54,8 @@ import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SegmentedControl
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.model.CurrencyCode
+import com.neteinstein.networth.core.domain.repository.DatabaseFileName
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.feature.onboarding.domain.model.HouseholdForm
 import com.neteinstein.networth.feature.onboarding.generated.resources.Res
@@ -66,6 +68,7 @@ import com.neteinstein.networth.feature.onboarding.generated.resources.onboardin
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_child_name
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_children
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_choose_body
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_choose_folder
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_choose_title
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_create
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_create_accounts
@@ -80,6 +83,14 @@ import com.neteinstein.networth.feature.onboarding.generated.resources.onboardin
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_not_accessible
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_not_configured
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_sign_in
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file_auto
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file_custom
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file_name
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file_question
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_file_saved_as
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_folder
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_folder_my_drive
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_form_title
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_household_hint
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_household_name
@@ -94,6 +105,7 @@ import com.neteinstein.networth.feature.onboarding.generated.resources.onboardin
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_start_fresh_body
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_tagline
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_use_another_account
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_use_my_drive
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -122,6 +134,10 @@ fun OnboardingScreen(viewModel: OnboardingViewModel = koinViewModel()) {
             onRemoveChild = viewModel::onRemoveChild,
             onCurrencySelected = viewModel::onCurrencySelected,
             onCreateAccountsChange = viewModel::onCreateAccountsChange,
+            onChooseFileChange = viewModel::onChooseFileChange,
+            onFileNameChange = viewModel::onFileNameChange,
+            onPickFolder = viewModel::onPickFolder,
+            onUseMyDrive = viewModel::onUseMyDrive,
         ),
     )
 }
@@ -144,6 +160,10 @@ data class OnboardingActions(
     val onRemoveChild: (Int) -> Unit = {},
     val onCurrencySelected: (String) -> Unit = {},
     val onCreateAccountsChange: (Boolean) -> Unit = {},
+    val onChooseFileChange: (Boolean) -> Unit = {},
+    val onFileNameChange: (String) -> Unit = {},
+    val onPickFolder: () -> Unit = {},
+    val onUseMyDrive: () -> Unit = {},
 )
 
 @Composable
@@ -328,7 +348,63 @@ private fun StartFreshStep(form: HouseholdForm, busy: Boolean, actions: Onboardi
                 )
             }
         }
+        FileSection(form, busy, actions)
         BusyButton(stringResource(Res.string.onboarding_create), busy, actions.onCreate, enabled = form.canSubmit)
+    }
+}
+
+/** Asks whether the user wants to pick the new file's name and folder, or leave both to the app. */
+@Composable
+private fun FileSection(form: HouseholdForm, busy: Boolean, actions: OnboardingActions) {
+    val myDrive = stringResource(Res.string.onboarding_folder_my_drive)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OverlineLabel(stringResource(Res.string.onboarding_file))
+        Text(
+            stringResource(Res.string.onboarding_file_question),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        SegmentedControl(
+            options = listOf(false, true),
+            selected = form.chooseFile,
+            label = { stringResource(if (it) Res.string.onboarding_file_custom else Res.string.onboarding_file_auto) },
+            onSelect = actions.onChooseFileChange,
+        )
+        if (form.chooseFile) {
+            OutlinedTextField(
+                value = form.fileName,
+                onValueChange = actions.onFileNameChange,
+                label = { Text(stringResource(Res.string.onboarding_file_name)) },
+                placeholder = { Text(DatabaseFileName.forHousehold(form.householdName)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(Res.string.onboarding_folder),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Text(form.folder?.name ?: myDrive, style = MaterialTheme.typography.bodyMedium)
+                }
+                if (form.folder != null) {
+                    IconButton(onClick = actions.onUseMyDrive, enabled = !busy) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(Res.string.onboarding_use_my_drive))
+                    }
+                }
+                TextButton(onClick = actions.onPickFolder, enabled = !busy) { Text(stringResource(Res.string.onboarding_choose_folder)) }
+            }
+        }
+        Text(
+            stringResource(
+                Res.string.onboarding_file_saved_as,
+                form.resolvedFileName,
+                form.folder?.takeIf { form.chooseFile }?.name ?: myDrive,
+            ),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -388,6 +464,26 @@ private fun SignInPreview() {
 private fun ChoosePreview() {
     NetWorthTheme {
         OnboardingContent(OnboardingUiState(OnboardingStep.CHOOSE, UserProfile("1", "pedro@example.com", "Pedro")), OnboardingActions())
+    }
+}
+
+@Preview
+@Composable
+private fun StartFreshChooseFilePreview() {
+    NetWorthTheme {
+        OnboardingContent(
+            OnboardingUiState(
+                step = OnboardingStep.START_FRESH,
+                form = HouseholdForm(
+                    householdName = "The Vicentes",
+                    adults = listOf("Pedro"),
+                    chooseFile = true,
+                    fileName = "Our money",
+                    folder = DatabaseFolder("folder-1", "Finances"),
+                ),
+            ),
+            OnboardingActions(),
+        )
     }
 }
 

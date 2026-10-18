@@ -18,6 +18,7 @@ class FakeGoogleAuthPlatform(
 ) : GoogleAuthPlatform {
     val user = UserProfile("1", "ana@example.com", "Ana")
     var pick: () -> String? = { "file-1" }
+    var pickFolder: () -> String? = { "folder-1" }
     var failRestore = false
 
     override suspend fun restore(): UserProfile? = if (failRestore) error("boom") else saved
@@ -27,6 +28,8 @@ class FakeGoogleAuthPlatform(
     override suspend fun accessToken(forceRefresh: Boolean): String = if (forceRefresh) "new" else "old"
 
     override suspend fun pickFile(): String? = pick()
+
+    override suspend fun pickFolder(): String? = pickFolder.invoke()
 
     override suspend fun signOut() {
         saved = null
@@ -83,6 +86,16 @@ class GoogleAuthRepositoryTest {
 
         platform.pick = { throw AuthCancelledException() }
         assertNull(repo.pickDatabaseFile())
+    }
+
+    @Test
+    fun folderPickerCancellationMeansNoFolder() = runTest {
+        val platform = FakeGoogleAuthPlatform()
+        val repo = GoogleAuthRepository(platform)
+        assertEquals("folder-1", repo.pickDatabaseFolder())
+
+        platform.pickFolder = { throw AuthCancelledException() }
+        assertNull(repo.pickDatabaseFolder())
     }
 
     @Test

@@ -14,7 +14,8 @@ interface DatabaseRemote {
         val webViewLink: String?,
     )
 
-    suspend fun create(name: String, content: String): FileInfo
+    /** Creates [name] in [folderId], or in the root of My Drive when it is null. */
+    suspend fun create(name: String, content: String, folderId: String? = null): FileInfo
 
     suspend fun info(fileId: String): FileInfo
 
@@ -29,7 +30,7 @@ interface DatabaseRemote {
 }
 
 class DriveDatabaseRemote(private val drive: DriveClient) : DatabaseRemote {
-    override suspend fun create(name: String, content: String) = drive.create(name, content).toInfo()
+    override suspend fun create(name: String, content: String, folderId: String?) = drive.create(name, content, folderId).toInfo()
 
     override suspend fun info(fileId: String): DatabaseRemote.FileInfo {
         val metadata = drive.metadata(fileId)

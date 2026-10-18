@@ -5,9 +5,12 @@ import com.neteinstein.networth.core.domain.repository.AppClock
 import com.neteinstein.networth.core.domain.repository.AuthRepository
 import com.neteinstein.networth.core.domain.repository.AuthState
 import com.neteinstein.networth.core.domain.repository.DatabaseFile
+import com.neteinstein.networth.core.domain.repository.DatabaseFileName
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.FamilyDatabaseRepository
 import com.neteinstein.networth.core.domain.repository.IdGenerator
+import com.neteinstein.networth.core.domain.repository.NewDatabaseFile
 import com.neteinstein.networth.core.domain.repository.SyncStatus
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.core.domain.seed.HouseholdSetup
@@ -26,11 +29,16 @@ class FakeAuthRepository(signedIn: Boolean = false) : AuthRepository {
     /** What the Google Picker returns next. */
     var pickResult: () -> String? = { "picked-file" }
 
+    /** What the Google Picker for folders returns next. */
+    var pickFolderResult: () -> String? = { "picked-folder" }
+
     override suspend fun restore() = Unit
 
     override suspend fun signIn(): UserProfile = signInResult().also { state.value = AuthState.SignedIn(it) }
 
     override suspend fun pickDatabaseFile(): String? = pickResult()
+
+    override suspend fun pickDatabaseFolder(): String? = pickFolderResult()
 
     override suspend fun signOut() {
         state.value = AuthState.SignedOut
@@ -53,12 +61,21 @@ class FakeDatabaseRepository(initial: DatabaseState = DatabaseState.NotSelected)
         calls += "restore"
     }
 
-    override suspend fun createNew(setup: HouseholdSetup): DatabaseFile {
+    override suspend fun createNew(setup: HouseholdSetup, file: NewDatabaseFile): DatabaseFile {
         check()
-        calls += "create:${setup.householdName}"
-        val file = DatabaseFile("new-file", "Net Worth – ${setup.householdName}.networth.json")
-        state.value = DatabaseState.Ready(setup.toDatabase(SequentialIds(), now, testUser.email), file, SyncStatus.SYNCED)
-        return file
+        calls += buildString {
+            append("create:${setup.householdName}")
+            file.name?.let { append(" name:$it") }
+            file.folderId?.let { append(" in:$it") }
+        }
+        val created = DatabaseFile("new-file", file.name ?: DatabaseFileName.forHousehold(setup.householdName))
+        state.value = DatabaseState.Ready(setup.toDatabase(SequentialIds(), now, testUser.email), created, SyncStatus.SYNCED)
+        return created
+    }
+
+    override suspend fun folder(folderId: String): DatabaseFolder {
+        check()
+        return DatabaseFolder(folderId, "Folder $folderId")
     }
 
     override suspend fun open(fileId: String) {

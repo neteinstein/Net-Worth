@@ -26,6 +26,16 @@
     <string name="onboarding_create_accounts">Create an account for each person</string>
     <string name="onboarding_create_accounts_body">A current account per adult, joint savings, and a savings account per child. You can rename or add accounts later.</string>
     <string name="onboarding_joint_savings">Joint savings</string>
+    <string name="onboarding_file">Database file</string>
+    <string name="onboarding_file_question">Do you want to pick the file’s name and folder in Google Drive, or let Net Worth choose?</string>
+    <string name="onboarding_file_auto">Choose for me</string>
+    <string name="onboarding_file_custom">Let me choose</string>
+    <string name="onboarding_file_saved_as">Saved as “%1$s” in %2$s.</string>
+    <string name="onboarding_file_name">File name</string>
+    <string name="onboarding_folder">Folder</string>
+    <string name="onboarding_folder_my_drive">My Drive</string>
+    <string name="onboarding_choose_folder">Choose folder</string>
+    <string name="onboarding_use_my_drive">Use My Drive instead</string>
     <string name="onboarding_create">Create database</string>
     <string name="onboarding_error_not_configured">Google sign-in isn’t set up in this build yet. See docs/google-cloud-setup.md.</string>
     <string name="onboarding_error_sign_in">Couldn’t sign in with Google. Check your connection and try again.</string>

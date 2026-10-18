@@ -12,7 +12,7 @@ class StatementParser {
         fileName: String,
         bytes: ByteArray,
     ): ParsedStatement {
-        if (bytes.isEmpty()) throw ParseException("The file is empty")
+        if (bytes.isEmpty()) throw ParseException(ParseFailure.EMPTY_FILE, "The file is empty")
         return when (formatOf(fileName, bytes)) {
             StatementFormat.PDF -> PdfStatements.parse(fileName, PdfText.lines(bytes))
             StatementFormat.XLSX -> TableStatement.parse(fileName, StatementFormat.XLSX, Xlsx.table(bytes))
@@ -31,7 +31,10 @@ class StatementParser {
             head.contains("%PDF") -> StatementFormat.PDF
             bytes.size > 4 && bytes[0] == 'P'.code.toByte() && bytes[1] == 'K'.code.toByte() -> StatementFormat.XLSX
             isOfx(head, extension) -> StatementFormat.OFX
-            extension == "xls" -> throw ParseException("Old .xls files aren't supported. Save it as .xlsx or CSV and try again")
+            extension == "xls" -> throw ParseException(
+                ParseFailure.OLD_XLS,
+                "Old .xls files aren't supported. Save it as .xlsx or CSV and try again",
+            )
             else -> StatementFormat.CSV
         }
     }

@@ -62,13 +62,16 @@ internal class IosGoogleAuth(
         remember(oauth.refresh(refreshToken)).accessToken
     }
 
-    override suspend fun pickFile(): String? {
+    override suspend fun pickFile(): String? = pick(mapOf("mimetypes" to DriveClient.JSON_MIME))
+
+    override suspend fun pickFolder(): String? = pick(mapOf("mimetypes" to DriveClient.FOLDER_MIME, "allow_folder_selection" to "true"))
+
+    private suspend fun pick(filter: Map<String, String>): String? {
         val extra = mapOf(
             "prompt" to "consent",
             "access_type" to "offline",
             "trigger_onepick" to "true",
-            "mimetypes" to DriveClient.JSON_MIME,
-        )
+        ) + filter
         val (params, _) = authorize(listOf(DRIVE_FILE_SCOPE), extra, keepRefreshToken = false)
         return params["picked_file_ids"]?.split(',')?.firstOrNull { it.isNotBlank() }
     }

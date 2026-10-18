@@ -33,5 +33,8 @@ interface GoogleAuthPlatform {
     /** Google Picker; returns the picked file id, or null. Grants the app access to that file. */
     suspend fun pickFile(): String?
 
+    /** Google Picker showing folders; returns the picked folder id, or null. Grants the app access to that folder. */
+    suspend fun pickFolder(): String?
+
     suspend fun signOut()
 }

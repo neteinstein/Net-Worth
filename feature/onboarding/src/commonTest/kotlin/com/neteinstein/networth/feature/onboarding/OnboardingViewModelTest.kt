@@ -4,6 +4,7 @@ import com.neteinstein.networth.core.domain.repository.AuthCancelledException
 import com.neteinstein.networth.core.domain.repository.AuthNotConfiguredException
 import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.DatabaseException
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.DriveAccessNotGrantedException
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
@@ -13,6 +14,7 @@ import com.neteinstein.networth.core.testing.FakeAuthRepository
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.PickDatabaseFolderUseCase
 import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingError
 import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingStep
 import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingViewModel
@@ -44,6 +46,7 @@ class OnboardingViewModelTest {
         signOut = SignOutUseCase(auth, database),
         createHousehold = CreateHouseholdUseCase(database),
         openSharedDatabase = OpenSharedDatabaseUseCase(auth, database),
+        pickDatabaseFolder = PickDatabaseFolderUseCase(auth, database),
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 
     @BeforeTest
@@ -116,6 +119,71 @@ class OnboardingViewModelTest {
         assertEquals(listOf("Pedro", "Maria", "Inês"), created.members.map { it.name })
         assertEquals("GBP", created.settings.currencyCode)
         assertTrue(created.accounts.isEmpty())
+        assertEquals("Net Worth – The Vicentes.networth.json", assertIs<DatabaseState.Ready>(database.state.value).file.name)
+    }
+
+    @Test
+    fun theAppChoosesTheFileUnlessTheUserWantsTo() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+        vm.onStartFresh()
+        vm.onHouseholdNameChange("The Vicentes")
+        assertFalse(vm.state.value.form.chooseFile)
+        assertEquals("Net Worth – The Vicentes.networth.json", vm.state.value.form.resolvedFileName)
+
+        // Typed details only count once the user says they want to choose.
+        vm.onFileNameChange("Our money")
+        assertEquals("Net Worth – The Vicentes.networth.json", vm.state.value.form.resolvedFileName)
+        vm.onChooseFileChange(true)
+        assertEquals("Our money.networth.json", vm.state.value.form.resolvedFileName)
+
+        vm.onPickFolder()
+        assertEquals(DatabaseFolder("picked-folder", "Folder picked-folder"), vm.state.value.form.folder)
+        vm.onCreate("Joint savings")
+
+        assertEquals(listOf("create:The Vicentes name:Our money in:picked-folder"), database.calls)
+    }
+
+    @Test
+    fun choosingCanFallBackToTheAppsChoice() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+        vm.onStartFresh()
+        vm.onHouseholdNameChange("The Vicentes")
+        vm.onChooseFileChange(true)
+        vm.onPickFolder()
+
+        auth.pickFolderResult = { null }
+        vm.onPickFolder()
+        assertEquals("picked-folder", vm.state.value.form.folder?.id)
+
+        vm.onUseMyDrive()
+        assertNull(vm.state.value.form.folder)
+        // A blank name keeps the app's name.
+        assertEquals("Net Worth – The Vicentes.networth.json", vm.state.value.form.resolvedFileName)
+        vm.onCreate("Joint savings")
+        assertEquals(listOf("create:The Vicentes"), database.calls)
+
+        auth.pickFolderResult = { "unreadable" }
+        database.failure = DatabaseException(DatabaseError.NOT_ACCESSIBLE)
+        vm.onPickFolder()
+        assertEquals(OnboardingError.NOT_ACCESSIBLE, vm.state.value.error)
+    }
+
+    @Test
+    fun switchingBackToTheAppsChoiceIgnoresTypedDetails() = runTest {
+        auth.signIn()
+        val vm = viewModel()
+        vm.onStartFresh()
+        vm.onHouseholdNameChange("The Vicentes")
+        vm.onChooseFileChange(true)
+        vm.onFileNameChange("Our money")
+        vm.onPickFolder()
+
+        vm.onChooseFileChange(false)
+        vm.onCreate("Joint savings")
+
+        assertEquals(listOf("create:The Vicentes"), database.calls)
     }
 
     @Test

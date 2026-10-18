@@ -1,0 +1,82 @@
+<resources>
+    <!-- Spending (docs/design/Spending.dc.html) -->
+    <string name="spending_title">Gastos</string>
+    <string name="spending_week">Semana</string>
+    <string name="spending_month">Mês</string>
+    <string name="spending_year">Ano</string>
+    <string name="spending_custom">Personalizado</string>
+    <string name="spending_filters">Filtros</string>
+    <string name="spending_filters_count">Filtros · %1$d</string>
+    <string name="spending_all_accounts">Todas as contas</string>
+    <string name="spending_kids_savings">Poupanças dos filhos</string>
+    <string name="spending_scope_period">%1$s · %2$s</string>
+    <string name="spending_per_person">Por pessoa</string>
+    <string name="spending_share_of_family">Parte da família</string>
+    <string name="spending_vs_average">Categoria vs média de 12 meses</string>
+    <string name="spending_delta_up">▲ +%1$d%</string>
+    <string name="spending_delta_down">▼ −%1$d%</string>
+    <string name="spending_delta_flat">· 0%</string>
+    <string name="spending_spike">Pico em %1$s</string>
+    <string name="spending_no_savings_spending">Sem gastos a partir das contas poupança</string>
+    <string name="spending_transfers_note">As transferências entre as vossas contas (p. ex. para a poupança conjunta ou dos filhos) não contam como gastos.</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="spending_savings_flow">Em %1$s, %2$s recebeu %3$s e pagou %4$s.</string>
+    <string name="spending_budget_left">Faltam %1$s do orçamento de %2$s</string>
+    <string name="spending_budget_over">%1$s acima do orçamento de %2$s</string>
+    <string name="spending_uncategorised">Ainda sem categoria</string>
+    <string name="spending_no_history">Ainda sem média</string>
+    <string name="spending_previous">Período anterior</string>
+    <string name="spending_next">Período seguinte</string>
+    <string name="spending_empty_title">Nada gasto neste período</string>
+    <string name="spending_empty_body">Importe um extrato que o cubra ou escolha outro período.</string>
+    <string name="spending_pick_range">Escolher datas</string>
+    <string name="spending_ok">OK</string>
+    <string name="spending_cancel">Cancelar</string>
+
+    <!-- Filters (docs/design/Filters.dc.html) -->
+    <string name="filters_title">Filtros</string>
+    <string name="filters_reset">Repor</string>
+    <string name="filters_accounts">Contas</string>
+    <string name="filters_categories">Categorias</string>
+    <string name="filters_tagged_for">Associado a</string>
+    <string name="filters_everyone">Todos</string>
+    <string name="filters_adults">Adultos</string>
+    <string name="filters_type">Tipo</string>
+    <string name="filters_expenses">Despesas</string>
+    <string name="filters_income">Rendimentos</string>
+    <string name="filters_both">Ambos</string>
+    <string name="filters_include_transfers">Incluir transferências entre as nossas contas</string>
+    <string name="filters_min">Valor mínimo</string>
+    <string name="filters_max">Valor máximo</string>
+    <string name="filters_text">Comerciante ou descrição contém</string>
+    <string name="filters_save">Guardar filtro</string>
+    <plurals name="filters_show">
+        <item quantity="one">Mostrar %1$d movimento</item>
+        <item quantity="other">Mostrar %1$d movimentos</item>
+    </plurals>
+    <!-- Not on the artboard -->
+    <string name="filters_saved">Filtros guardados</string>
+    <string name="filters_save_title">Guardar filtro</string>
+    <string name="filters_name">Nome</string>
+    <string name="filters_invalid_amount">Não é um valor</string>
+    <string name="filters_back">Voltar</string>
+
+    <!-- Transactions list (not on the artboards; flagged in the PR) -->
+    <string name="transactions_title">Movimentos</string>
+    <plurals name="transactions_summary">
+        <item quantity="one">%1$d movimento · %2$s</item>
+        <item quantity="other">%1$d movimentos · %2$s</item>
+    </plurals>
+    <string name="transactions_empty_title">Sem movimentos</string>
+    <string name="transactions_empty_body">Nada corresponde. Experimente outros filtros ou outro período.</string>
+    <string name="transactions_edit">Editar movimento</string>
+    <string name="transactions_category">Categoria</string>
+    <string name="transactions_subcategory">Subcategoria</string>
+    <string name="transactions_none">Nenhuma</string>
+    <string name="transactions_tagged_for">Associado a</string>
+    <string name="transactions_note">Nota</string>
+    <string name="transactions_internal">Transferência entre as nossas contas</string>
+    <string name="transactions_internal_label">Transferência interna</string>
+    <string name="transactions_save">Guardar</string>
+    <string name="transactions_cancel">Cancelar</string>
+</resources>

@@ -55,6 +55,7 @@ import com.neteinstein.networth.feature.manage.ui.screens.CategoriesViewModel
 import com.neteinstein.networth.feature.manage.ui.screens.ManageViewModel
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.PickDatabaseFolderUseCase
 import com.neteinstein.networth.feature.onboarding.ui.screens.OnboardingViewModel
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
@@ -66,6 +67,7 @@ import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanc
 import com.neteinstein.networth.feature.settings.domain.usecase.RenameHouseholdUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SaveMemberUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import com.neteinstein.networth.feature.settings.ui.screens.SettingsViewModel
@@ -137,6 +139,7 @@ val appModule = module {
     // Onboarding
     factoryOf(::CreateHouseholdUseCase)
     factoryOf(::OpenSharedDatabaseUseCase)
+    factoryOf(::PickDatabaseFolderUseCase)
 
     // Overview
     factoryOf(::BuildOverviewUseCase)
@@ -183,6 +186,7 @@ val appModule = module {
     factoryOf(::ObserveAppearanceUseCase)
     factoryOf(::SetThemeModeUseCase)
     factoryOf(::SetDynamicColorUseCase)
+    factoryOf(::SetLanguageUseCase)
     factoryOf(::ShareDatabaseUseCase)
     factoryOf(::CloseDatabaseUseCase)
     factoryOf(::RenameHouseholdUseCase)
@@ -209,6 +213,7 @@ val appModule = module {
             observeDatabase = get(),
             setThemeMode = get(),
             setDynamicColor = get(),
+            setLanguage = get(),
             shareDatabase = get(),
             syncDatabase = get(),
             closeDatabase = get(),

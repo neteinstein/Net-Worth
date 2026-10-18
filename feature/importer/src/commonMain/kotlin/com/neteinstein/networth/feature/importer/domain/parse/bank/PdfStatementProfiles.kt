@@ -7,6 +7,7 @@ import com.neteinstein.networth.feature.importer.domain.model.ParsedSection
 import com.neteinstein.networth.feature.importer.domain.model.ParsedStatement
 import com.neteinstein.networth.feature.importer.domain.model.StatementFormat
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.Values
 import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextLine
 
@@ -30,7 +31,7 @@ internal object PdfStatements {
         val profile = profiles.firstOrNull { it.matches(lines) } ?: GenericPdfProfile
         val statement = profile.parse(fileName, lines)
         if (statement.sections.isEmpty() && statement.holdings.isEmpty()) {
-            throw ParseException("No movements found in this PDF. Is it a bank statement?")
+            throw ParseException(ParseFailure.NO_PDF_MOVEMENTS, "No movements found in this PDF. Is it a bank statement?")
         }
         return statement
     }

@@ -22,6 +22,7 @@ import com.neteinstein.networth.feature.importer.domain.model.ParsedSection
 import com.neteinstein.networth.feature.importer.domain.model.ParsedStatement
 import com.neteinstein.networth.feature.importer.domain.model.SectionTarget
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.Values
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
@@ -59,10 +60,10 @@ data class SectionUi(
     val choice: SectionChoice,
 )
 
-/** A file that couldn't be read or imported. [message] is already user-readable; null = unknown error. */
+/** A file that couldn't be read or imported, and why; [failure] null = an unknown error. */
 data class FileError(
     val fileName: String?,
-    val message: String?,
+    val failure: ParseFailure?,
 )
 
 /** One imported file, and the periods of the earlier imports its duplicates came from. */
@@ -200,7 +201,7 @@ class ImportViewModel(
     }
 
     fun onPickFailed() {
-        session.value = ImportSession(errors = listOf(FileError(fileName = null, message = null)))
+        session.value = ImportSession(errors = listOf(FileError(fileName = null, failure = null)))
     }
 
     /** Leaves the file being confirmed out and goes on with the next one. */
@@ -235,12 +236,12 @@ class ImportViewModel(
                 try {
                     parse(file.name, file.bytes)
                 } catch (e: ParseException) {
-                    failed(FileError(file.name, e.message))
+                    failed(FileError(file.name, e.failure))
                     return@launch
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    failed(FileError(file.name, message = null))
+                    failed(FileError(file.name, failure = null))
                     return@launch
                 }
             val db = (database.value as? DatabaseState.Ready)?.database ?: return@launch
@@ -350,7 +351,7 @@ class ImportViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                session.update { it.copy(stage = ImportStage.CONFIRM, errors = it.errors + FileError(it.fileName, message = null)) }
+                session.update { it.copy(stage = ImportStage.CONFIRM, errors = it.errors + FileError(it.fileName, failure = null)) }
             }
         }
     }

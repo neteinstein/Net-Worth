@@ -15,6 +15,7 @@ import com.neteinstein.networth.core.testing.FixedClock
 import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
+import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.StatementParser
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
@@ -43,7 +44,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -303,7 +303,7 @@ class ImportViewModelsTest {
         runTest {
             val vm = importViewModel()
             vm.onFilesPicked(listOf(PickedFile("notes.csv", "nothing to see".encodeToByteArray())))
-            assertNotNull(vm.state.value.errors.single().message)
+            assertEquals(ParseFailure.NO_HEADER_ROW, vm.state.value.errors.single().failure)
             assertEquals(ImportStage.PICK, vm.state.value.stage)
             vm.onDismissError()
             assertTrue(vm.state.value.errors.isEmpty())

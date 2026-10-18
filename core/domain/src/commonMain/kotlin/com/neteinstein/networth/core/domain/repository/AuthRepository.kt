@@ -42,5 +42,8 @@ interface AuthRepository {
     /** Shows the Google Picker; returns the picked file id, or null if nothing was picked. */
     suspend fun pickDatabaseFile(): String?
 
+    /** Shows the Google Picker for folders; returns the picked folder id, or null if nothing was picked. */
+    suspend fun pickDatabaseFolder(): String?
+
     suspend fun signOut()
 }

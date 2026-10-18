@@ -1,0 +1,120 @@
+<resources>
+    <!-- Import extract (docs/design/Import.dc.html) -->
+    <string name="importer_title">Importar extrato</string>
+    <string name="importer_intro">Carregue o extrato que descarrega do seu banco — semanal, mensal ou de qualquer período. As datas sobrepostas são juntas, nunca contadas duas vezes.</string>
+    <string name="importer_choose">Escolha um extrato bancário</string>
+    <string name="importer_formats">CSV · XLSX · OFX · PDF</string>
+    <string name="importer_browse">Procurar ficheiros</string>
+    <string name="importer_which_account">De que conta é este extrato?</string>
+    <string name="importer_preselected">Pré-selecionada a partir do IBAN do ficheiro — confirme antes de importar.</string>
+    <string name="importer_categorised">Categorizados automaticamente</string>
+    <string name="importer_categorised_value">%1$d de %2$d · %3$d%</string>
+    <plurals name="importer_rows_read">
+        <item quantity="one">%1$d linha lida</item>
+        <item quantity="other">%1$d linhas lidas</item>
+    </plurals>
+    <plurals name="importer_duplicates">
+        <item quantity="one">%1$d duplicado ignorado</item>
+        <item quantity="other">%1$d duplicados ignorados</item>
+    </plurals>
+    <string name="importer_need_you">%1$d precisam de si</string>
+    <plurals name="importer_overlap_note">
+        <item quantity="one">O duplicado sobrepunha-se ao seu extrato de %2$s.</item>
+        <item quantity="other">Os %1$d duplicados sobrepunham-se ao seu extrato de %2$s.</item>
+    </plurals>
+    <plurals name="importer_transfers_note">
+        <item quantity="one">%1$d transferência entre as suas contas está marcada como interna, não como gasto.</item>
+        <item quantity="other">%1$d transferências entre as suas contas estão marcadas como internas, não como gastos.</item>
+    </plurals>
+    <plurals name="importer_review_count">
+        <item quantity="one">Rever %1$d movimento</item>
+        <item quantity="other">Rever %1$d movimentos</item>
+    </plurals>
+    <string name="importer_earlier">Importações anteriores</string>
+    <plurals name="importer_transactions">
+        <item quantity="one">%1$d movimento</item>
+        <item quantity="other">%1$d movimentos</item>
+    </plurals>
+    <string name="importer_period_weekly">Semanal</string>
+    <string name="importer_period_monthly">Mensal</string>
+    <string name="importer_period_other">Extrato</string>
+
+    <!-- Not on the artboard: multi-account files, owners, coverage (flagged in the PR). -->
+    <string name="importer_reading">A ler %1$s…</string>
+    <string name="importer_importing">A importar…</string>
+    <string name="importer_section_rows">%1$s · %2$s</string>
+    <string name="importer_new_account">Nova conta</string>
+    <string name="importer_new_account_name">Nome da conta</string>
+    <string name="importer_include_section">Importar esta conta</string>
+    <string name="importer_whose">De quem é esta conta?</string>
+    <string name="importer_whose_hint">Escolha todos os titulares — uma conta conjunta tem mais do que um.</string>
+    <string name="importer_import">Importar</string>
+    <string name="importer_import_another">Importar outro extrato</string>
+    <string name="importer_unreconciled">Os movimentos de %1$s não batem certo com o saldo final do ficheiro. Verifique-os em Gastos.</string>
+    <string name="importer_error_unknown">Não foi possível ler este ficheiro. É um extrato bancário em CSV, XLSX, OFX ou PDF?</string>
+    <string name="importer_error_empty_file">O ficheiro está vazio</string>
+    <string name="importer_error_old_xls">Os ficheiros .xls antigos não são suportados. Guarde-o como .xlsx ou CSV e tente novamente</string>
+    <string name="importer_error_no_header_row">Não foi possível encontrar a linha de cabeçalho (uma coluna de data e uma de valor)</string>
+    <string name="importer_error_no_rows">Não foram encontrados movimentos abaixo da linha de cabeçalho</string>
+    <string name="importer_error_no_ofx_statement">Não foi encontrado nenhum extrato neste ficheiro OFX</string>
+    <string name="importer_error_no_pdf_movements">Não foram encontrados movimentos neste PDF. É um extrato bancário?</string>
+    <string name="importer_error_not_xlsx">Este ficheiro não é um XLSX (ZIP) válido</string>
+    <string name="importer_error_xlsx_compression">Compressão não suportada neste ficheiro XLSX</string>
+    <string name="importer_error_xlsx_no_worksheet">Este ficheiro XLSX não tem nenhuma folha</string>
+    <string name="importer_error_not_pdf">Este ficheiro não é um PDF</string>
+    <string name="importer_error_pdf_no_pages">Este PDF não tem páginas</string>
+    <string name="importer_error_pdf_no_content">Este PDF não tem conteúdo legível</string>
+    <string name="importer_error_pdf_no_page_tree">Este PDF não tem árvore de páginas</string>
+    <string name="importer_error_pdf_protected">Este PDF está protegido de uma forma que o Net Worth não consegue abrir</string>
+    <string name="importer_error_pdf_aes_256">Este PDF usa proteção AES-256, que ainda não é suportada</string>
+    <string name="importer_error_pdf_protection_damaged">A proteção deste PDF está danificada</string>
+    <string name="importer_error_damaged">Os dados comprimidos deste ficheiro estão danificados</string>
+    <string name="importer_error_dismiss">Escolher outro ficheiro</string>
+    <string name="importer_months_title">Meses carregados</string>
+    <string name="importer_months_body">Últimos 12 meses por conta. Carregue os que faltam para que as médias e os alertas vejam o quadro completo.</string>
+    <string name="importer_month_full">Carregado</string>
+    <string name="importer_month_partial">Em parte</string>
+    <string name="importer_month_missing">Em falta</string>
+    <plurals name="importer_months_missing">
+        <item quantity="one">%1$d mês por carregar</item>
+        <item quantity="other">%1$d meses por carregar</item>
+    </plurals>
+    <string name="importer_months_complete">Tudo carregado</string>
+    <string name="importer_back">Voltar</string>
+    <string name="importer_type_current">Conta à ordem</string>
+    <string name="importer_type_savings">Poupança</string>
+    <string name="importer_type_term_deposit">Depósito a prazo</string>
+    <string name="importer_type_investment">Investimentos</string>
+    <string name="importer_type_mortgage">Crédito habitação</string>
+    <string name="importer_type_loan">Empréstimo</string>
+
+    <!-- Review & learn (docs/design/Review.dc.html) -->
+    <string name="review_title">Rever e aprender</string>
+    <string name="review_done">%1$d de %2$d feitos</string>
+    <string name="review_intro">O Net Worth já conhece %1$d comerciantes. Cada escolha aqui ensina-lhe mais um, para que a importação do próximo mês precise menos de si.</string>
+    <string name="review_showing">A mostrar %1$d de %2$d</string>
+    <string name="review_accept_all">Aceitar todas as sugestões</string>
+    <string name="review_suggested">%1$s · sugerido</string>
+    <string name="review_note">Nota (o MB WAY não indica o comerciante)</string>
+    <string name="review_remember_merchant">Classificar sempre %1$s assim</string>
+    <string name="review_remember_phone">Lembrar para este número de telemóvel</string>
+    <string name="review_save">Guardar e aprender</string>
+    <string name="review_save_count">Guardar %1$d e aprender</string>
+    <string name="review_hint_phone">Transferência por telemóvel</string>
+    <string name="review_hint_history">%1$d de %2$d visitas anteriores foram %3$s</string>
+    <!-- Not on the artboard -->
+    <string name="review_remember_person">Lembrar para %1$s</string>
+    <string name="review_hint_low_value">Pagamento contactless · o banco não indica a loja</string>
+    <string name="review_hint_card">Pagamento com cartão</string>
+    <string name="review_hint_debit">Débito direto</string>
+    <string name="review_hint_transfer">Transferência para %1$s</string>
+    <string name="review_hint_cash">Levantamento</string>
+    <string name="review_hint_fee">Comissão bancária ou imposto</string>
+    <string name="review_more">Mais…</string>
+    <string name="review_empty_title">Nada para rever</string>
+    <string name="review_empty_body">Todos os movimentos têm categoria. Os novos aparecem aqui depois de uma importação.</string>
+    <plurals name="review_saved">
+        <item quantity="one">%1$d movimento classificado.</item>
+        <item quantity="other">%1$d movimentos classificados.</item>
+    </plurals>
+</resources>

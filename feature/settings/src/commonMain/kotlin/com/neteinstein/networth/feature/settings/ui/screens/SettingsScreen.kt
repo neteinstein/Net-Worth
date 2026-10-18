@@ -59,6 +59,7 @@ import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.repository.DatabaseFile
 import com.neteinstein.networth.core.domain.repository.SyncStatus
+import com.neteinstein.networth.feature.settings.domain.model.AppLanguage
 import com.neteinstein.networth.feature.settings.domain.model.AppearanceSettings
 import com.neteinstein.networth.feature.settings.domain.model.ThemeMode
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
@@ -77,6 +78,10 @@ import com.neteinstein.networth.feature.settings.generated.resources.settings_dy
 import com.neteinstein.networth.feature.settings.generated.resources.settings_dynamic_color_body
 import com.neteinstein.networth.feature.settings.generated.resources.settings_household
 import com.neteinstein.networth.feature.settings.generated.resources.settings_household_name
+import com.neteinstein.networth.feature.settings.generated.resources.settings_language
+import com.neteinstein.networth.feature.settings.generated.resources.settings_language_english
+import com.neteinstein.networth.feature.settings.generated.resources.settings_language_portuguese
+import com.neteinstein.networth.feature.settings.generated.resources.settings_language_system
 import com.neteinstein.networth.feature.settings.generated.resources.settings_member_name
 import com.neteinstein.networth.feature.settings.generated.resources.settings_save
 import com.neteinstein.networth.feature.settings.generated.resources.settings_share
@@ -111,6 +116,7 @@ fun SettingsScreen(
             onBack = onBack,
             onThemeModeSelected = viewModel::onThemeModeSelected,
             onDynamicColorToggled = viewModel::onDynamicColorToggled,
+            onLanguageSelected = viewModel::onLanguageSelected,
             onShare = viewModel::onShare,
             onShareResultShown = viewModel::onShareResultShown,
             onSyncNow = viewModel::onSyncNow,
@@ -126,6 +132,7 @@ data class SettingsActions(
     val onBack: () -> Unit = {},
     val onThemeModeSelected: (ThemeMode) -> Unit = {},
     val onDynamicColorToggled: (Boolean) -> Unit = {},
+    val onLanguageSelected: (AppLanguage) -> Unit = {},
     val onShare: (String) -> Unit = {},
     val onShareResultShown: () -> Unit = {},
     val onSyncNow: () -> Unit = {},
@@ -199,6 +206,16 @@ fun SettingsContent(
                         },
                         colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
                     )
+                }
+                SectionHeader(stringResource(Res.string.settings_language))
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    AppLanguage.entries.forEachIndexed { index, language ->
+                        SegmentedButton(
+                            selected = state.appearance.language == language,
+                            onClick = { actions.onLanguageSelected(language) },
+                            shape = SegmentedButtonDefaults.itemShape(index, AppLanguage.entries.size),
+                        ) { Text(stringResource(language.label)) }
+                    }
                 }
                 if (state.email != null) {
                     SectionHeader(stringResource(Res.string.settings_account))
@@ -361,6 +378,13 @@ private val ThemeMode.label: StringResource
         ThemeMode.SYSTEM -> Res.string.settings_theme_system
         ThemeMode.LIGHT -> Res.string.settings_theme_light
         ThemeMode.DARK -> Res.string.settings_theme_dark
+    }
+
+private val AppLanguage.label: StringResource
+    get() = when (this) {
+        AppLanguage.SYSTEM -> Res.string.settings_language_system
+        AppLanguage.ENGLISH -> Res.string.settings_language_english
+        AppLanguage.PORTUGUESE -> Res.string.settings_language_portuguese
     }
 
 @Preview

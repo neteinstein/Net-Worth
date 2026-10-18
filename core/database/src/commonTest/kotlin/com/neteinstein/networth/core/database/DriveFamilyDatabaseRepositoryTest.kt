@@ -3,8 +3,10 @@ package com.neteinstein.networth.core.database
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.DatabaseException
+import com.neteinstein.networth.core.domain.repository.DatabaseFolder
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.repository.InMemoryLocalStore
+import com.neteinstein.networth.core.domain.repository.NewDatabaseFile
 import com.neteinstein.networth.core.domain.repository.SyncStatus
 import com.neteinstein.networth.core.domain.seed.HouseholdSetup
 import kotlinx.coroutines.CoroutineScope
@@ -16,6 +18,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 // Repositories launch their uploads into the test scope itself so advanceUntilIdle() drives them.
@@ -191,8 +194,31 @@ class DriveFamilyDatabaseRepositoryTest {
     }
 
     @Test
-    fun fileNamesAreSanitised() {
-        assertEquals("Net Worth – A B.networth.json", DriveFamilyDatabaseRepository.fileNameFor("A/B"))
-        assertEquals("Net Worth – Family.networth.json", DriveFamilyDatabaseRepository.fileNameFor(" ? "))
+    fun createNewUsesTheChosenNameAndFolder() = runTest {
+        val repo = repository()
+
+        val file = repo.createNew(setup, NewDatabaseFile(name = "Our money", folderId = "folder-9"))
+
+        assertEquals("Our money.networth.json", file.name)
+        assertEquals("folder-9", remote.folders[file.id])
+    }
+
+    @Test
+    fun createNewPicksNameAndPlaceWhenNotChosen() = runTest {
+        val repo = repository()
+
+        val file = repo.createNew(setup, NewDatabaseFile(name = " / "))
+
+        assertEquals("Net Worth – Vicente.networth.json", file.name)
+        assertNull(remote.folders[file.id])
+    }
+
+    @Test
+    fun folderNamesComeFromDrive() = runTest {
+        val repo = repository()
+        remote.externalWrite("folder-1", "")
+
+        assertEquals(DatabaseFolder("folder-1", "file-folder-1.networth.json"), repo.folder("folder-1"))
+        assertEquals(DatabaseError.NOT_ACCESSIBLE, assertFailsWith<DatabaseException> { repo.folder("missing") }.error)
     }
 }

@@ -91,7 +91,8 @@ Why it is split this way:
   `androidMain`/`iosMain`/`wasmJsMain` or `expect`/`actual` only for what a platform genuinely cannot
   share. Current `expect`/`actual`s: dynamic colour availability/scheme and system-bar icon tint
   (`core/designsystem/.../ui/theme/Platform.kt`), `Scope.platformLocalStore()` (`core/database`),
-  `Scope.googleAuthPlatform()` (`core/google`) and `rememberStatementPicker()` (`feature/importer`).
+  `Scope.googleAuthPlatform()` (`core/google`), `rememberStatementPicker()` (`feature/importer`) and
+  `LocalAppLocale` (`core/designsystem/.../ui/locale`, the in-app language switch).
 
 Inside each feature module:
 
@@ -104,6 +105,7 @@ Inside each feature module:
   ui/screens/          <Name>Screen (pulls VM), <Name>Content (stateless), <Name>ViewModel, <Name>UiState.
   ui/components/       Feature-specific composables.
 <feature>/src/commonMain/composeResources/values/strings.xml   All user-facing strings.
+<feature>/src/commonMain/composeResources/values-pt/strings.xml  Their Portuguese (pt-PT) translation.
 <feature>/src/commonTest/kotlin/...                             Tests mirror the main package layout.
 ```
 
@@ -173,6 +175,17 @@ and its generated Compose resources class is `<namespace>.generated.resources.Re
 - Android: SplashScreen API, adaptive + themed (monochrome) icon, predictive back enabled, backups
   disabled for financial data. iOS: privacy manifest (`PrivacyInfo.xcprivacy`), 120 Hz enabled.
 - Constrain wide layouts (`widthIn(max = 640.dp)`) so tablets/desktop browsers look intentional.
+
+### Languages
+
+- The app ships in **English** (`values/`) and **European Portuguese** (`values-pt/`). Every string added to a
+  `values/strings.xml` gets its translation in the same module's `values-pt/strings.xml` in the same change
+  (same names, same placeholders, `one`/`other` plurals).
+- The language is a device-local setting (Settings → Language: System / English / Português), stored with the
+  appearance settings and applied by `AppLocaleEnvironment` in `App()`. No user-facing text in Kotlin code:
+  domain errors carry an enum (e.g. `ParseFailure`) that the UI maps to a string resource.
+- Money is still formatted locale-independently (`MoneyFormatter`); family data (category names, account
+  names) is stored as typed and is not translated.
 
 ## Build & verify
 

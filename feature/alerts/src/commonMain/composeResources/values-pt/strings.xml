@@ -1,0 +1,44 @@
+<resources>
+    <!-- Alerts (docs/design/Alerts.dc.html) -->
+    <string name="alerts_title">Alertas</string>
+    <string name="alerts_threshold">Alertar quando +%1$d%</string>
+    <string name="alerts_spikes_in">Picos em %1$s</string>
+    <string name="alerts_spike_title">%1$s %2$s</string>
+    <string name="alerts_spike_vs_avg">▲ +%1$d% vs média %2$s</string>
+    <string name="alerts_mostly_personal">sobretudo na conta de %1$s</string>
+    <string name="alerts_both_current">ambas as contas à ordem</string>
+    <string name="alerts_repeats">Em %1$s passado foi %2$s — repete-se todos os anos.</string>
+    <string name="alerts_mark_seasonal">Marcar como sazonal</string>
+    <string name="alerts_seasonal_planned">Sazonal · previsto para %1$s</string>
+    <string name="alerts_see_transactions">Ver movimentos</string>
+    <plurals name="alerts_purchases_between">
+        <item quantity="one">%1$d compra entre %2$s e %3$s.</item>
+        <item quantity="other">%1$d compras entre %2$s e %3$s.</item>
+    </plurals>
+    <string name="alerts_worth_a_look">Vale a pena ver</string>
+    <string name="alerts_new_recurring">Novo pagamento recorrente</string>
+    <string name="alerts_recurring_body">%1$s %2$s/mês desde %3$s, %4$s — %5$s por ano.</string>
+    <string name="alerts_account_personal">conta de %1$s</string>
+    <string name="alerts_rising_title">%1$s a subir há 3 meses seguidos</string>
+    <string name="alerts_rising_body">%1$s (%2$s–%3$s).</string>
+    <string name="alerts_going_well">Está a correr bem</string>
+    <string name="alerts_under_average">%1$s ▼ −%2$d% · %3$s abaixo da média</string>
+    <string name="alerts_streak_each">Poupanças dos filhos +%1$s cada, %2$d meses seguidos</string>
+    <!-- Not on the artboard (flagged in the PR) -->
+    <string name="alerts_mostly">sobretudo %1$s</string>
+    <plurals name="alerts_spread">
+        <item quantity="one">%1$d conta</item>
+        <item quantity="other">em %1$d contas</item>
+    </plurals>
+    <string name="alerts_streak_single">Poupanças dos filhos +%1$s, %2$d meses seguidos</string>
+    <string name="alerts_streak">As poupanças dos filhos receberam dinheiro %1$d meses seguidos</string>
+    <string name="alerts_large_payment">Pagamento elevado</string>
+    <string name="alerts_large_body">%1$s %2$s em %3$s, %4$s.</string>
+    <string name="alerts_other">Outros</string>
+    <string name="alerts_no_spikes">Sem picos em %1$s — todas as categorias estão a menos de %2$d% da sua média.</string>
+    <string name="alerts_empty_title">Ainda sem alertas</string>
+    <string name="alerts_empty_body">Importe alguns meses de extratos e aqui vão aparecer picos de gastos, novas subscrições e tendências.</string>
+    <!-- Budgets (not on the artboard; flagged in the PR) -->
+    <string name="alerts_over_budget_title">%1$s %2$s acima do orçamento</string>
+    <string name="alerts_over_budget_body">%1$s gastos este mês para um orçamento de %2$s.</string>
+</resources>

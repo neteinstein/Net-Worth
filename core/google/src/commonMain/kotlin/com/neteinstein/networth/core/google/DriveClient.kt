@@ -15,8 +15,10 @@ import io.ktor.http.content.TextContent
 import io.ktor.http.isSuccess
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.json.putJsonObject
 
 fun interface AccessTokenProvider {
@@ -86,10 +88,12 @@ class DriveClient(
     private val http: HttpClient,
     private val tokens: AccessTokenProvider,
 ) {
-    suspend fun create(name: String, content: String): DriveFileMetadata {
+    /** Creates [name] in [folderId] (a folder the app may write to), or in the root of My Drive when it is null. */
+    suspend fun create(name: String, content: String, folderId: String? = null): DriveFileMetadata {
         val metadata = buildJsonObject {
             put("name", name)
             put("mimeType", JSON_MIME)
+            if (folderId != null) putJsonArray("parents") { add(folderId) }
             putJsonObject("appProperties") { put(APP_PROPERTY, "1") }
         }
         val body = buildString {
@@ -99,7 +103,7 @@ class DriveClient(
             append(content)
             append("\r\n--$BOUNDARY--")
         }
-        val response = call(HttpMethod.Post, "$UPLOAD/files?uploadType=multipart&fields=$FIELDS") {
+        val response = call(HttpMethod.Post, "$UPLOAD/files?uploadType=multipart&fields=$FIELDS&supportsAllDrives=true") {
             setBody(TextContent(body, ContentType.parse("multipart/related; boundary=$BOUNDARY")))
         }
         return json.decodeFromString(response.bodyAsText())
@@ -147,6 +151,7 @@ class DriveClient(
 
     companion object {
         const val JSON_MIME = "application/json"
+        const val FOLDER_MIME = "application/vnd.google-apps.folder"
 
         /** Marks files the app created, so they can be told apart from other JSON. */
         const val APP_PROPERTY = "netWorthDatabase"

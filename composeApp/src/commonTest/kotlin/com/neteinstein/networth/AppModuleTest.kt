@@ -24,11 +24,13 @@ import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
+import com.neteinstein.networth.feature.onboarding.domain.usecase.PickDatabaseFolderUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.MarkSeasonalUseCase
 import com.neteinstein.networth.feature.settings.domain.repository.SettingsRepository
 import com.neteinstein.networth.feature.settings.domain.usecase.ObserveAppearanceUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetDynamicColorUseCase
+import com.neteinstein.networth.feature.settings.domain.usecase.SetLanguageUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.SetThemeModeUseCase
 import com.neteinstein.networth.feature.settings.domain.usecase.ShareDatabaseUseCase
 import com.neteinstein.networth.feature.spending.domain.repository.ActiveFilterRepository
@@ -58,6 +60,8 @@ class AppModuleTest {
 
                 override suspend fun pickFile(): String? = null
 
+                override suspend fun pickFolder(): String? = null
+
                 override suspend fun signOut() = Unit
             }
         }
@@ -75,6 +79,7 @@ class AppModuleTest {
         assertNotNull(koin.get<EditDatabaseUseCase>())
         assertNotNull(koin.get<CreateHouseholdUseCase>())
         assertNotNull(koin.get<OpenSharedDatabaseUseCase>())
+        assertNotNull(koin.get<PickDatabaseFolderUseCase>())
         assertNotNull(koin.get<BuildOverviewUseCase>())
         assertNotNull(koin.get<MarkSeasonalUseCase>())
         assertNotNull(koin.get<SaveAccountUseCase>())
@@ -82,6 +87,7 @@ class AppModuleTest {
         assertNotNull(koin.get<ObserveAppearanceUseCase>())
         assertNotNull(koin.get<SetThemeModeUseCase>())
         assertNotNull(koin.get<SetDynamicColorUseCase>())
+        assertNotNull(koin.get<SetLanguageUseCase>())
         assertNotNull(koin.get<ShareDatabaseUseCase>())
         assertNotNull(koin.get<DriveClient>())
         assertNotNull(koin.get<AddMemberUseCase>())
