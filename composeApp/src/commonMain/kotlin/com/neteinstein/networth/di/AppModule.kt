@@ -43,6 +43,7 @@ import com.neteinstein.networth.feature.manage.domain.usecase.AddSubcategoryUseC
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.ImportMerchantRulesUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.RemoveSubcategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
@@ -175,6 +176,7 @@ val appModule = module {
     factoryOf(::SaveAssumptionsUseCase)
     factoryOf(::DeleteMerchantRuleUseCase)
     factoryOf(::SaveMerchantRuleUseCase)
+    factoryOf(::ImportMerchantRulesUseCase)
     factoryOf(::UpdateCategoryUseCase)
     factoryOf(::AddCategoryUseCase)
     factoryOf(::AddSubcategoryUseCase)

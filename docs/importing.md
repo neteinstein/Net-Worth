@@ -62,3 +62,30 @@ Mercadona, Galp, Via Verde, EDP, Farmácia… — mapped to the default subcateg
 Rules are edited in **Manage → Merchant rules** (text, how it matches, category and subcategory). Saving either
 changes only future imports or also re-files every past outflow/refund the rule matches (internal transfers
 are never touched).
+
+## Merchant rules files
+
+**Manage → Merchant rules → Import** reads a JSON file of rules, shows what it would do (new rules, rules whose
+category changes, rules already there, lines left out) and imports them for future imports only or also re-files
+the past, as the rule editor does. Categories are named, not referenced by id, so one file works for any household:
+
+```json
+{
+  "rules": [
+    {"pattern": "LIDL", "match": "PREFIX", "category": "Groceries", "subcategory": "Supermarket"},
+    {"pattern": "BOLT.EUO", "match": "CONTAINS", "category": "Transport", "subcategory": "Public transport"},
+    {"pattern": "COLEGIO", "category": "School"}
+  ]
+}
+```
+
+- `match` is `PREFIX` (the cleaned merchant name starts with it; the default), `CONTAINS` (anywhere in the bank
+  description) or `PHONE` (an MB WAY phone or person), as in `Rules`.
+- `category` and `subcategory` are matched by name, ignoring case and ’ vs '. A rule whose category or
+  subcategory the household doesn't have is left out and named in the dialog.
+- A rule with the same text and match as an existing one changes that rule's category (keeping its hits).
+
+[`docs/merchant-rules/pt-brands.json`](merchant-rules/pt-brands.json) holds 50 rules for national and
+international brands seen in novobanco statements (supermarkets, fuel, utilities, Bolt/Uber, bank fees…), in the
+default categories. Rules learned from a family's own statements (schools, local shops, people paid by MB WAY)
+are personal data: keep them in a local file and import it, never commit them.

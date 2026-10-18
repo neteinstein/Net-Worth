@@ -91,8 +91,9 @@ Why it is split this way:
   `androidMain`/`iosMain`/`wasmJsMain` or `expect`/`actual` only for what a platform genuinely cannot
   share. Current `expect`/`actual`s: dynamic colour availability/scheme and system-bar icon tint
   (`core/designsystem/.../ui/theme/Platform.kt`), `Scope.platformLocalStore()` (`core/database`),
-  `Scope.googleAuthPlatform()` (`core/google`), `rememberStatementPicker()` (`feature/importer`) and
-  `LocalAppLocale` (`core/designsystem/.../ui/locale`, the in-app language switch).
+  `Scope.googleAuthPlatform()` (`core/google`), `rememberFilePicker()` (`core/designsystem/.../ui/files`: statements
+  for the importer, rules files for Manage) and `LocalAppLocale` (`core/designsystem/.../ui/locale`, the in-app
+  language switch).
 
 Inside each feature module:
 

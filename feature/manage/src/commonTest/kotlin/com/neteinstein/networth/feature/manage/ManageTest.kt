@@ -17,6 +17,7 @@ import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.ImportMerchantRulesUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
@@ -71,6 +72,7 @@ class ManageTest {
         saveAssumptions = SaveAssumptionsUseCase(edit),
         deleteRule = DeleteMerchantRuleUseCase(edit),
         saveRule = SaveMerchantRuleUseCase(edit),
+        importRules = ImportMerchantRulesUseCase(edit, SequentialIds("rule")),
         addMember = AddMemberUseCase(edit, SequentialIds("person")),
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 

@@ -2,6 +2,7 @@ package com.neteinstein.networth.feature.manage.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neteinstein.networth.core.designsystem.ui.files.PickedFile
 import com.neteinstein.networth.core.domain.calc.balanceOf
 import com.neteinstein.networth.core.domain.calc.isChildAccount
 import com.neteinstein.networth.core.domain.format.MoneyParser
@@ -18,14 +19,19 @@ import com.neteinstein.networth.core.domain.model.SavedFilter
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
+import com.neteinstein.networth.feature.manage.domain.RuleFile
+import com.neteinstein.networth.feature.manage.domain.RuleFileContent
+import com.neteinstein.networth.feature.manage.domain.RuleFileError
 import com.neteinstein.networth.feature.manage.domain.usecase.AccountDraft
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.ImportMerchantRulesUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.refiledBy
 import com.neteinstein.networth.feature.manage.domain.usecase.transactionsMatching
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -57,6 +63,23 @@ data class RuleEditor(
     val pastToRefile: Int = 0,
 ) {
     val canSave: Boolean get() = rule.pattern.isNotBlank()
+}
+
+/** The rules-file dialog: what importing the picked file would add and change, or why it can't be read. */
+data class RuleImportPreview(
+    val fileName: String,
+    val error: RuleFileError? = null,
+    val toAdd: Int = 0,
+    val toUpdate: Int = 0,
+    val unchanged: Int = 0,
+    /** Entries without a text or category, or with an unknown match. */
+    val invalid: Int = 0,
+    /** Categories (or "Category › Subcategory") the household doesn't have; their rules are left out. */
+    val unknownCategories: List<String> = emptyList(),
+    /** Past transactions the file's rules would file somewhere else. */
+    val pastToRefile: Int = 0,
+) {
+    val canImport: Boolean get() = error == null && toAdd + toUpdate + pastToRefile > 0
 }
 
 /** The account dialog's fields, kept as typed text until saved. */
@@ -91,6 +114,7 @@ data class ManageUiState(
     val editor: AccountEditor? = null,
     val categories: List<Category> = emptyList(),
     val ruleEditor: RuleEditor? = null,
+    val ruleImport: RuleImportPreview? = null,
 )
 
 class ManageViewModel(
@@ -102,12 +126,14 @@ class ManageViewModel(
     private val saveAssumptions: SaveAssumptionsUseCase,
     private val deleteRule: DeleteMerchantRuleUseCase,
     private val saveRule: SaveMerchantRuleUseCase,
+    private val importRules: ImportMerchantRulesUseCase,
     private val addMember: AddMemberUseCase,
 ) : ViewModel() {
     private val editor = MutableStateFlow<AccountEditor?>(null)
     private val editedRule = MutableStateFlow<MerchantRule?>(null)
+    private val ruleFile = MutableStateFlow<Pair<String, RuleFileContent>?>(null)
 
-    val state: StateFlow<ManageUiState> = combine(observeDatabase(), editor, editedRule) { db, editor, rule ->
+    val state: StateFlow<ManageUiState> = combine(observeDatabase(), editor, editedRule, ruleFile) { db, editor, rule, file ->
         val database = (db as? DatabaseState.Ready)?.database ?: return@combine ManageUiState(editor = editor)
         val categories = database.categories.sortedBy { it.position }
         ManageUiState(
@@ -144,6 +170,19 @@ class ManageViewModel(
                     rule = it,
                     pastMatches = matching.size,
                     pastToRefile = matching.count { tx -> tx.categoryId != it.categoryId || tx.subcategoryId != it.subcategoryId },
+                )
+            },
+            ruleImport = file?.let { (name, content) ->
+                if (content.error != null) return@let RuleImportPreview(name, content.error)
+                val plan = RuleFile.plan(content.entries, database.categories, database.merchantRules)
+                RuleImportPreview(
+                    fileName = name,
+                    toAdd = plan.toAdd.size,
+                    toUpdate = plan.toUpdate.size,
+                    unchanged = plan.unchanged,
+                    invalid = content.invalid,
+                    unknownCategories = plan.unknownCategories,
+                    pastToRefile = database.refiledBy(plan.rules).size,
                 )
             },
         )
@@ -252,5 +291,26 @@ class ManageViewModel(
         if (rule.pattern.isBlank()) return
         editedRule.value = null
         viewModelScope.launch { saveRule(rule, applyToPast) }
+    }
+
+    /** Reads a picked merchant rules file and shows what importing it would do. */
+    fun onRuleFilePicked(files: List<PickedFile>) {
+        val file = files.firstOrNull() ?: return
+        ruleFile.value = file.name to RuleFile.read(file.bytes.decodeToString())
+    }
+
+    fun onRuleFilePickFailed() {
+        ruleFile.value = "" to RuleFileContent(error = RuleFileError.NOT_JSON)
+    }
+
+    fun onDismissRuleImport() {
+        ruleFile.value = null
+    }
+
+    /** Imports the picked rules file; [applyToPast] also re-files every earlier transaction its rules match. */
+    fun onImportRules(applyToPast: Boolean) {
+        val content = ruleFile.value?.second?.takeIf { it.error == null } ?: return
+        ruleFile.value = null
+        viewModelScope.launch { importRules(content.entries, applyToPast) }
     }
 }

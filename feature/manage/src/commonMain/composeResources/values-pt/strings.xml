@@ -16,6 +16,33 @@
     <string name="manage_rules_empty">As regras são aprendidas quando revê os movimentos importados: cada uma classifica esse comerciante automaticamente da próxima vez.</string>
     <string name="manage_rules_show_all">Mostrar as %1$d regras</string>
     <string name="manage_rules_show_less">Mostrar menos</string>
+    <string name="manage_rules_import">Importar</string>
+    <string name="manage_rules_import_title">Importar regras de comerciante</string>
+    <plurals name="manage_rules_import_new">
+        <item quantity="one">%1$d regra nova</item>
+        <item quantity="other">%1$d regras novas</item>
+    </plurals>
+    <plurals name="manage_rules_import_changed">
+        <item quantity="one">%1$d regra muda de categoria</item>
+        <item quantity="other">%1$d regras mudam de categoria</item>
+    </plurals>
+    <plurals name="manage_rules_import_unchanged">
+        <item quantity="one">%1$d regra já existe</item>
+        <item quantity="other">%1$d regras já existem</item>
+    </plurals>
+    <plurals name="manage_rules_import_invalid">
+        <item quantity="one">%1$d linha ignorada: sem texto ou categoria</item>
+        <item quantity="other">%1$d linhas ignoradas: sem texto ou categoria</item>
+    </plurals>
+    <string name="manage_rules_import_unknown">Ignoradas, categoria não encontrada: %1$s</string>
+    <string name="manage_rules_import_nothing">Nada a importar: todas as regras já existem.</string>
+    <string name="manage_rules_import_not_json">Não foi possível ler este ficheiro como ficheiro de regras (JSON).</string>
+    <string name="manage_rules_import_no_rules">Nenhuma regra encontrada. O ficheiro precisa de uma lista “rules” com um padrão e uma categoria para cada regra.</string>
+    <string name="manage_rules_import_future">Importar · só a partir de agora</string>
+    <plurals name="manage_rules_import_past">
+        <item quantity="one">Importar · reclassificar também %1$d movimento anterior</item>
+        <item quantity="other">Importar · reclassificar também %1$d movimentos anteriores</item>
+    </plurals>
     <string name="manage_delete_rule">Apagar a regra %1$s</string>
     <string name="manage_saved_filters">Filtros guardados</string>
     <string name="manage_alert_rules">Regras de alertas</string>

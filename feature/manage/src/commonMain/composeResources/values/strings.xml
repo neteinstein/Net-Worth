@@ -16,6 +16,33 @@
     <string name="manage_rules_empty">Rules are learned when you review imported transactions: each one files that merchant automatically next time.</string>
     <string name="manage_rules_show_all">Show all %1$d rules</string>
     <string name="manage_rules_show_less">Show fewer</string>
+    <string name="manage_rules_import">Import</string>
+    <string name="manage_rules_import_title">Import merchant rules</string>
+    <plurals name="manage_rules_import_new">
+        <item quantity="one">%1$d new rule</item>
+        <item quantity="other">%1$d new rules</item>
+    </plurals>
+    <plurals name="manage_rules_import_changed">
+        <item quantity="one">%1$d rule changes category</item>
+        <item quantity="other">%1$d rules change category</item>
+    </plurals>
+    <plurals name="manage_rules_import_unchanged">
+        <item quantity="one">%1$d rule is already there</item>
+        <item quantity="other">%1$d rules are already there</item>
+    </plurals>
+    <plurals name="manage_rules_import_invalid">
+        <item quantity="one">%1$d line left out: no text or category</item>
+        <item quantity="other">%1$d lines left out: no text or category</item>
+    </plurals>
+    <string name="manage_rules_import_unknown">Left out, category not found: %1$s</string>
+    <string name="manage_rules_import_nothing">Nothing to import: every rule is already there.</string>
+    <string name="manage_rules_import_not_json">This file couldn’t be read as a rules file (JSON).</string>
+    <string name="manage_rules_import_no_rules">No rules found. The file needs a “rules” list with a pattern and a category for each rule.</string>
+    <string name="manage_rules_import_future">Import · only from now on</string>
+    <plurals name="manage_rules_import_past">
+        <item quantity="one">Import · also re-file %1$d past transaction</item>
+        <item quantity="other">Import · also re-file %1$d past transactions</item>
+    </plurals>
     <string name="manage_delete_rule">Delete rule %1$s</string>
     <string name="manage_saved_filters">Saved filters</string>
     <string name="manage_alert_rules">Alert rules</string>
