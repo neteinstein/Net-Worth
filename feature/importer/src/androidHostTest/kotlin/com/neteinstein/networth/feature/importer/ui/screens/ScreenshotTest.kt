@@ -17,6 +17,22 @@ class ScreenshotTest {
     fun importConfirm() = screenshot("import_confirm") { ImportContent(previewImportState(ImportStage.CONFIRM), ImportActions()) }
 
     @Test
+    fun importConfirmBatch() = screenshot("import_confirm_batch") {
+        val state = previewImportState(ImportStage.CONFIRM)
+        ImportContent(
+            state.copy(
+                fileNumber = 2,
+                fileCount = 12,
+                hasMoreFiles = true,
+                errors = listOf(FileError("notes.csv", null)),
+                coverage = emptyList(),
+                history = emptyList(),
+            ),
+            ImportActions(),
+        )
+    }
+
+    @Test
     fun importDone() = screenshot("import_done") { ImportContent(previewImportState(ImportStage.DONE), ImportActions()) }
 
     @Test

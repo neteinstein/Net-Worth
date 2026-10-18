@@ -39,6 +39,8 @@ data class ImportSummary(
     val overlappedImportIds: List<String>,
     /** Sections whose movements don't add up from the opening to the closing balance. */
     val unreconciledAccounts: List<String>,
+    /** The account each imported section went to, by section index (new accounts included). */
+    val sectionAccountIds: Map<Int, String> = emptyMap(),
 ) {
     /** Movements that count as spending or income, i.e. not internal transfers. */
     val categorisable: Int get() = imported - internalTransfers

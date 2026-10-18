@@ -20,6 +20,8 @@ import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseC
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
 import com.neteinstein.networth.feature.importer.ui.Periods
+import com.neteinstein.networth.feature.importer.ui.components.PickedFile
+import com.neteinstein.networth.feature.importer.ui.screens.FileError
 import com.neteinstein.networth.feature.importer.ui.screens.ImportStage
 import com.neteinstein.networth.feature.importer.ui.screens.ImportViewModel
 import com.neteinstein.networth.feature.importer.ui.screens.ReviewViewModel
@@ -90,7 +92,7 @@ class ImportViewModelsTest {
             assertTrue(vm.state.value.ready)
             assertEquals(ImportStage.PICK, vm.state.value.stage)
 
-            vm.onFilePicked("extrato.csv", csv)
+            vm.onFilesPicked(listOf(PickedFile("extrato.csv", csv)))
             val confirm = vm.state.value
             assertEquals(ImportStage.CONFIRM, confirm.stage)
             val section = confirm.sections.single()
@@ -111,7 +113,7 @@ class ImportViewModelsTest {
             vm.onImport()
             val done = vm.state.value
             assertEquals(ImportStage.DONE, done.stage)
-            val summary = assertNotNull(done.summary)
+            val summary = done.results.single().summary
             assertEquals(2, summary.imported)
             assertEquals(listOf("Conta conjunta"), summary.accountNames)
             val account = repository.database.accounts.first { it.name == "Conta conjunta" }
@@ -127,20 +129,21 @@ class ImportViewModelsTest {
             assertEquals(ImportStage.PICK, vm.state.value.stage)
 
             // The same file again: matched by IBAN, nothing new.
-            vm.onFilePicked("extrato.csv", csv)
+            vm.onFilesPicked(listOf(PickedFile("extrato.csv", csv)))
             val again = vm.state.value.sections.single()
             assertEquals(account.id, again.choice.accountId)
             assertTrue(again.isMatched)
             vm.onImport()
-            assertEquals(2, vm.state.value.summary!!.duplicatesSkipped)
-            assertEquals(listOf(LocalDate(2026, 9, 2) to LocalDate(2026, 9, 3)), vm.state.value.overlaps)
+            val result = vm.state.value.results.single()
+            assertEquals(2, result.summary.duplicatesSkipped)
+            assertEquals(listOf(LocalDate(2026, 9, 2) to LocalDate(2026, 9, 3)), result.overlaps)
         }
 
     @Test
     fun selectingAnAccountTakesItsOwnersAndSkippingEverythingDisablesImport() =
         runTest {
             val vm = importViewModel()
-            vm.onFilePicked("extrato.csv", csv)
+            vm.onFilesPicked(listOf(PickedFile("extrato.csv", csv)))
             val joint = family.accounts.first { it.type == AccountType.SAVINGS && it.ownerIds.size == 2 }
             vm.onAccountSelected(0, joint.id)
             assertEquals(joint.ownerIds, vm.state.value.sections.single().choice.ownerIds)
@@ -173,22 +176,139 @@ class ImportViewModelsTest {
                     )
                 }
             val vm = importViewModel()
-            vm.onFilePicked("extrato.csv", csv)
+            vm.onFilesPicked(listOf(PickedFile("extrato.csv", csv)))
             assertEquals(ImportStage.DONE, vm.state.value.stage)
             assertEquals(2, repository.database.transactions.count { it.accountId == pedroAccount.id })
+        }
+
+    @Test
+    fun importsSeveralFilesOneAfterTheOther() =
+        runTest {
+            val october =
+                """
+                IBAN: PT50 1111 2222 3333 4444 5555 6
+                Data;Descrição;Montante;Saldo
+                02-10-2026;Compra Mb Cartão ****1* Continente;-5,00;65,00
+                """.trimIndent().encodeToByteArray()
+            val vm = importViewModel()
+            vm.onFilesPicked(
+                listOf(
+                    PickedFile("setembro.csv", csv),
+                    PickedFile("notes.csv", "nothing to see".encodeToByteArray()),
+                    PickedFile("outubro.csv", october),
+                    PickedFile("novembro.csv", october),
+                ),
+            )
+            val first = vm.state.value
+            assertEquals(ImportStage.CONFIRM, first.stage)
+            assertEquals(1, first.fileNumber)
+            assertEquals(4, first.fileCount)
+            assertEquals("setembro.csv", first.fileName)
+            vm.onReuseChoices(false)
+            vm.onNewAccountName(0, "Conta conjunta")
+            vm.onImport()
+
+            // The unreadable file is reported and skipped; the next one already knows the new account.
+            val second = vm.state.value
+            assertEquals(ImportStage.CONFIRM, second.stage)
+            assertEquals(3, second.fileNumber)
+            assertEquals("notes.csv", second.errors.single().fileName)
+            assertTrue(second.sections.single().isMatched)
+            vm.onImport()
+
+            vm.onSkipFile()
+            val done = vm.state.value
+            assertEquals(ImportStage.DONE, done.stage)
+            assertEquals(listOf("setembro.csv", "outubro.csv"), done.results.map { it.summary.fileName })
+            assertEquals(3, repository.database.transactions.size - family.transactions.size)
+            assertEquals(2, repository.database.imports.size - family.imports.size)
+
+            vm.onSkipFile()
+            assertEquals(ImportStage.DONE, vm.state.value.stage)
+            vm.onFilesPicked(emptyList())
+            assertEquals(ImportStage.DONE, vm.state.value.stage)
+        }
+
+    @Test
+    fun reusesTheAccountAndOwnersForTheOtherFilesOfTheSameAccount() =
+        runTest {
+            fun month(m: Int) =
+                """
+                Data;Descrição;Montante;Saldo
+                02-0$m-2026;Compra Mb Cartão ****1* Pingo Doce;-10,00;90,00
+                """.trimIndent().encodeToByteArray()
+            val vm = importViewModel()
+            vm.onFilesPicked((1..3).map { PickedFile("extrato_0$it.csv", month(it)) })
+            assertTrue(vm.state.value.hasMoreFiles)
+            assertTrue(vm.state.value.reuseChoices)
+            vm.onNewAccountName(0, "Conta da casa")
+            vm.onOwnerToggled(0, pedro.id)
+            vm.onOwnerToggled(0, maria.id)
+            vm.onImport()
+
+            // Months 2 and 3 have no IBAN either, but are the same account: imported without asking.
+            val done = vm.state.value
+            assertEquals(ImportStage.DONE, done.stage)
+            assertEquals(3, done.results.size)
+            val account = repository.database.accounts.single { it.name == "Conta da casa" }
+            assertEquals(listOf(pedro.id, maria.id), account.ownerIds)
+            assertEquals(3, repository.database.transactions.count { it.accountId == account.id })
+        }
+
+    @Test
+    fun asksAgainForEachFileWhenReuseIsOff() =
+        runTest {
+            val vm = importViewModel()
+            vm.onFilesPicked(listOf(PickedFile("a.csv", csv), PickedFile("b.csv", csv)))
+            vm.onReuseChoices(false)
+            vm.onIncludeSection(0, false)
+            vm.onSkipFile()
+            assertEquals(ImportStage.CONFIRM, vm.state.value.stage)
+            assertFalse(vm.state.value.hasMoreFiles)
+            assertFalse(vm.state.value.sections.single().choice.include.not())
+        }
+
+    @Test
+    fun skipsFilesWhoseAccountsWereAllLeftOut() =
+        runTest {
+            val other =
+                """
+                IBAN: PT50 1111 2222 3333 4444 5555 6
+                Data;Descrição;Montante;Saldo
+                05-10-2026;Compra Mb Cartão ****1* Lidl;-1,00;69,00
+                """.trimIndent().encodeToByteArray()
+            val vm = importViewModel()
+            vm.onFilesPicked(listOf(PickedFile("a.csv", csv), PickedFile("b.csv", other)))
+            vm.onAccountSelected(0, family.accounts.first().id)
+            vm.onIncludeSection(0, false)
+            vm.onIncludeSection(0, true)
+            vm.onImport()
+            assertEquals(ImportStage.DONE, vm.state.value.stage)
+            assertEquals(2, vm.state.value.results.size)
+        }
+
+    @Test
+    fun skippingEveryFileGoesBackToPicking() =
+        runTest {
+            val vm = importViewModel()
+            vm.onFilesPicked(listOf(PickedFile("a.csv", csv), PickedFile("b.csv", csv)))
+            vm.onSkipFile()
+            vm.onSkipFile()
+            assertEquals(ImportStage.PICK, vm.state.value.stage)
+            assertTrue(vm.state.value.results.isEmpty())
         }
 
     @Test
     fun showsReadableErrors() =
         runTest {
             val vm = importViewModel()
-            vm.onFilePicked("notes.csv", "nothing to see".encodeToByteArray())
-            assertNotNull(vm.state.value.error)
+            vm.onFilesPicked(listOf(PickedFile("notes.csv", "nothing to see".encodeToByteArray())))
+            assertNotNull(vm.state.value.errors.single().message)
             assertEquals(ImportStage.PICK, vm.state.value.stage)
             vm.onDismissError()
-            assertNull(vm.state.value.error)
+            assertTrue(vm.state.value.errors.isEmpty())
             vm.onPickFailed()
-            assertTrue(vm.state.value.errorUnknown)
+            assertEquals(listOf(FileError(null, null)), vm.state.value.errors)
             repository.state.value = DatabaseState.NotSelected
             assertFalse(vm.state.value.ready)
         }

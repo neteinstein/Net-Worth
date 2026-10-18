@@ -18,11 +18,14 @@ import com.neteinstein.networth.feature.importer.domain.Coverage
 import com.neteinstein.networth.feature.importer.domain.model.AccountCoverage
 import com.neteinstein.networth.feature.importer.domain.model.ImportRequest
 import com.neteinstein.networth.feature.importer.domain.model.ImportSummary
+import com.neteinstein.networth.feature.importer.domain.model.ParsedSection
 import com.neteinstein.networth.feature.importer.domain.model.ParsedStatement
 import com.neteinstein.networth.feature.importer.domain.model.SectionTarget
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
+import com.neteinstein.networth.feature.importer.domain.parse.Values
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
+import com.neteinstein.networth.feature.importer.ui.components.PickedFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -56,6 +59,18 @@ data class SectionUi(
     val choice: SectionChoice,
 )
 
+/** A file that couldn't be read or imported. [message] is already user-readable; null = unknown error. */
+data class FileError(
+    val fileName: String?,
+    val message: String?,
+)
+
+/** One imported file, and the periods of the earlier imports its duplicates came from. */
+data class ImportResult(
+    val summary: ImportSummary,
+    val overlaps: List<Pair<LocalDate, LocalDate>>,
+)
+
 /** One line of "Earlier imports". */
 data class ImportHistoryLine(
     val record: ImportRecord,
@@ -66,16 +81,20 @@ data class ImportHistoryLine(
 data class ImportUiState(
     val ready: Boolean = false,
     val stage: ImportStage = ImportStage.PICK,
-    /** A parse or save error to show, already user-readable. Null with [errorUnknown] false = no error. */
-    val error: String? = null,
-    val errorUnknown: Boolean = false,
+    val errors: List<FileError> = emptyList(),
     val fileName: String? = null,
+    /** Which of the files picked together is being read or confirmed (1-based), and how many there are. */
+    val fileNumber: Int = 0,
+    val fileCount: Int = 0,
+    /** More picked files wait after this one, so the choices made here can carry over. */
+    val hasMoreFiles: Boolean = false,
+    /** Reuse this file's accounts, owners and skipped sections for the next files from the same accounts. */
+    val reuseChoices: Boolean = true,
     val sections: List<SectionUi> = emptyList(),
     val accounts: List<Account> = emptyList(),
     val members: List<Member> = emptyList(),
-    val summary: ImportSummary? = null,
-    /** Periods of the earlier imports that the duplicates came from. */
-    val overlaps: List<Pair<LocalDate, LocalDate>> = emptyList(),
+    /** The files imported so far from the last pick, in order. */
+    val results: List<ImportResult> = emptyList(),
     val coverage: List<AccountCoverage> = emptyList(),
     val history: List<ImportHistoryLine> = emptyList(),
     val pendingReview: Int = 0,
@@ -92,9 +111,14 @@ private data class ImportSession(
     val fileName: String? = null,
     val statement: ParsedStatement? = null,
     val choices: List<SectionChoice> = emptyList(),
-    val summary: ImportSummary? = null,
-    val error: String? = null,
-    val errorUnknown: Boolean = false,
+    /** Files picked together that are still to be read after the current one. */
+    val queue: List<PickedFile> = emptyList(),
+    val fileCount: Int = 0,
+    val summaries: List<ImportSummary> = emptyList(),
+    val errors: List<FileError> = emptyList(),
+    val reuseChoices: Boolean = true,
+    /** Choices confirmed for earlier files of this pick, by account key (see [accountKey]). */
+    val remembered: Map<String, SectionChoice> = emptyMap(),
 )
 
 class ImportViewModel(
@@ -133,20 +157,26 @@ class ImportViewModel(
                 )
             }.orEmpty()
         val names = db.accounts.associate { it.id to it.name }
-        val overlaps =
-            s.summary?.overlappedImportIds.orEmpty().mapNotNull { id -> db.imports.firstOrNull { it.id == id } }
-                .map { it.periodStart to it.periodEnd }.distinct()
+        val results =
+            s.summaries.map { summary ->
+                val overlaps =
+                    summary.overlappedImportIds.mapNotNull { id -> db.imports.firstOrNull { it.id == id } }
+                        .map { it.periodStart to it.periodEnd }.distinct()
+                ImportResult(summary, overlaps)
+            }
         return ImportUiState(
             ready = true,
             stage = s.stage,
-            error = s.error,
-            errorUnknown = s.errorUnknown,
+            errors = s.errors,
             fileName = s.fileName,
+            fileNumber = if (s.stage == ImportStage.DONE) 0 else s.fileCount - s.queue.size,
+            fileCount = s.fileCount,
+            hasMoreFiles = s.queue.isNotEmpty(),
+            reuseChoices = s.reuseChoices,
             sections = sections,
             accounts = db.accounts,
             members = db.members,
-            summary = s.summary,
-            overlaps = overlaps,
+            results = results,
             coverage = Coverage.of(db, CalendarMonth.of(clock.today())),
             history =
                 db.imports.sortedByDescending { it.importedAt }.take(HISTORY).map { record ->
@@ -162,27 +192,63 @@ class ImportViewModel(
         )
     }
 
-    fun onFilePicked(
-        name: String,
-        bytes: ByteArray,
-    ) {
-        session.value = ImportSession(stage = ImportStage.READING, fileName = name)
+    /** Reads the picked files one after the other; each is confirmed (or imported straight away) in turn. */
+    fun onFilesPicked(files: List<PickedFile>) {
+        if (files.isEmpty()) return
+        session.value = ImportSession(queue = files, fileCount = files.size)
+        readNext()
+    }
+
+    fun onPickFailed() {
+        session.value = ImportSession(errors = listOf(FileError(fileName = null, message = null)))
+    }
+
+    /** Leaves the file being confirmed out and goes on with the next one. */
+    fun onSkipFile() {
+        if (session.value.stage == ImportStage.CONFIRM) readNext()
+    }
+
+    private fun readNext() {
+        val current = session.value
+        val file = current.queue.firstOrNull()
+        if (file == null) {
+            session.update {
+                it.copy(
+                    stage = if (it.summaries.isEmpty()) ImportStage.PICK else ImportStage.DONE,
+                    fileName = null,
+                    statement = null,
+                    choices = emptyList(),
+                )
+            }
+            return
+        }
+        session.value =
+            current.copy(
+                stage = ImportStage.READING,
+                fileName = file.name,
+                statement = null,
+                choices = emptyList(),
+                queue = current.queue.drop(1),
+            )
         viewModelScope.launch {
             val statement =
                 try {
-                    parse(name, bytes)
+                    parse(file.name, file.bytes)
                 } catch (e: ParseException) {
-                    session.value = ImportSession(fileName = name, error = e.message)
+                    failed(FileError(file.name, e.message))
                     return@launch
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
-                    session.value = ImportSession(fileName = name, errorUnknown = true)
+                    failed(FileError(file.name, message = null))
                     return@launch
                 }
             val db = (database.value as? DatabaseState.Ready)?.database ?: return@launch
+            val remembered = session.value.remembered
+            val known = statement.sections.map { remembered[accountKey(statement, it)] }
             val choices =
                 statement.sections.mapIndexed { index, section ->
+                    known[index]?.let { return@mapIndexed it.copy(index = index) }
                     val match = AccountMatcher.match(db, section)
                     SectionChoice(
                         index = index,
@@ -194,14 +260,22 @@ class ImportViewModel(
                         include = section.rows.isNotEmpty() || match != null || section.closingBalanceMinor != null,
                     )
                 }
-            session.value = ImportSession(stage = ImportStage.CONFIRM, fileName = name, statement = statement, choices = choices)
-            val everyMatched = choices.all { it.accountId != null }
-            if (!db.settings.askAccountOnImport && everyMatched) onImport()
+            session.update { it.copy(stage = ImportStage.CONFIRM, statement = statement, choices = choices) }
+            when {
+                // Every account was already confirmed for an earlier file of this pick: no need to ask again.
+                known.all { it != null } -> if (choices.any { it.include }) onImport() else readNext()
+                !db.settings.askAccountOnImport && choices.all { it.accountId != null } -> onImport()
+            }
         }
     }
 
-    fun onPickFailed() {
-        session.value = ImportSession(errorUnknown = true)
+    private fun failed(error: FileError) {
+        session.update { it.copy(errors = it.errors + error) }
+        readNext()
+    }
+
+    fun onReuseChoices(reuse: Boolean) {
+        session.update { it.copy(reuseChoices = reuse) }
     }
 
     fun onAccountSelected(
@@ -254,15 +328,29 @@ class ImportViewModel(
                 SectionTarget(choice.index, choice.accountId, choice.newName, choice.newType, choice.ownerIds)
             }
         if (targets.isEmpty()) return
-        session.update { it.copy(stage = ImportStage.IMPORTING) }
+        // A retry replaces the error of the attempt before.
+        session.update { s -> s.copy(stage = ImportStage.IMPORTING, errors = s.errors.filterNot { it.fileName == s.fileName }) }
         viewModelScope.launch {
             try {
                 val summary = commit(ImportRequest(statement, targets))
-                session.update { it.copy(stage = ImportStage.DONE, summary = summary) }
+                session.update { s ->
+                    val remembered =
+                        if (s.reuseChoices) {
+                            s.remembered +
+                                s.choices.associate { choice ->
+                                    val accountId = summary.sectionAccountIds[choice.index] ?: choice.accountId
+                                    accountKey(statement, statement.sections[choice.index]) to choice.copy(accountId = accountId)
+                                }
+                        } else {
+                            s.remembered
+                        }
+                    s.copy(summaries = s.summaries + summary, remembered = remembered)
+                }
+                readNext()
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                session.update { it.copy(stage = ImportStage.CONFIRM, errorUnknown = true) }
+                session.update { it.copy(stage = ImportStage.CONFIRM, errors = it.errors + FileError(it.fileName, message = null)) }
             }
         }
     }
@@ -272,7 +360,7 @@ class ImportViewModel(
     }
 
     fun onDismissError() {
-        session.update { it.copy(error = null, errorUnknown = false) }
+        session.update { it.copy(errors = emptyList()) }
     }
 
     private fun updateChoice(
@@ -286,6 +374,15 @@ class ImportViewModel(
         const val HISTORY = 8
     }
 }
+
+/** What identifies a section's account across files: its IBAN or number, else the bank and the section's name. */
+internal fun accountKey(
+    statement: ParsedStatement,
+    section: ParsedSection,
+): String =
+    section.iban?.uppercase()?.let(Values::digits)?.takeIf { it.isNotEmpty() }
+        ?: section.accountNumber?.let(Values::digits)?.takeIf { it.isNotEmpty() }
+        ?: "${statement.bank.orEmpty()}|${statement.format}|${section.label}".uppercase()
 
 /** True when a statement section is a near-certain match, i.e. the file named the account. */
 internal val SectionUi.isMatched: Boolean get() = matchedAccountId != null && matchedAccountId == choice.accountId

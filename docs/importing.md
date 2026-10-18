@@ -32,6 +32,15 @@ add up from the opening to the closing balance is reported after the import.
 To support another bank: add a profile with synthetic fixture lines in `StatementProfilesTest` that copy the
 real layout with invented names, numbers and amounts. **Never commit a real statement.**
 
+## Several files at once
+
+The picker accepts many files (e.g. a year of monthly extracts). `ImportViewModel` reads them one after the
+other: each is confirmed (or imported straight away when "ask which account" is off and every section is
+matched), unreadable files are reported by name and skipped, and the summaries are listed at the end. With
+"Use the same accounts and owners for the next files" on (the default), the account, owners and left-out
+sections chosen for a file are reused for later files of the same account (`accountKey`: IBAN, else account
+number, else bank + format + section name), which are then imported without asking.
+
 ## What an import does (`ImportPlanner`)
 
 1. Each section goes to an existing account (pre-selected by IBAN/account number via `AccountMatcher`) or a new
@@ -46,4 +55,10 @@ real layout with invented names, numbers and amounts. **Never commit a real stat
    for the last 12 months).
 
 Uncategorised outflows wait in **Review & learn** (`ReviewQueue`): suggestions come from past choices for the
-same merchant; "Always file X this way" creates a rule that also files other waiting movements.
+same merchant, else from `KnownMerchants` (several hundred Portuguese brands and shop words — Continente,
+Mercadona, Galp, Via Verde, EDP, Farmácia… — mapped to the default subcategories), else from the movement kind
+(fees, mortgage). "Always file X this way" creates a rule that also files other waiting movements.
+
+Rules are edited in **Manage → Merchant rules** (text, how it matches, category and subcategory). Saving either
+changes only future imports or also re-files every past outflow/refund the rule matches (internal transfers
+are never touched).

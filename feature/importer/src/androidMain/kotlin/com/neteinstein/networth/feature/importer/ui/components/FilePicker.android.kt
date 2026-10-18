@@ -25,7 +25,7 @@ private val STATEMENT_TYPES =
 
 @Composable
 actual fun rememberStatementPicker(
-    onPicked: (name: String, bytes: ByteArray) -> Unit,
+    onPicked: (files: List<PickedFile>) -> Unit,
     onFailed: () -> Unit,
 ): () -> Unit {
     val context = LocalContext.current
@@ -33,22 +33,24 @@ actual fun rememberStatementPicker(
     val picked by rememberUpdatedState(onPicked)
     val failed by rememberUpdatedState(onFailed)
     val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-            if (uri == null) return@rememberLauncherForActivityResult
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris: List<Uri> ->
+            if (uris.isEmpty()) return@rememberLauncherForActivityResult
             scope.launch {
-                val file =
+                val files =
                     withContext(Dispatchers.IO) {
                         runCatching {
                             val resolver = context.contentResolver
-                            val name =
-                                resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
-                                    if (cursor.moveToFirst()) cursor.getString(0) else null
-                                } ?: uri.lastPathSegment.orEmpty()
-                            val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Unreadable")
-                            name to bytes
+                            uris.map { uri ->
+                                val name =
+                                    resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)?.use { cursor ->
+                                        if (cursor.moveToFirst()) cursor.getString(0) else null
+                                    } ?: uri.lastPathSegment.orEmpty()
+                                val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: error("Unreadable")
+                                PickedFile(name, bytes)
+                            }
                         }.getOrNull()
                     }
-                if (file == null) failed() else picked(file.first, file.second)
+                if (files == null) failed() else picked(files)
             }
         }
     return { launcher.launch(STATEMENT_TYPES) }

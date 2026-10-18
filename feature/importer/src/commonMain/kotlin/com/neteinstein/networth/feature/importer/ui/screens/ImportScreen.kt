@@ -3,6 +3,7 @@ package com.neteinstein.networth.feature.importer.ui.screens
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -10,10 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,10 +40,14 @@ import com.neteinstein.networth.feature.importer.domain.model.MonthCoverage
 import com.neteinstein.networth.feature.importer.generated.resources.Res
 import com.neteinstein.networth.feature.importer.generated.resources.importer_back
 import com.neteinstein.networth.feature.importer.generated.resources.importer_error_unknown
+import com.neteinstein.networth.feature.importer.generated.resources.importer_file_error
+import com.neteinstein.networth.feature.importer.generated.resources.importer_file_progress
 import com.neteinstein.networth.feature.importer.generated.resources.importer_import
 import com.neteinstein.networth.feature.importer.generated.resources.importer_importing
 import com.neteinstein.networth.feature.importer.generated.resources.importer_intro
 import com.neteinstein.networth.feature.importer.generated.resources.importer_reading
+import com.neteinstein.networth.feature.importer.generated.resources.importer_reuse_choices
+import com.neteinstein.networth.feature.importer.generated.resources.importer_skip_file
 import com.neteinstein.networth.feature.importer.generated.resources.importer_title
 import com.neteinstein.networth.feature.importer.ui.components.CoverageCard
 import com.neteinstein.networth.feature.importer.ui.components.ErrorCard
@@ -59,7 +67,7 @@ fun ImportScreen(
     viewModel: ImportViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val pick = rememberStatementPicker(onPicked = viewModel::onFilePicked, onFailed = viewModel::onPickFailed)
+    val pick = rememberStatementPicker(onPicked = viewModel::onFilesPicked, onFailed = viewModel::onPickFailed)
     ImportContent(
         state = state,
         actions =
@@ -73,6 +81,8 @@ fun ImportScreen(
                 onOwnerToggled = viewModel::onOwnerToggled,
                 onAddPerson = viewModel::onAddPerson,
                 onImport = viewModel::onImport,
+                onSkipFile = viewModel::onSkipFile,
+                onReuseChoices = viewModel::onReuseChoices,
                 onReview = onOpenReview,
                 onStartOver = viewModel::onStartOver,
                 onDismissError = viewModel::onDismissError,
@@ -91,6 +101,8 @@ data class ImportActions(
     val onOwnerToggled: (Int, String) -> Unit = { _, _ -> },
     val onAddPerson: (Int, String, MemberRole) -> Unit = { _, _, _ -> },
     val onImport: () -> Unit = {},
+    val onSkipFile: () -> Unit = {},
+    val onReuseChoices: (Boolean) -> Unit = {},
     val onReview: () -> Unit = {},
     val onStartOver: () -> Unit = {},
     val onDismissError: () -> Unit = {},
@@ -127,9 +139,24 @@ fun ImportContent(
                         modifier = cards,
                     )
                 }
-                val error = state.error ?: if (state.errorUnknown) "" else null
-                if (error != null) {
-                    item { ErrorCard(error.ifEmpty { stringResource(Res.string.importer_error_unknown) }, actions.onDismissError, cards) }
+                items(state.errors) { error ->
+                    val message = error.message ?: stringResource(Res.string.importer_error_unknown)
+                    val text =
+                        if (state.fileCount > 1 && error.fileName != null) {
+                            stringResource(Res.string.importer_file_error, error.fileName, message)
+                        } else {
+                            message
+                        }
+                    ErrorCard(text, actions.onDismissError, cards)
+                }
+                if (state.fileCount > 1 && state.fileNumber > 0 && state.stage != ImportStage.PICK) {
+                    item {
+                        Text(
+                            stringResource(Res.string.importer_file_progress, state.fileNumber, state.fileCount, state.fileName.orEmpty()),
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = cards,
+                        )
+                    }
                 }
                 when (state.stage) {
                     ImportStage.PICK, ImportStage.READING -> {
@@ -161,6 +188,18 @@ fun ImportContent(
                                 modifier = cards,
                             )
                         }
+                        if (state.hasMoreFiles) {
+                            item {
+                                Row(cards, verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        stringResource(Res.string.importer_reuse_choices),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.weight(1f).padding(end = 12.dp),
+                                    )
+                                    Switch(checked = state.reuseChoices, onCheckedChange = actions.onReuseChoices)
+                                }
+                            }
+                        }
                         item {
                             val importing = state.stage == ImportStage.IMPORTING
                             Button(
@@ -171,10 +210,29 @@ fun ImportContent(
                                 Text(stringResource(if (importing) Res.string.importer_importing else Res.string.importer_import))
                             }
                         }
+                        if (state.fileCount > 1) {
+                            item {
+                                TextButton(
+                                    onClick = actions.onSkipFile,
+                                    enabled = state.stage == ImportStage.CONFIRM,
+                                    modifier = cards.fillMaxWidth().heightIn(min = 44.dp),
+                                ) {
+                                    Text(stringResource(Res.string.importer_skip_file))
+                                }
+                            }
+                        }
                     }
                     ImportStage.DONE -> {
-                        state.summary?.let { summary ->
-                            item { SummaryCard(summary, state.overlaps, state.pendingReview, actions.onReview, actions.onStartOver, cards) }
+                        itemsIndexed(state.results) { index, result ->
+                            SummaryCard(
+                                summary = result.summary,
+                                overlaps = result.overlaps,
+                                pendingReview = state.pendingReview,
+                                onReview = actions.onReview,
+                                onImportAnother = actions.onStartOver,
+                                modifier = cards,
+                                showActions = index == state.results.lastIndex,
+                            )
                         }
                     }
                 }
@@ -228,22 +286,26 @@ internal fun previewImportState(stage: ImportStage): ImportUiState {
             ),
         accounts = listOf(current, joint),
         members = listOf(pedro, maria),
-        summary =
-            ImportSummary(
-                "extrato_setembro_2026.csv",
-                listOf("Pedro"),
-                LocalDate(2026, 9, 1),
-                LocalDate(2026, 9, 30),
-                rowsRead = 214,
-                duplicatesSkipped = 6,
-                imported = 208,
-                autoCategorised = 190,
-                internalTransfers = 0,
-                needReview = 18,
-                overlappedImportIds = listOf("w"),
-                unreconciledAccounts = emptyList(),
+        results =
+            listOf(
+                ImportResult(
+                    ImportSummary(
+                        "extrato_setembro_2026.csv",
+                        listOf("Pedro"),
+                        LocalDate(2026, 9, 1),
+                        LocalDate(2026, 9, 30),
+                        rowsRead = 214,
+                        duplicatesSkipped = 6,
+                        imported = 208,
+                        autoCategorised = 190,
+                        internalTransfers = 0,
+                        needReview = 18,
+                        overlappedImportIds = listOf("w"),
+                        unreconciledAccounts = emptyList(),
+                    ),
+                    listOf(LocalDate(2026, 9, 22) to LocalDate(2026, 9, 28)),
+                ),
             ),
-        overlaps = listOf(LocalDate(2026, 9, 22) to LocalDate(2026, 9, 28)),
         coverage = coverage,
         history = listOf(ImportHistoryLine(record, "Maria", "Maria")),
         pendingReview = 18,
