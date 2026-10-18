@@ -29,10 +29,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.OwnerPicker
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
+import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.AccountType
@@ -44,6 +46,7 @@ import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
+import com.neteinstein.networth.feature.manage.domain.RuleFileError
 import com.neteinstein.networth.feature.manage.generated.resources.Res
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_balance_invalid
@@ -79,10 +82,22 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_p
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_save_future
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_save_past
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rule_subcategory
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_changed
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_future
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_invalid
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_new
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_no_rules
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_not_json
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_nothing
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_past
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_title
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_unchanged
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import_unknown
 import com.neteinstein.networth.feature.manage.generated.resources.manage_save
 import com.neteinstein.networth.feature.manage.generated.resources.manage_spike_threshold
 import com.neteinstein.networth.feature.manage.ui.screens.AccountEditor
 import com.neteinstein.networth.feature.manage.ui.screens.RuleEditor
+import com.neteinstein.networth.feature.manage.ui.screens.RuleImportPreview
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
@@ -158,6 +173,85 @@ internal fun RuleEditorDialog(
         dismissButton = {
             Row {
                 TextButton(onClick = onDelete) { Text(stringResource(Res.string.manage_delete)) }
+                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.manage_cancel)) }
+            }
+        },
+    )
+}
+
+/**
+ * What importing a merchant rules file would do (new rules, changed categories, lines left out), or why the file
+ * can't be read. Like the rule editor, importing applies to future imports or also re-files the past.
+ */
+@Composable
+internal fun RuleImportDialog(
+    preview: RuleImportPreview,
+    onImport: (applyToPast: Boolean) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.manage_rules_import_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (preview.fileName.isNotEmpty()) {
+                    Text(
+                        preview.fileName,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = NetWorthTheme.monoFamily),
+                        color = muted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                when (preview.error) {
+                    RuleFileError.NOT_JSON -> Text(stringResource(Res.string.manage_rules_import_not_json))
+                    RuleFileError.NO_RULES -> Text(stringResource(Res.string.manage_rules_import_no_rules))
+                    null -> {
+                        if (preview.toAdd > 0) {
+                            Text(pluralStringResource(Res.plurals.manage_rules_import_new, preview.toAdd, preview.toAdd))
+                        }
+                        if (preview.toUpdate > 0) {
+                            Text(pluralStringResource(Res.plurals.manage_rules_import_changed, preview.toUpdate, preview.toUpdate))
+                        }
+                        if (preview.unchanged > 0) {
+                            Text(
+                                pluralStringResource(Res.plurals.manage_rules_import_unchanged, preview.unchanged, preview.unchanged),
+                                color = muted,
+                            )
+                        }
+                        if (preview.unknownCategories.isNotEmpty()) {
+                            Text(
+                                stringResource(Res.string.manage_rules_import_unknown, preview.unknownCategories.joinToString(", ")),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        if (preview.invalid > 0) {
+                            Text(
+                                pluralStringResource(Res.plurals.manage_rules_import_invalid, preview.invalid, preview.invalid),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        if (!preview.canImport) {
+                            Text(stringResource(Res.string.manage_rules_import_nothing), color = muted)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Column(horizontalAlignment = Alignment.End) {
+                if (preview.canImport && preview.pastToRefile > 0) {
+                    TextButton(onClick = { onImport(true) }) {
+                        Text(pluralStringResource(Res.plurals.manage_rules_import_past, preview.pastToRefile, preview.pastToRefile))
+                    }
+                }
+                if (preview.canImport && preview.toAdd + preview.toUpdate > 0) {
+                    TextButton(onClick = { onImport(false) }) { Text(stringResource(Res.string.manage_rules_import_future)) }
+                }
+                // In the same column: next to two long import buttons a separate Cancel overlaps them.
                 TextButton(onClick = onDismiss) { Text(stringResource(Res.string.manage_cancel)) }
             }
         },

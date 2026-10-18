@@ -1,0 +1,304 @@
+{
+  "rules": [
+    {
+      "pattern": "PRESTAÇÃO CH",
+      "match": "CONTAINS",
+      "category": "Housing",
+      "subcategory": "Rent / mortgage"
+    },
+    {
+      "pattern": "COOPERNICO",
+      "match": "PREFIX",
+      "category": "Housing",
+      "subcategory": "Electricity"
+    },
+    {
+      "pattern": "INDAQUA",
+      "match": "PREFIX",
+      "category": "Housing",
+      "subcategory": "Water"
+    },
+    {
+      "pattern": "MEO, SA",
+      "match": "PREFIX",
+      "category": "Housing",
+      "subcategory": "Internet & phone"
+    },
+    {
+      "pattern": "GENERALI",
+      "match": "PREFIX",
+      "category": "Housing",
+      "subcategory": "Insurance"
+    },
+    {
+      "pattern": "LIDL",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Supermarket"
+    },
+    {
+      "pattern": "ALDI",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Supermarket"
+    },
+    {
+      "pattern": "CONTINENTE",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Supermarket"
+    },
+    {
+      "pattern": "MERCADONA",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Supermarket"
+    },
+    {
+      "pattern": "NORMA",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Supermarket"
+    },
+    {
+      "pattern": "IKEA",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Household supplies"
+    },
+    {
+      "pattern": "BCM BRICOLAGE",
+      "match": "PREFIX",
+      "category": "Groceries",
+      "subcategory": "Household supplies"
+    },
+    {
+      "pattern": "POSTO CEPSA",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Fuel"
+    },
+    {
+      "pattern": "POSTO BP",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Fuel"
+    },
+    {
+      "pattern": "DISA",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Fuel"
+    },
+    {
+      "pattern": "ARAL STATION",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Fuel"
+    },
+    {
+      "pattern": "VIA VERDE",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Tolls"
+    },
+    {
+      "pattern": "MVG HANDY TICKET",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Public transport"
+    },
+    {
+      "pattern": "BOLT.EUO",
+      "match": "CONTAINS",
+      "category": "Transport",
+      "subcategory": "Public transport"
+    },
+    {
+      "pattern": "BOLT.EUR",
+      "match": "CONTAINS",
+      "category": "Transport",
+      "subcategory": "Public transport"
+    },
+    {
+      "pattern": "UBER RIDES",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Public transport"
+    },
+    {
+      "pattern": "TESLA",
+      "match": "PREFIX",
+      "category": "Transport",
+      "subcategory": "Car maintenance"
+    },
+    {
+      "pattern": "DECATHLON",
+      "match": "PREFIX",
+      "category": "Kids’ activities",
+      "subcategory": "Sports"
+    },
+    {
+      "pattern": "MCDONALDS",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Restaurants"
+    },
+    {
+      "pattern": "H3",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Restaurants"
+    },
+    {
+      "pattern": "VITAMINAS",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Restaurants"
+    },
+    {
+      "pattern": "MANTEIGARIA",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Restaurants"
+    },
+    {
+      "pattern": "UBER EATS",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Takeaway"
+    },
+    {
+      "pattern": "TGTG",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Takeaway"
+    },
+    {
+      "pattern": "BOLT.EUD",
+      "match": "CONTAINS",
+      "category": "Dining & leisure",
+      "subcategory": "Takeaway"
+    },
+    {
+      "pattern": "NOS CINEMAS",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Outings"
+    },
+    {
+      "pattern": "MBWAY - CINEMAS",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Outings"
+    },
+    {
+      "pattern": "SUPER BOCK ARENA",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Outings"
+    },
+    {
+      "pattern": "WWW CASADAMUSICA",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Outings"
+    },
+    {
+      "pattern": "PLAYTOMIC",
+      "match": "PREFIX",
+      "category": "Dining & leisure",
+      "subcategory": "Outings"
+    },
+    {
+      "pattern": "FARMACIA",
+      "match": "PREFIX",
+      "category": "Health",
+      "subcategory": "Pharmacy"
+    },
+    {
+      "pattern": "HOSPITAL CUF",
+      "match": "PREFIX",
+      "category": "Health",
+      "subcategory": "Doctor & dentist"
+    },
+    {
+      "pattern": "MANUTENCAO CONTA",
+      "match": "CONTAINS",
+      "category": "Bank costs",
+      "subcategory": "Bank fees"
+    },
+    {
+      "pattern": "IMPOSTO DO SELO SOBRE MANUTENÇÃO",
+      "match": "CONTAINS",
+      "category": "Bank costs",
+      "subcategory": "Bank fees"
+    },
+    {
+      "pattern": "COM S/ TRF IMEDIATA",
+      "match": "CONTAINS",
+      "category": "Bank costs",
+      "subcategory": "Bank fees"
+    },
+    {
+      "pattern": "IMP SELO S/ COM TRF IMEDIATA",
+      "match": "CONTAINS",
+      "category": "Bank costs",
+      "subcategory": "Bank fees"
+    },
+    {
+      "pattern": "TRANSAÇÃO INTERNACIONAL",
+      "match": "CONTAINS",
+      "category": "Bank costs",
+      "subcategory": "Card fees"
+    },
+    {
+      "pattern": "HOTEL",
+      "match": "PREFIX",
+      "category": "Vacations",
+      "subcategory": "Accommodation"
+    },
+    {
+      "pattern": "BARCELO.COM",
+      "match": "PREFIX",
+      "category": "Vacations",
+      "subcategory": "Accommodation"
+    },
+    {
+      "pattern": "AVAIBOOK",
+      "match": "PREFIX",
+      "category": "Vacations",
+      "subcategory": "Accommodation"
+    },
+    {
+      "pattern": "RYANAIR",
+      "match": "PREFIX",
+      "category": "Vacations",
+      "subcategory": "Travel"
+    },
+    {
+      "pattern": "LEGOLAND",
+      "match": "PREFIX",
+      "category": "Vacations",
+      "subcategory": "Activities"
+    },
+    {
+      "pattern": "TEMU",
+      "match": "PREFIX",
+      "category": "Other",
+      "subcategory": "Misc"
+    },
+    {
+      "pattern": "WORTEN",
+      "match": "PREFIX",
+      "category": "Other",
+      "subcategory": "Misc"
+    },
+    {
+      "pattern": "UNIGIFTA",
+      "match": "PREFIX",
+      "category": "Other",
+      "subcategory": "Gifts"
+    }
+  ]
+}

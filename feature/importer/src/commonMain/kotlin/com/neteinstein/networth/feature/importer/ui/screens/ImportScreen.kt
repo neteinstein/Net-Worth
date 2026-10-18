@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
+import com.neteinstein.networth.core.designsystem.ui.files.FileKind
+import com.neteinstein.networth.core.designsystem.ui.files.rememberFilePicker
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
@@ -73,7 +75,6 @@ import com.neteinstein.networth.feature.importer.ui.components.HistoryCard
 import com.neteinstein.networth.feature.importer.ui.components.PickFileCard
 import com.neteinstein.networth.feature.importer.ui.components.SectionCardContent
 import com.neteinstein.networth.feature.importer.ui.components.SummaryCard
-import com.neteinstein.networth.feature.importer.ui.components.rememberStatementPicker
 import kotlinx.datetime.LocalDate
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -86,7 +87,7 @@ fun ImportScreen(
     viewModel: ImportViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val pick = rememberStatementPicker(onPicked = viewModel::onFilesPicked, onFailed = viewModel::onPickFailed)
+    val pick = rememberFilePicker(FileKind.STATEMENTS, onPicked = viewModel::onFilesPicked, onFailed = viewModel::onPickFailed)
     ImportContent(
         state = state,
         actions =

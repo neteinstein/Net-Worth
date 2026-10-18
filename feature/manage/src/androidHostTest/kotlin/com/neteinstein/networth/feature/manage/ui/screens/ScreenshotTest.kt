@@ -1,5 +1,6 @@
 package com.neteinstein.networth.feature.manage.ui.screens
 
+import com.neteinstein.networth.core.designsystem.ui.locale.AppLocaleEnvironment
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.Category
@@ -11,6 +12,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.util.Locale
 
 /** Every screen of this module in light and dark, compared with the committed goldens. */
 @RunWith(RobolectricTestRunner::class)
@@ -44,6 +46,33 @@ class ScreenshotTest {
     @Test
     fun manageAssumptions() = screenshot("manage_assumptions") {
         ManageContent(manageState(), ManageActions(), showAssumptionsAtStart = true)
+    }
+
+    private fun ruleImportState() = manageState().copy(
+        ruleImport = RuleImportPreview(
+            fileName = "suggested-rules.json",
+            toAdd = 87,
+            toUpdate = 2,
+            unchanged = 4,
+            invalid = 1,
+            unknownCategories = listOf("School › Tuition"),
+            pastToRefile = 214,
+        ),
+    )
+
+    @Test
+    fun manageRuleImport() = screenshot("manage_rule_import") { ManageContent(ruleImportState(), ManageActions()) }
+
+    @Test
+    fun manageRuleImportPortuguese() {
+        val original = Locale.getDefault()
+        try {
+            screenshot("manage_rule_import_pt") {
+                AppLocaleEnvironment("pt") { ManageContent(ruleImportState(), ManageActions()) }
+            }
+        } finally {
+            Locale.setDefault(original)
+        }
     }
 
     @Test

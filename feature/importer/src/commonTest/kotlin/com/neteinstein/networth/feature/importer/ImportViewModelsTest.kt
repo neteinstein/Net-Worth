@@ -1,5 +1,6 @@
 package com.neteinstein.networth.feature.importer
 
+import com.neteinstein.networth.core.designsystem.ui.files.PickedFile
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.Transaction
@@ -24,7 +25,6 @@ import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseC
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
 import com.neteinstein.networth.feature.importer.ui.Periods
-import com.neteinstein.networth.feature.importer.ui.components.PickedFile
 import com.neteinstein.networth.feature.importer.ui.screens.FileError
 import com.neteinstein.networth.feature.importer.ui.screens.ImportStage
 import com.neteinstein.networth.feature.importer.ui.screens.ImportViewModel

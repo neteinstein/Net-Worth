@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalWasmJsInterop::class)
 
-package com.neteinstein.networth.feature.importer.ui.components
+package com.neteinstein.networth.core.designsystem.ui.files
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,7 +11,8 @@ import kotlinx.coroutines.launch
 import kotlin.js.Promise
 
 @Composable
-actual fun rememberStatementPicker(
+actual fun rememberFilePicker(
+    kind: FileKind,
     onPicked: (files: List<PickedFile>) -> Unit,
     onFailed: () -> Unit,
 ): () -> Unit {
@@ -20,7 +21,7 @@ actual fun rememberStatementPicker(
     val failed by rememberUpdatedState(onFailed)
     return {
         scope.launch {
-            val result = runCatching { jsPickFiles().await<JsArray<JsString>?>() }
+            val result = runCatching { jsPickFiles(kind.multiple, kind.accept).await<JsArray<JsString>?>() }
             if (result.isFailure) {
                 failed()
                 return@launch
@@ -39,13 +40,19 @@ actual fun rememberStatementPicker(
     }
 }
 
+private val FileKind.accept: String
+    get() = when (this) {
+        FileKind.STATEMENTS -> ".pdf,.csv,.txt,.xlsx,.ofx,.qfx"
+        FileKind.JSON -> ".json,application/json"
+    }
+
 /** Opens the browser's file dialog; resolves to one "name\u0000bytes-as-chars" per file, or null if cancelled. */
 @JsFun(
-    """() => new Promise((resolve, reject) => {
+    """(multiple, accept) => new Promise((resolve, reject) => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.multiple = true;
-        input.accept = '.pdf,.csv,.txt,.xlsx,.ofx,.qfx';
+        input.multiple = multiple;
+        input.accept = accept;
         input.onchange = () => {
             const files = input.files ? Array.from(input.files) : [];
             if (files.length === 0) { resolve(null); return; }
@@ -67,4 +74,7 @@ actual fun rememberStatementPicker(
         input.click();
     })""",
 )
-private external fun jsPickFiles(): Promise<JsArray<JsString>?>
+private external fun jsPickFiles(
+    multiple: Boolean,
+    accept: String,
+): Promise<JsArray<JsString>?>

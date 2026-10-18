@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -50,6 +51,9 @@ import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
+import com.neteinstein.networth.core.designsystem.ui.files.FileKind
+import com.neteinstein.networth.core.designsystem.ui.files.rememberFilePicker
+import com.neteinstein.networth.core.designsystem.ui.files.rememberFileSharer
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.designsystem.ui.theme.categoryColor
@@ -82,6 +86,8 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_
 import com.neteinstein.networth.feature.manage.generated.resources.manage_owner_child
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_empty
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_export
+import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_import
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_learned
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_show_all
 import com.neteinstein.networth.feature.manage.generated.resources.manage_rules_show_less
@@ -92,6 +98,7 @@ import com.neteinstein.networth.feature.manage.ui.components.AccountEditorDialog
 import com.neteinstein.networth.feature.manage.ui.components.AlertRulesDialog
 import com.neteinstein.networth.feature.manage.ui.components.AssumptionsDialog
 import com.neteinstein.networth.feature.manage.ui.components.RuleEditorDialog
+import com.neteinstein.networth.feature.manage.ui.components.RuleImportDialog
 import com.neteinstein.networth.feature.manage.ui.components.label
 import com.neteinstein.networth.feature.manage.ui.components.percent
 import org.jetbrains.compose.resources.stringResource
@@ -107,6 +114,8 @@ fun ManageScreen(
     viewModel: ManageViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val pickRuleFile = rememberFilePicker(FileKind.JSON, viewModel::onRuleFilePicked, viewModel::onRuleFilePickFailed)
+    val share = rememberFileSharer()
     ManageContent(
         state = state,
         showAssumptionsAtStart = showAssumptions,
@@ -131,6 +140,10 @@ fun ManageScreen(
             onRuleCategory = viewModel::onRuleCategory,
             onSaveRule = viewModel::onSaveRule,
             onDismissRule = viewModel::onDismissRule,
+            onPickRuleFile = pickRuleFile,
+            onExportRules = { viewModel.exportRules()?.let(share) },
+            onImportRules = viewModel::onImportRules,
+            onDismissRuleImport = viewModel::onDismissRuleImport,
         ),
     )
 }
@@ -156,6 +169,10 @@ data class ManageActions(
     val onRuleCategory: (String) -> Unit = {},
     val onSaveRule: (applyToPast: Boolean) -> Unit = {},
     val onDismissRule: () -> Unit = {},
+    val onPickRuleFile: () -> Unit = {},
+    val onExportRules: () -> Unit = {},
+    val onImportRules: (applyToPast: Boolean) -> Unit = {},
+    val onDismissRuleImport: () -> Unit = {},
 )
 
 @Composable
@@ -197,7 +214,7 @@ fun ManageContent(
                 val card = Modifier.padding(horizontal = 20.dp)
                 item { AccountsCard(state, currency, actions, card) }
                 item { CategoriesLink(state, actions.onOpenCategories, card) }
-                item { RulesCard(state, actions.onEditRule, actions.onDeleteRule, card) }
+                item { RulesCard(state, actions, card) }
                 if (state.savedFilters.isNotEmpty()) {
                     item {
                         SectionCard(card, spacing = 6) {
@@ -269,6 +286,9 @@ fun ManageContent(
             onDelete = { actions.onDeleteRule(editor.rule.id) },
             onDismiss = actions.onDismissRule,
         )
+    }
+    state.ruleImport?.let { preview ->
+        RuleImportDialog(preview = preview, onImport = actions.onImportRules, onDismiss = actions.onDismissRuleImport)
     }
     if (showAlertRules) {
         AlertRulesDialog(
@@ -410,7 +430,7 @@ private fun CategoriesLink(state: ManageUiState, onClick: () -> Unit, modifier: 
 }
 
 @Composable
-private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: (String) -> Unit, modifier: Modifier) {
+private fun RulesCard(state: ManageUiState, actions: ManageActions, modifier: Modifier) {
     var showAll by remember { mutableStateOf(false) }
     SectionCard(modifier, spacing = 4) {
         CardTitle(stringResource(Res.string.manage_rules), trailing = stringResource(Res.string.manage_rules_learned, state.rules.size))
@@ -424,7 +444,7 @@ private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: 
         (if (showAll) state.rules else state.rules.take(3)).forEach { rule ->
             val editLabel = stringResource(Res.string.manage_edit_rule_named, rule.pattern)
             Row(
-                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClickLabel = editLabel) { onEdit(rule.id) },
+                Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(onClickLabel = editLabel) { actions.onEditRule(rule.id) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -440,7 +460,7 @@ private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: 
                 )
                 ColorKey(categoryColor(rule.colorHex), size = 8.dp)
                 Text(categoryName(rule.categoryName), style = MaterialTheme.typography.labelMedium)
-                IconButton(onClick = { onDelete(rule.id) }) {
+                IconButton(onClick = { actions.onDeleteRule(rule.id) }) {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = stringResource(Res.string.manage_delete_rule, rule.pattern),
@@ -449,17 +469,23 @@ private fun RulesCard(state: ManageUiState, onEdit: (String) -> Unit, onDelete: 
                 }
             }
         }
-        if (state.rules.size > 3) {
-            TextButton(onClick = { showAll = !showAll }) {
-                Text(
-                    if (showAll) {
-                        stringResource(
-                            Res.string.manage_rules_show_less,
-                        )
-                    } else {
-                        stringResource(Res.string.manage_rules_show_all, state.rules.size)
-                    },
-                )
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            if (state.rules.size > 3) {
+                TextButton(onClick = { showAll = !showAll }) {
+                    Text(
+                        if (showAll) {
+                            stringResource(Res.string.manage_rules_show_less)
+                        } else {
+                            stringResource(Res.string.manage_rules_show_all, state.rules.size)
+                        },
+                    )
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            TextButton(onClick = actions.onPickRuleFile) { Text(stringResource(Res.string.manage_rules_import)) }
+            // Rules whose category was deleted aren't listed and aren't exported.
+            TextButton(onClick = actions.onExportRules, enabled = state.rules.isNotEmpty()) {
+                Text(stringResource(Res.string.manage_rules_export))
             }
         }
     }

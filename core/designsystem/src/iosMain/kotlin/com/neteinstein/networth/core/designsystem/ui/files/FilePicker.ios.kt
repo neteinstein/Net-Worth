@@ -1,4 +1,4 @@
-package com.neteinstein.networth.feature.importer.ui.components
+package com.neteinstein.networth.core.designsystem.ui.files
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,13 +16,15 @@ import platform.UIKit.UIDocumentPickerViewController
 import platform.UIKit.UIViewController
 import platform.UniformTypeIdentifiers.UTTypeCommaSeparatedText
 import platform.UniformTypeIdentifiers.UTTypeData
+import platform.UniformTypeIdentifiers.UTTypeJSON
 import platform.UniformTypeIdentifiers.UTTypePDF
 import platform.UniformTypeIdentifiers.UTTypePlainText
 import platform.darwin.NSObject
 import platform.posix.memcpy
 
 @Composable
-actual fun rememberStatementPicker(
+actual fun rememberFilePicker(
+    kind: FileKind,
     onPicked: (files: List<PickedFile>) -> Unit,
     onFailed: () -> Unit,
 ): () -> Unit {
@@ -43,10 +45,13 @@ actual fun rememberStatementPicker(
     return {
         val picker =
             UIDocumentPickerViewController(
-                forOpeningContentTypes = listOf(UTTypePDF, UTTypeCommaSeparatedText, UTTypePlainText, UTTypeData),
+                forOpeningContentTypes = when (kind) {
+                    FileKind.STATEMENTS -> listOf(UTTypePDF, UTTypeCommaSeparatedText, UTTypePlainText, UTTypeData)
+                    FileKind.JSON -> listOf(UTTypeJSON, UTTypePlainText, UTTypeData)
+                },
                 asCopy = true,
             )
-        picker.allowsMultipleSelection = true
+        picker.allowsMultipleSelection = kind.multiple
         picker.delegate = delegate
         topViewController()?.presentViewController(picker, animated = true, completion = null)
     }
@@ -64,7 +69,8 @@ private class PickerDelegate(
     }
 }
 
-private fun topViewController(): UIViewController? {
+/** The view controller on top, to present pickers and share sheets from. */
+internal fun topViewController(): UIViewController? {
     var controller = UIApplication.sharedApplication.keyWindow?.rootViewController
     while (controller?.presentedViewController != null) controller = controller.presentedViewController
     return controller

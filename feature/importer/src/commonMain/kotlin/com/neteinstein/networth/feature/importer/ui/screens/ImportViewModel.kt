@@ -2,6 +2,7 @@ package com.neteinstein.networth.feature.importer.ui.screens
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neteinstein.networth.core.designsystem.ui.files.PickedFile
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.CalendarMonth
@@ -26,7 +27,6 @@ import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.Values
 import com.neteinstein.networth.feature.importer.domain.usecase.CommitImportUseCase
 import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUseCase
-import com.neteinstein.networth.feature.importer.ui.components.PickedFile
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
