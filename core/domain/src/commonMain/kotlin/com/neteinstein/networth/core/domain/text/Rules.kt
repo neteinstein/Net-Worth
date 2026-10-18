@@ -1,9 +1,7 @@
-package com.neteinstein.networth.feature.importer.domain
+package com.neteinstein.networth.core.domain.text
 
 import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
-import com.neteinstein.networth.core.domain.text.DescriptionInfo
-import com.neteinstein.networth.core.domain.text.Descriptions
 
 /**
  * Merchant rules: what "Always file DECATHLON this way" turns into.
