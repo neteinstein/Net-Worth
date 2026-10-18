@@ -21,7 +21,9 @@ Follow AGENTS.md conventions. Replace `<name>` (lowercase, e.g. `budgets`) and `
      `<Name>Screen.kt` containing `<Name>Screen` (koinViewModel + collectAsStateWithLifecycle) and the
      stateless `<Name>Content(state, callbacks…)` plus at least one `@Preview` wrapped in `NetWorthTheme`.
    - `ui/components/` — feature-specific composables.
-4. **Strings** in `feature/<name>/src/commonMain/composeResources/values/strings.xml`, prefixed `<name>_`.
+4. **Strings** in `feature/<name>/src/commonMain/composeResources/values/strings.xml`, prefixed `<name>_`,
+   **and** their European Portuguese translation in `values-pt/strings.xml` (same names and placeholders,
+   `one`/`other` plurals). `./gradlew verifyTranslations` must pass.
    Import them from `com.neteinstein.networth.feature.<name>.generated.resources.*`.
 5. **DI** — add bindings to `composeApp/.../di/AppModule.kt` (never a separate module). Use
    `single<Repo> { Impl() }` if the impl constructor has default args; `factoryOf` for use cases;

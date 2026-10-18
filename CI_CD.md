@@ -19,7 +19,7 @@ All jobs run in parallel; a new push to the same PR cancels the in-flight run.
 | Job | Runner | What it runs | Artifacts |
 | --- | --- | --- | --- |
 | `pr-title` | ubuntu | PR title follows Conventional Commits (it becomes the squash commit) | — |
-| `lint` | ubuntu | `ktlintCheck` + `:androidApp:lintGithubDebug` (`checkDependencies = true` → every module) | lint/ktlint reports |
+| `lint` | ubuntu | `ktlintCheck` + `verifyTranslations` + `:androidApp:lintGithubDebug` (`checkDependencies = true` → every module) | lint/ktlint reports |
 | `compile` | ubuntu | `:androidApp:assembleGithubDebug` | debug APK |
 | `minified-release` | ubuntu | `:androidApp:assembleGithubRelease` + `:androidApp:bundlePlaystoreRelease` (R8 full mode, resource shrinking) + [`scripts/verify-obfuscation.sh`](scripts/verify-obfuscation.sh) | R8 `mapping.txt` per flavor |
 | `unit-tests` | ubuntu | `testDebugUnitTest` (all `commonTest` suites on the JVM, plus the screenshot tests compared with the committed PNGs); results published as a check + PR comment | JUnit XML; screenshot diffs on failure |
@@ -150,6 +150,6 @@ Only `*.ci` placeholders live in the repo.
 
 ```bash
 cp androidApp/google-services.json.ci androidApp/google-services.json
-./gradlew ktlintCheck :androidApp:lintGithubDebug testDebugUnitTest :koverVerify :androidApp:assembleGithubRelease
+./gradlew ktlintCheck verifyTranslations :androidApp:lintGithubDebug testDebugUnitTest :koverVerify :androidApp:assembleGithubRelease
 ./scripts/verify-obfuscation.sh
 ```
