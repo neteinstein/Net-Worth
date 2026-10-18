@@ -20,6 +20,7 @@ import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRule
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
 import com.neteinstein.networth.feature.manage.ui.components.halfSteps
 import com.neteinstein.networth.feature.manage.ui.components.percent
@@ -69,6 +70,7 @@ class ManageTest {
         saveAlertSettings = SaveAlertSettingsUseCase(edit),
         saveAssumptions = SaveAssumptionsUseCase(edit),
         deleteRule = DeleteMerchantRuleUseCase(edit),
+        saveRule = SaveMerchantRuleUseCase(edit),
         addMember = AddMemberUseCase(edit, SequentialIds("person")),
     ).also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 
@@ -180,6 +182,74 @@ class ManageTest {
         assertFalse(settings.alerts.newSubscriptions)
         assertEquals(listOf("r2", "orphan"), repository.database.merchantRules.map { it.id })
         assertTrue("r1" in repository.database.tombstones)
+    }
+
+    @Test
+    fun editsARuleForTheFutureOrAlsoThePast() = runTest {
+        val db = repository.database
+        val pedro = db.accounts.first()
+        val groceries = db.categories.first { it.name == "Groceries" }
+        val dining = db.categories.first { it.name == "Dining & leisure" }
+        val restaurants = dining.subcategories.first { it.name == "Restaurants" }
+        repository.state.value = (repository.state.value as DatabaseState.Ready).copy(
+            database = db.copy(
+                transactions = listOf(
+                    Transaction("c1", pedro.id, LocalDate(2026, 9, 1), -10_00, "COMPRA CONTINENTE MATOSINHOS", categoryId = groceries.id),
+                    Transaction("c2", pedro.id, LocalDate(2026, 9, 2), -5_00, "COMPRA CONTINENTE BOM DIA"),
+                    Transaction("c3", pedro.id, LocalDate(2026, 9, 3), 5_00, "TRF DE CONTINENTE"),
+                    Transaction("c4", pedro.id, LocalDate(2026, 9, 4), -5_00, "COMPRA CONTINENTE", isInternalTransfer = true),
+                    Transaction("l1", pedro.id, LocalDate(2026, 9, 5), -7_00, "COMPRA LIDL PORTO"),
+                ),
+            ),
+        )
+        val vm = viewModel()
+        vm.onEditRule("r1")
+        val editor = assertNotNull(vm.state.value.ruleEditor)
+        assertEquals(2, editor.pastMatches)
+        assertEquals(1, editor.pastToRefile)
+
+        vm.onRuleCategory(dining.id)
+        vm.onRuleChange { it.copy(subcategoryId = restaurants.id) }
+        assertEquals(2, vm.state.value.ruleEditor!!.pastToRefile)
+        vm.onRuleCategory(groceries.id)
+        assertNull(vm.state.value.ruleEditor!!.rule.subcategoryId)
+        vm.onRuleCategory(dining.id)
+        vm.onRuleMatch(RuleMatch.CONTAINS)
+        vm.onRuleChange { it.copy(pattern = "") }
+        assertFalse(vm.state.value.ruleEditor!!.canSave)
+        vm.onSaveRule(applyToPast = false)
+        assertNotNull(vm.state.value.ruleEditor)
+        vm.onRuleChange { it.copy(pattern = " CONTINENTE ") }
+
+        // Only from now on: the rule changes, the past stays as it was.
+        vm.onSaveRule(applyToPast = false)
+        assertNull(vm.state.value.ruleEditor)
+        val rule = repository.database.merchantRules.first { it.id == "r1" }
+        assertEquals("CONTINENTE", rule.pattern)
+        assertEquals(RuleMatch.CONTAINS, rule.match)
+        assertEquals(dining.id, rule.categoryId)
+        assertEquals(groceries.id, repository.database.transactions.first { it.id == "c1" }.categoryId)
+
+        // Also the past: every matching outflow is re-filed; incoming money and internal transfers are left alone.
+        vm.onEditRule("r1")
+        vm.onRuleChange { it.copy(subcategoryId = restaurants.id) }
+        vm.onSaveRule(applyToPast = true)
+        val txs = repository.database.transactions.associateBy { it.id }
+        assertEquals(dining.id, txs.getValue("c1").categoryId)
+        assertEquals(restaurants.id, txs.getValue("c2").subcategoryId)
+        assertNull(txs.getValue("c3").categoryId)
+        assertNull(txs.getValue("c4").categoryId)
+        assertNull(txs.getValue("l1").categoryId)
+        assertEquals(2, SaveMerchantRuleUseCase(edit)(rule.copy(categoryId = groceries.id), applyToPast = true))
+
+        vm.onEditRule("r2")
+        vm.onDismissRule()
+        assertNull(vm.state.value.ruleEditor)
+        vm.onEditRule("r2")
+        vm.onDeleteRule("r2")
+        assertNull(vm.state.value.ruleEditor)
+        vm.onEditRule("missing")
+        assertNull(vm.state.value.ruleEditor)
     }
 
     @Test

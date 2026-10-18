@@ -27,6 +27,25 @@
     <string name="manage_save">Save</string>
     <string name="manage_cancel">Cancel</string>
     <string name="manage_delete">Delete</string>
+    <string name="manage_edit_rule">Edit merchant rule</string>
+    <string name="manage_edit_rule_named">Edit rule %1$s</string>
+    <string name="manage_rule_pattern">Merchant text</string>
+    <string name="manage_rule_match">Matches when</string>
+    <string name="manage_rule_match_prefix">The merchant name starts with it</string>
+    <string name="manage_rule_match_contains">The bank description contains it</string>
+    <string name="manage_rule_match_phone">It is the MB WAY phone or person</string>
+    <string name="manage_rule_category">Category</string>
+    <string name="manage_rule_subcategory">Subcategory</string>
+    <string name="manage_rule_no_subcategory">None</string>
+    <plurals name="manage_rule_past">
+        <item quantity="one">%1$d past transaction matches this rule.</item>
+        <item quantity="other">%1$d past transactions match this rule.</item>
+    </plurals>
+    <string name="manage_rule_save_future">Save · only from now on</string>
+    <plurals name="manage_rule_save_past">
+        <item quantity="one">Save · also re-file %1$d past transaction</item>
+        <item quantity="other">Save · also re-file %1$d past transactions</item>
+    </plurals>
     <string name="manage_account_name">Name</string>
     <string name="manage_account_type">Type</string>
     <string name="manage_account_owners">Belongs to</string>

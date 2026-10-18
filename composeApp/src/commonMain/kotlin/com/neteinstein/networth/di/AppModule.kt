@@ -48,6 +48,7 @@ import com.neteinstein.networth.feature.manage.domain.usecase.RemoveSubcategoryU
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAlertSettingsUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveMerchantRuleUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SetAskAccountOnImportUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.UpdateCategoryUseCase
 import com.neteinstein.networth.feature.manage.ui.screens.CategoriesViewModel
@@ -170,6 +171,7 @@ val appModule = module {
     factoryOf(::SaveAlertSettingsUseCase)
     factoryOf(::SaveAssumptionsUseCase)
     factoryOf(::DeleteMerchantRuleUseCase)
+    factoryOf(::SaveMerchantRuleUseCase)
     factoryOf(::UpdateCategoryUseCase)
     factoryOf(::AddCategoryUseCase)
     factoryOf(::AddSubcategoryUseCase)
