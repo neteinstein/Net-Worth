@@ -2,11 +2,8 @@ package com.neteinstein.networth.feature.manage.domain.usecase
 
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.model.FamilyDatabase
-import com.neteinstein.networth.core.domain.model.Subcategory
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.model.withTombstone
-import com.neteinstein.networth.core.domain.repository.IdGenerator
-import com.neteinstein.networth.core.domain.seed.DefaultCategories
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 
 /** Applies [change] to one category, stamping it as edited now. */
@@ -14,38 +11,6 @@ class UpdateCategoryUseCase(private val edit: EditDatabaseUseCase) {
     suspend operator fun invoke(categoryId: String, change: (Category) -> Category) = edit { database, now ->
         val category = database.category(categoryId) ?: return@edit database
         database.copy(categories = database.categories.upsert(change(category).copy(updatedAt = now)))
-    }
-}
-
-class AddCategoryUseCase(
-    private val edit: EditDatabaseUseCase,
-    private val ids: IdGenerator,
-) {
-    suspend operator fun invoke(name: String) {
-        if (name.isBlank()) return
-        val id = ids.newId()
-        edit { database, now ->
-            val palette = DefaultCategories.palette
-            val category = Category(
-                id = id,
-                name = name.trim(),
-                colorHex = palette[database.categories.size % palette.size],
-                position = (database.categories.maxOfOrNull { it.position } ?: -1) + 1,
-                updatedAt = now,
-            )
-            database.copy(categories = database.categories + category)
-        }
-    }
-}
-
-class AddSubcategoryUseCase(
-    private val update: UpdateCategoryUseCase,
-    private val ids: IdGenerator,
-) {
-    suspend operator fun invoke(categoryId: String, name: String) {
-        if (name.isBlank()) return
-        val sub = Subcategory(ids.newId(), name.trim())
-        update(categoryId) { it.copy(subcategories = it.subcategories + sub) }
     }
 }
 
