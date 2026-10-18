@@ -131,7 +131,7 @@ class ReviewViewModel(
     }
 
     private companion object {
-        /** Items shown at once ("Showing 4 of 18"); the next batch appears after saving. */
-        const val PAGE = 10
+        /** Items shown at once ("Showing 100 of 180"); the next batch appears after saving. */
+        const val PAGE = 100
     }
 }
