@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class DriveClientTest {
@@ -98,8 +97,24 @@ class DriveClientTest {
         val error = assertFailsWith<DriveException> { drive.download("missing") }
 
         assertEquals(404, error.status)
-        assertTrue(error.isAccessProblem)
-        assertFalse(DriveException(500, "x").isAccessProblem)
+        assertEquals(DriveProblem.NO_ACCESS, error.problem)
+        assertEquals(DriveProblem.OTHER, DriveException(500, "x").problem)
+    }
+
+    @Test
+    fun readsWhyDriveRefused() {
+        fun problem(status: Int, vararg reasons: String) =
+            DriveException(status, """{"error":{"code":$status,"errors":[${reasons.joinToString { """{"reason": "$it"}""" }}]}}""").problem
+
+        assertEquals(DriveProblem.API_DISABLED, problem(403, "accessNotConfigured"))
+        assertEquals(DriveProblem.SCOPE_MISSING, problem(403, "insufficientPermissions"))
+        assertEquals(DriveProblem.STORAGE_FULL, problem(403, "storageQuotaExceeded"))
+        assertEquals(DriveProblem.OTHER, problem(403, "userRateLimitExceeded"))
+        assertEquals(DriveProblem.NO_ACCESS, problem(403, "forbidden"))
+        assertEquals(DriveProblem.NO_ACCESS, problem(401))
+        // The reason that matters can sit past the part of the body kept in the message.
+        val long = DriveException(403, """{"error":{"message":"${"x".repeat(600)}","details":[{"reason":"SERVICE_DISABLED"}]}}""")
+        assertEquals(DriveProblem.API_DISABLED, long.problem)
     }
 
     @Test

@@ -71,8 +71,11 @@ import com.neteinstein.networth.feature.onboarding.generated.resources.onboardin
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_create_accounts
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_create_accounts_body
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_currency
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_drive_api_disabled
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_drive_full
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_network
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_newer_schema
+import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_no_drive_permission
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_not_a_database
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_not_accessible
 import com.neteinstein.networth.feature.onboarding.generated.resources.onboarding_error_not_configured
@@ -182,6 +185,9 @@ private val OnboardingError.message: StringResource
         OnboardingError.NOT_A_DATABASE -> Res.string.onboarding_error_not_a_database
         OnboardingError.NEWER_SCHEMA -> Res.string.onboarding_error_newer_schema
         OnboardingError.NOT_ACCESSIBLE -> Res.string.onboarding_error_not_accessible
+        OnboardingError.NO_DRIVE_PERMISSION -> Res.string.onboarding_error_no_drive_permission
+        OnboardingError.DRIVE_API_DISABLED -> Res.string.onboarding_error_drive_api_disabled
+        OnboardingError.DRIVE_FULL -> Res.string.onboarding_error_drive_full
         OnboardingError.NETWORK -> Res.string.onboarding_error_network
     }
 

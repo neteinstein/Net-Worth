@@ -72,7 +72,7 @@ class DriveFamilyDatabaseRepository(
 
     override suspend fun createNew(setup: HouseholdSetup): DatabaseFile {
         val database = setup.toDatabase(ids, clock.nowMillis(), userEmail)
-        val info = guard { remote.create(fileNameFor(setup.householdName), FamilyDatabaseCodec.encode(database)) }
+        val info = guard(creating = true) { remote.create(fileNameFor(setup.householdName), FamilyDatabaseCodec.encode(database)) }
         val cached = CachedDatabase(info.id, info.name, info.webViewLink, info.version, pending = false, database = database)
         replaceCurrent(cached)
         publish(cached, SyncStatus.SYNCED)
@@ -177,15 +177,19 @@ class DriveFamilyDatabaseRepository(
 
     private val CachedDatabase.file get() = DatabaseFile(fileId, fileName, webViewLink)
 
-    /** Maps remote failures to [DatabaseException] so the UI can explain them. */
-    private suspend fun <T> guard(block: suspend () -> T): T = try {
+    /**
+     * Maps remote failures to [DatabaseException] so the UI can explain them. When [creating], a
+     * refusal is about the user's own Drive, not someone else's file, so it can't be "not shared".
+     */
+    private suspend fun <T> guard(creating: Boolean = false, block: suspend () -> T): T = try {
         block()
     } catch (e: CancellationException) {
         throw e
     } catch (e: DatabaseException) {
         throw e
     } catch (e: Exception) {
-        throw DatabaseException(if (remote.isAccessProblem(e)) DatabaseError.NOT_ACCESSIBLE else DatabaseError.UNKNOWN, e)
+        val error = remote.errorOf(e)
+        throw DatabaseException(if (creating && error == DatabaseError.NOT_ACCESSIBLE) DatabaseError.NO_DRIVE_PERMISSION else error, e)
     }
 
     companion object {

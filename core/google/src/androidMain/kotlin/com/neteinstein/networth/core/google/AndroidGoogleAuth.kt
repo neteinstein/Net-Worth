@@ -118,6 +118,7 @@ internal class AndroidGoogleAuth(
             runCatching { client.clearToken(ClearTokenRequest.builder().setToken(cached).build()).await() }
         }
         val result = authorize(driveRequest().build())
+        requireDriveScope(result.grantedScopes)
         val fresh = result.accessToken ?: error("Drive authorisation returned no access token")
         token = fresh
         // Google access tokens last an hour; refresh a little early.

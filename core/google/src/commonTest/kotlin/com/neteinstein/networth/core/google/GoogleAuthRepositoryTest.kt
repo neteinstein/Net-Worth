@@ -3,6 +3,7 @@ package com.neteinstein.networth.core.google
 import com.neteinstein.networth.core.domain.repository.AuthCancelledException
 import com.neteinstein.networth.core.domain.repository.AuthNotConfiguredException
 import com.neteinstein.networth.core.domain.repository.AuthState
+import com.neteinstein.networth.core.domain.repository.DriveAccessNotGrantedException
 import com.neteinstein.networth.core.domain.repository.InMemoryLocalStore
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import kotlinx.coroutines.test.runTest
@@ -95,5 +96,23 @@ class GoogleAuthRepositoryTest {
         store.clear()
         assertNull(store.load())
         assertNull(ProfileStore(InMemoryLocalStore(mapOf("google-profile.json" to "garbage"))).load())
+    }
+
+    @Test
+    fun signInWithoutDriveIsRefused() = runTest {
+        // Drive unticked on the consent screen: the token has no drive.file scope.
+        assertFailsWith<DriveAccessNotGrantedException> { requireDriveScope("openid email profile") }
+        assertFailsWith<DriveAccessNotGrantedException> { requireDriveScope(listOf("openid")) }
+        requireDriveScope("openid $DRIVE_FILE_SCOPE")
+        requireDriveScope(listOf(DRIVE_FILE_SCOPE))
+        // A response that doesn't list scopes is not a refusal.
+        requireDriveScope(null as String?)
+
+        val platform = object : GoogleAuthPlatform by FakeGoogleAuthPlatform() {
+            override suspend fun signIn(): UserProfile = throw DriveAccessNotGrantedException()
+        }
+        val repo = GoogleAuthRepository(platform)
+        assertFailsWith<DriveAccessNotGrantedException> { repo.signIn() }
+        assertEquals(AuthState.Unknown, repo.state.value)
     }
 }

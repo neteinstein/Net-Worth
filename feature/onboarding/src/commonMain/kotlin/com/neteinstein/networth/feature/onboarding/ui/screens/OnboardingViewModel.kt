@@ -7,6 +7,7 @@ import com.neteinstein.networth.core.domain.repository.AuthNotConfiguredExceptio
 import com.neteinstein.networth.core.domain.repository.AuthState
 import com.neteinstein.networth.core.domain.repository.DatabaseError
 import com.neteinstein.networth.core.domain.repository.DatabaseException
+import com.neteinstein.networth.core.domain.repository.DriveAccessNotGrantedException
 import com.neteinstein.networth.core.domain.repository.UserProfile
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.SignInUseCase
@@ -25,7 +26,17 @@ import kotlinx.coroutines.launch
 
 enum class OnboardingStep { SIGN_IN, CHOOSE, START_FRESH }
 
-enum class OnboardingError { NOT_CONFIGURED, SIGN_IN_FAILED, NOT_A_DATABASE, NEWER_SCHEMA, NOT_ACCESSIBLE, NETWORK }
+enum class OnboardingError {
+    NOT_CONFIGURED,
+    SIGN_IN_FAILED,
+    NOT_A_DATABASE,
+    NEWER_SCHEMA,
+    NOT_ACCESSIBLE,
+    NO_DRIVE_PERMISSION,
+    DRIVE_API_DISABLED,
+    DRIVE_FULL,
+    NETWORK,
+}
 
 data class OnboardingUiState(
     val step: OnboardingStep = OnboardingStep.SIGN_IN,
@@ -131,11 +142,16 @@ class OnboardingViewModel(
                 throw e
             } catch (_: AuthCancelledException) {
                 // The user backed out of a Google screen: nothing to report.
+            } catch (_: DriveAccessNotGrantedException) {
+                error.value = OnboardingError.NO_DRIVE_PERMISSION
             } catch (e: DatabaseException) {
                 error.value = when (e.error) {
                     DatabaseError.NOT_A_DATABASE -> OnboardingError.NOT_A_DATABASE
                     DatabaseError.NEWER_SCHEMA -> OnboardingError.NEWER_SCHEMA
                     DatabaseError.NOT_ACCESSIBLE -> OnboardingError.NOT_ACCESSIBLE
+                    DatabaseError.NO_DRIVE_PERMISSION -> OnboardingError.NO_DRIVE_PERMISSION
+                    DatabaseError.DRIVE_API_DISABLED -> OnboardingError.DRIVE_API_DISABLED
+                    DatabaseError.DRIVE_FULL -> OnboardingError.DRIVE_FULL
                     DatabaseError.UNKNOWN -> OnboardingError.NETWORK
                 }
             } catch (_: Exception) {

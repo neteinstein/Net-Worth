@@ -63,7 +63,10 @@ internal class WebGoogleAuth(
             if (e.message?.contains("popup_closed") == true || e.message?.contains("access_denied") == true) throw AuthCancelledException()
             throw e
         }
-        val (accessToken, expiresIn) = response.split('|').let { it[0] to (it.getOrNull(1)?.toLongOrNull() ?: 3600L) }
+        val parts = response.split('|')
+        val accessToken = parts[0]
+        val expiresIn = parts.getOrNull(1)?.toLongOrNull() ?: 3600L
+        requireDriveScope(parts.getOrNull(2))
         token = accessToken
         tokenExpiresAt = now() + (expiresIn - 60) * 1000
         return accessToken
@@ -76,7 +79,7 @@ internal class WebGoogleAuth(
     }
 }
 
-/** Resolves to "accessToken|expiresInSeconds". */
+/** Resolves to "accessToken|expiresInSeconds|grantedScopes". */
 @JsFun(
     """(clientId, scope, prompt, hint) => new Promise((resolve, reject) => {
         if (!window.google || !google.accounts || !google.accounts.oauth2) { reject(new Error('Google Identity Services not loaded')); return; }
@@ -85,7 +88,7 @@ internal class WebGoogleAuth(
             scope: scope,
             prompt: prompt,
             hint: hint || undefined,
-            callback: (r) => r.error ? reject(new Error(r.error)) : resolve(r.access_token + '|' + r.expires_in),
+            callback: (r) => r.error ? reject(new Error(r.error)) : resolve(r.access_token + '|' + r.expires_in + '|' + (r.scope || '')),
             error_callback: (e) => reject(new Error((e && e.type) || 'popup_closed')),
         });
         client.requestAccessToken();

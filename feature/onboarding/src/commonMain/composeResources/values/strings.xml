@@ -32,5 +32,8 @@
     <string name="onboarding_error_not_a_database">That file isn’t a Net Worth database.</string>
     <string name="onboarding_error_newer_schema">That database was saved by a newer version of Net Worth. Update the app to open it.</string>
     <string name="onboarding_error_not_accessible">Couldn’t open that file. Ask its owner to share it with you, then pick it again.</string>
+    <string name="onboarding_error_no_drive_permission">Net Worth needs access to its files in your Google Drive. Sign in again and leave the Google Drive box ticked.</string>
+    <string name="onboarding_error_drive_api_disabled">The Google Drive API isn’t enabled for this build’s Google Cloud project. See docs/google-cloud-setup.md.</string>
+    <string name="onboarding_error_drive_full">Your Google Drive is full. Free up some space and try again.</string>
     <string name="onboarding_error_network">Couldn’t reach Google Drive. Check your connection and try again.</string>
 </resources>
