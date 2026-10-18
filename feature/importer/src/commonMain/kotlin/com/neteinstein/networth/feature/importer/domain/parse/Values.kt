@@ -88,9 +88,13 @@ object Values {
 
     private val ibanPattern = Regex("\\b([A-Z]{2}\\d{2}(?:\\s?[A-Z0-9]){11,30})\\b")
 
-    /** The first IBAN in [text], without spaces. */
+    /** The first IBAN in [text], without spaces. Portuguese IBANs have 25 characters, so digits after them are dropped. */
     fun iban(text: String): String? =
-        ibanPattern.find(text.uppercase())?.groupValues?.get(1)?.replace(" ", "")?.takeIf { it.length in 15..34 }
+        ibanPattern.find(text.uppercase())?.groupValues?.get(1)?.replace(" ", "")
+            ?.let { if (it.startsWith("PT") && it.length > PT_IBAN_LENGTH) it.take(PT_IBAN_LENGTH) else it }
+            ?.takeIf { it.length in 15..34 }
+
+    private const val PT_IBAN_LENGTH = 25
 
     /** Portuguese NIBs (21 digits) become IBANs with the fixed "PT50" prefix. */
     fun ibanFromNib(nib: String): String? = digits(nib).takeIf { it.length == 21 }?.let { "PT50$it" }
