@@ -1,7 +1,7 @@
 # CI/CD — Net Worth
 
 Modelled on [neteinstein/FamilyMoments](https://github.com/neteinstein/FamilyMoments): PR checks on every
-pull request, a signed release on every push to `main`, the web app on GitHub Pages and Cloudflare Pages, and weekly Dependabot.
+pull request, a signed release on every push to `main`, the web app on GitHub Pages and Cloudflare, and weekly Dependabot.
 Shared setup (JDK 21, Gradle with caching, Firebase config) is the composite action
 [`.github/actions/setup`](.github/actions/setup/action.yml).
 
@@ -9,7 +9,7 @@ Shared setup (JDK 21, Gradle with caching, Firebase config) is the composite act
 | --- | --- | --- |
 | [`pr.yml`](.github/workflows/pr.yml) | pull requests to `main`, manual | Every check a PR must pass |
 | [`release.yml`](.github/workflows/release.yml) | push to `main`, manual | Signed `github`-flavor APK → GitHub Release (**disabled for now**, see Releases) |
-| [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) | push to `main`, manual | Wasm web app → GitHub Pages and Cloudflare Pages |
+| [`deploy-pages.yml`](.github/workflows/deploy-pages.yml) | push to `main`, manual | Wasm web app → GitHub Pages and Cloudflare |
 | [`dependabot.yml`](.github/dependabot.yml) | weekly | Gradle and GitHub Actions update PRs |
 
 ## PR Checks (`pr.yml`)
@@ -120,16 +120,17 @@ to Cloudflare, both are kept live; once the move is done, drop the `deploy` job 
 
 - **GitHub Pages** (`deploy` job, `actions/deploy-pages`) — `https://<owner>.github.io/<repo>/`. One-time
   setup: repo Settings → Pages → Source = **GitHub Actions**.
-- **Cloudflare Pages** (`deploy-cloudflare` job, `cloudflare/wrangler-action` → `wrangler pages deploy`,
-  Direct Upload) — `https://<project>.pages.dev/` or a custom domain. Off until set up:
-  1. Cloudflare dashboard → Workers & Pages → Create → Pages → **Direct Upload**, project name `net-worth`
-     (or any name; then set the `CLOUDFLARE_PAGES_PROJECT` variable). Production branch: `main`.
-  2. My Profile → API Tokens → Create token with **Account → Cloudflare Pages → Edit**. Save it as the
+- **Cloudflare** (`deploy-cloudflare` job, `cloudflare/wrangler-action` → `wrangler deploy --assets`) — an
+  assets-only Worker named `net-worth`, at `https://net-worth.<subdomain>.workers.dev/` or a custom domain.
+  Runs on every push to `main`; it fails until these are set:
+  1. My Profile → API Tokens → Create token with **Account → Workers Scripts → Edit**. Save it as the
      `CLOUDFLARE_API_TOKEN` secret, and the account id (dashboard sidebar) as `CLOUDFLARE_ACCOUNT_ID`.
-  3. Set the repo variable `CLOUDFLARE_PAGES_ENABLED` = `true`.
+  2. Deploys come from GitHub Actions, so disconnect the Worker's Git integration (Worker → Settings →
+     Build), or its own "Workers Builds" check keeps failing on every push: it can't run the Gradle build.
+  3. Another Worker name: set the `CLOUDFLARE_WORKER_NAME` variable.
 
 For Google sign-in on a deployed site, add each origin (`https://<owner>.github.io`,
-`https://<project>.pages.dev`, any custom domain) to the Web OAuth client's authorised JavaScript origins,
+`https://<worker>.<subdomain>.workers.dev`, any custom domain) to the Web OAuth client's authorised JavaScript origins,
 and to the Picker API key's website restrictions (`docs/google-cloud-setup.md`).
 
 ## Secrets and variables
@@ -145,9 +146,8 @@ and to the Picker API key's website restrictions (`docs/google-cloud-setup.md`).
 | `APPLE_TEAM_ID`, `APP_STORE_CONNECT_KEY_ID`, `APP_STORE_CONNECT_ISSUER_ID`, `APP_STORE_CONNECT_KEY_P8` | secret | release (testflight) | Only with `IOS_RELEASE_ENABLED` | App Store Connect API key (Admin) and team (see Releases → iOS) |
 | `GOOGLE_SERVICES_JSON` | secret | release (and setup action) | No | Real `google-services.json`; otherwise the committed `androidApp/google-services.json.ci` placeholder is used |
 | `NETWORTH_GOOGLE_WEB_CLIENT_ID`, `NETWORTH_GOOGLE_IOS_CLIENT_ID`, `NETWORTH_GOOGLE_API_KEY`, `NETWORTH_GOOGLE_PROJECT_NUMBER` | secret | release, deploy-pages | No | Google OAuth client ids / Picker key compiled into `GoogleConfig` (`docs/google-cloud-setup.md`). Without them builds succeed and sign-in reports "not configured" |
-| `CLOUDFLARE_PAGES_ENABLED` | variable | deploy-pages (cloudflare) | No | `true` turns the Cloudflare Pages deploy on; off by default |
-| `CLOUDFLARE_PAGES_PROJECT` | variable | deploy-pages (cloudflare) | No | Cloudflare Pages project name; default `net-worth` |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | secret | deploy-pages (cloudflare) | Only with `CLOUDFLARE_PAGES_ENABLED` | API token with *Cloudflare Pages: Edit* and the account it belongs to |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | secret | deploy-pages (cloudflare) | **Yes** | API token with *Workers Scripts: Edit* and the account it belongs to |
+| `CLOUDFLARE_WORKER_NAME` | variable | deploy-pages (cloudflare) | No | Worker to deploy to; default `net-worth` |
 | `CODECOV_TOKEN` | secret | pr (coverage) | No | Only needed if the repo is private |
 | `GITHUB_TOKEN` | automatic | all | — | `contents: write` only in release (to create the Release) |
 
@@ -160,7 +160,7 @@ Only `*.ci` placeholders live in the repo.
 | --- | --- |
 | Android | PRs: debug-signed minified `github` APK + `playstore` bundle (R8 validation only). `main`: both signed with the upload keystore → GitHub Release, and the bundle → Play internal track once `ANDROID_PUBLISHER_CREDENTIALS` is set |
 | iOS | Unsigned simulator build on PRs. TestFlight job ready but disabled (`IOS_RELEASE_ENABLED`); automatic signing via an App Store Connect API key when enabled |
-| Web | No signing; deployed to GitHub Pages and Cloudflare Pages from `main` |
+| Web | No signing; deployed to GitHub Pages and Cloudflare from `main` |
 
 ## Running the same checks locally
 

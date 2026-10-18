@@ -169,7 +169,7 @@ jobs:
           fail_ci_if_error: false
 
   # ─── Web (Wasm) ────────────────────────────────────────────────────────────
-  # deploy-pages.yml builds the same bundle after the merge (GitHub + Cloudflare Pages); this catches a broken web build first.
+  # deploy-pages.yml builds the same bundle after the merge (GitHub + Cloudflare); this catches a broken web build first.
   compile-web:
     name: Compile · Web (Wasm)
     runs-on: ubuntu-latest
