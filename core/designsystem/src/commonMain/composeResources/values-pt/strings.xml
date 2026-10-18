@@ -89,4 +89,7 @@
     <string name="designsystem_category_bank_costs">Custos bancários</string>
     <string name="designsystem_category_card_fees">Comissões de cartão</string>
     <string name="designsystem_category_interest">Juros</string>
+    <string name="designsystem_new_category">Nova categoria</string>
+    <string name="designsystem_new_subcategory">Nova subcategoria</string>
+    <string name="designsystem_new_category_name">Nome</string>
 </resources>

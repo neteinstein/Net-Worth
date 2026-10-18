@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.feature.importer.domain.ReviewQueue
 import com.neteinstein.networth.feature.importer.domain.model.ReviewChoice
@@ -50,6 +51,7 @@ data class ReviewUiState(
 class ReviewViewModel(
     observeDatabase: ObserveDatabaseUseCase,
     private val save: SaveReviewUseCase,
+    private val addCategory: AddCategoryUseCase,
 ) : ViewModel() {
     private val drafts = MutableStateFlow<Map<String, ReviewDraft>>(emptyMap())
     private val status = MutableStateFlow(false to (null as Int?))
@@ -75,6 +77,17 @@ class ReviewViewModel(
         transactionId: String,
         categoryId: String,
     ) = edit(transactionId) { it.copy(categoryId = if (it.categoryId == categoryId) null else categoryId) }
+
+    /** None of the categories fits: creates one and picks it for this movement. */
+    fun onAddCategory(
+        transactionId: String,
+        name: String,
+    ) {
+        viewModelScope.launch {
+            val category = addCategory(name) ?: return@launch
+            edit(transactionId) { it.copy(categoryId = category.id) }
+        }
+    }
 
     fun onNote(
         transactionId: String,

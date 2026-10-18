@@ -6,6 +6,7 @@ import com.neteinstein.networth.core.domain.model.MemberRole
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.repository.AuthState
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
@@ -93,7 +94,11 @@ class ImportViewModelsTest {
     }
 
     private fun TestScope.reviewViewModel() =
-        ReviewViewModel(ObserveDatabaseUseCase(repository), SaveReviewUseCase(edit, SequentialIds("rule")))
+        ReviewViewModel(
+            ObserveDatabaseUseCase(repository),
+            SaveReviewUseCase(edit, SequentialIds("rule")),
+            AddCategoryUseCase(edit, SequentialIds("cat")),
+        )
             .also { vm -> backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { vm.state.collect {} } }
 
     @Test
@@ -375,6 +380,13 @@ class ImportViewModelsTest {
             // Tapping the picked category again clears a wrong pick.
             vm.onPick("w3", groceries.id)
             assertEquals(2, vm.state.value.done)
+            // None fits: a new category is created and picked; a blank name adds nothing.
+            vm.onAddCategory("w3", " ")
+            vm.onAddCategory("w3", "  Pets ")
+            val pets = repository.database.categories.last()
+            assertEquals("Pets", pets.name)
+            assertEquals(pets.id, vm.state.value.items.first { it.item.transaction.id == "w3" }.draft.categoryId)
+            assertEquals(pets.id, vm.state.value.categories.last().id)
             vm.onPick("w3", other.id)
             vm.onNote("w3", "Football club")
             vm.onRemember("w3", false)

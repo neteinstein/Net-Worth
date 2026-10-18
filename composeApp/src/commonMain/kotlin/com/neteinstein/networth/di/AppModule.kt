@@ -16,7 +16,9 @@ import com.neteinstein.networth.core.domain.repository.LocalStore
 import com.neteinstein.networth.core.domain.repository.SystemAppClock
 import com.neteinstein.networth.core.domain.repository.TransactionCategorizer
 import com.neteinstein.networth.core.domain.repository.UuidGenerator
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.AddMemberUseCase
+import com.neteinstein.networth.core.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveAuthUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
@@ -43,8 +45,6 @@ import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUs
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
 import com.neteinstein.networth.feature.importer.ui.screens.ImportViewModel
 import com.neteinstein.networth.feature.importer.ui.screens.ReviewViewModel
-import com.neteinstein.networth.feature.manage.domain.usecase.AddCategoryUseCase
-import com.neteinstein.networth.feature.manage.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteAccountUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteMerchantRuleUseCase

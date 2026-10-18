@@ -7,6 +7,8 @@ import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.model.TransactionFilter
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
+import com.neteinstein.networth.core.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.feature.spending.domain.model.DateRange
 import com.neteinstein.networth.feature.spending.domain.model.TransactionQuery
@@ -67,6 +69,8 @@ class TransactionsViewModel(
     observeDatabase: ObserveDatabaseUseCase,
     observeFilter: ObserveActiveFilterUseCase,
     private val updateTransaction: UpdateTransactionUseCase,
+    private val addCategory: AddCategoryUseCase,
+    private val addSubcategory: AddSubcategoryUseCase,
 ) : ViewModel() {
     private val request = MutableStateFlow(TransactionsRequest())
     private val editor = MutableStateFlow<TransactionEditor?>(null)
@@ -114,6 +118,24 @@ class TransactionsViewModel(
     }
 
     fun onEditorChange(change: (TransactionEdit) -> TransactionEdit) = editor.update { it?.copy(edit = change(it.edit)) }
+
+    /** None of the categories fits: creates one and files the edited transaction under it. */
+    fun onAddCategory(name: String) {
+        if (editor.value == null) return
+        viewModelScope.launch {
+            val category = addCategory(name) ?: return@launch
+            onEditorChange { it.copy(categoryId = category.id, subcategoryId = null) }
+        }
+    }
+
+    /** Creates a subcategory of the edited transaction's category and picks it. */
+    fun onAddSubcategory(name: String) {
+        val categoryId = editor.value?.edit?.categoryId ?: return
+        viewModelScope.launch {
+            val sub = addSubcategory(categoryId, name) ?: return@launch
+            onEditorChange { if (it.categoryId == categoryId) it.copy(subcategoryId = sub.id) else it }
+        }
+    }
 
     fun onDismissEditor() {
         editor.value = null

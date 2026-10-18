@@ -6,9 +6,9 @@ import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.Category
 import com.neteinstein.networth.core.domain.repository.DatabaseState
 import com.neteinstein.networth.core.domain.seed.DefaultCategories
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
+import com.neteinstein.networth.core.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
-import com.neteinstein.networth.feature.manage.domain.usecase.AddCategoryUseCase
-import com.neteinstein.networth.feature.manage.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.RemoveSubcategoryUseCase

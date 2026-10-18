@@ -4,6 +4,8 @@ import com.neteinstein.networth.core.domain.calc.AccountScope
 import com.neteinstein.networth.core.domain.model.TransactionFilter
 import com.neteinstein.networth.core.domain.model.TransactionTypeFilter
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
+import com.neteinstein.networth.core.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
@@ -81,7 +83,13 @@ class SpendingViewModelsTest {
 
     private fun TestScope.transactions() =
         collecting(
-            TransactionsViewModel(ObserveDatabaseUseCase(repository), ObserveActiveFilterUseCase(filters), UpdateTransactionUseCase(edit)),
+            TransactionsViewModel(
+                ObserveDatabaseUseCase(repository),
+                ObserveActiveFilterUseCase(filters),
+                UpdateTransactionUseCase(edit),
+                AddCategoryUseCase(edit, SequentialIds("cat")),
+                AddSubcategoryUseCase(edit, SequentialIds("sub")),
+            ),
         ) {
             it.state
         }
@@ -216,9 +224,38 @@ class SpendingViewModelsTest {
 
             vm.onEdit("missing")
             assertNull(vm.state.value.editor)
+            vm.onAddCategory("Ignored without an open transaction")
+            vm.onAddSubcategory("Ignored too")
+            assertTrue(repository.database.categories.none { it.name.startsWith("Ignored") })
             vm.onEdit(vm.state.value.lines.first().transaction.id)
             vm.onDismissEditor()
             assertNull(vm.state.value.editor)
             vm.onSaveEdit()
+        }
+
+    @Test
+    fun aTransactionCanBeFiledUnderANewCategoryAndSubcategory() =
+        runTest {
+            val vm = transactions()
+            vm.open(TransactionsRequest(categoryId = UNCATEGORISED, accountIds = listOf(History.pedro.id)))
+            val loja = vm.state.value.lines.single().transaction
+            vm.onEdit(loja.id)
+
+            vm.onAddCategory("  Pets ")
+            val pets = repository.database.categories.last()
+            assertEquals("Pets", pets.name)
+            assertEquals(pets.id, vm.state.value.editor!!.edit.categoryId)
+            assertEquals(pets.id, vm.state.value.categories.last().id)
+
+            vm.onAddSubcategory("Vet")
+            vm.onAddSubcategory(" ")
+            val vet = repository.database.category(pets.id)!!.subcategories.single()
+            assertEquals("Vet", vet.name)
+            assertEquals(vet.id, vm.state.value.editor!!.edit.subcategoryId)
+
+            vm.onSaveEdit()
+            val saved = repository.database.transactions.first { it.id == loja.id }
+            assertEquals(pets.id, saved.categoryId)
+            assertEquals(vet.id, saved.subcategoryId)
         }
 }

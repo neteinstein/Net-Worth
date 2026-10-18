@@ -32,6 +32,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
@@ -45,9 +48,11 @@ import com.neteinstein.networth.core.designsystem.ui.components.ChoiceChip
 import com.neteinstein.networth.core.designsystem.ui.components.ColorKey
 import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
+import com.neteinstein.networth.core.designsystem.ui.components.NewCategoryDialog
 import com.neteinstein.networth.core.designsystem.ui.components.OverlineLabel
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
+import com.neteinstein.networth.core.designsystem.ui.components.newCategoryLabel
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.icons.NetWorthIcons
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
@@ -95,6 +100,8 @@ fun TransactionsScreen(
         onEditorChange = viewModel::onEditorChange,
         onSave = viewModel::onSaveEdit,
         onDismiss = viewModel::onDismissEditor,
+        onAddCategory = viewModel::onAddCategory,
+        onAddSubcategory = viewModel::onAddSubcategory,
     )
 }
 
@@ -106,6 +113,8 @@ fun TransactionsContent(
     onEditorChange: ((TransactionEdit) -> TransactionEdit) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
+    onAddCategory: (name: String) -> Unit = {},
+    onAddSubcategory: (name: String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(modifier = modifier) { padding ->
@@ -178,7 +187,19 @@ fun TransactionsContent(
                 }
             }
         }
-        state.editor?.let { editor -> EditDialog(editor, state.categories, state.members, currency, onEditorChange, onSave, onDismiss) }
+        state.editor?.let { editor ->
+            EditDialog(
+                editor,
+                state.categories,
+                state.members,
+                currency,
+                onEditorChange,
+                onSave,
+                onDismiss,
+                onAddCategory,
+                onAddSubcategory,
+            )
+        }
     }
 }
 
@@ -235,8 +256,12 @@ private fun EditDialog(
     onChange: ((TransactionEdit) -> TransactionEdit) -> Unit,
     onSave: () -> Unit,
     onDismiss: () -> Unit,
+    onAddCategory: (name: String) -> Unit,
+    onAddSubcategory: (name: String) -> Unit,
 ) {
     val edit = editor.edit
+    // Which "new" dialog is open: a category, a subcategory, or none.
+    var adding by remember { mutableStateOf<Boolean?>(null) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.transactions_edit)) },
@@ -279,9 +304,10 @@ private fun EditDialog(
                                 }
                             })
                         }
+                        ChoiceChip(newCategoryLabel(), false, { adding = false })
                     }
-                    val subcategories = categories.firstOrNull { it.id == edit.categoryId }?.subcategories.orEmpty()
-                    if (subcategories.isNotEmpty()) {
+                    if (edit.categoryId != null) {
+                        val subcategories = categories.firstOrNull { it.id == edit.categoryId }?.subcategories.orEmpty()
                         OverlineLabel(stringResource(Res.string.transactions_subcategory))
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             subcategories.forEach { sub ->
@@ -289,6 +315,7 @@ private fun EditDialog(
                                     onChange { it.copy(subcategoryId = if (it.subcategoryId == sub.id) null else sub.id) }
                                 })
                             }
+                            ChoiceChip(newCategoryLabel(subcategory = true), false, { adding = true })
                         }
                     }
                 }
@@ -324,6 +351,16 @@ private fun EditDialog(
         confirmButton = { TextButton(onClick = onSave) { Text(stringResource(Res.string.transactions_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.transactions_cancel)) } },
     )
+    adding?.let { subcategory ->
+        NewCategoryDialog(
+            onAdd = { name ->
+                adding = null
+                if (subcategory) onAddSubcategory(name) else onAddCategory(name)
+            },
+            onDismiss = { adding = null },
+            subcategory = subcategory,
+        )
+    }
 }
 
 @Preview

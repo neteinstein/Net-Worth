@@ -41,9 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neteinstein.networth.core.designsystem.ui.components.EmptyState
 import com.neteinstein.networth.core.designsystem.ui.components.LoadingState
+import com.neteinstein.networth.core.designsystem.ui.components.NewCategoryDialog
 import com.neteinstein.networth.core.designsystem.ui.components.ScreenHeader
 import com.neteinstein.networth.core.designsystem.ui.components.SectionCard
 import com.neteinstein.networth.core.designsystem.ui.components.categoryName
+import com.neteinstein.networth.core.designsystem.ui.components.newCategoryLabel
 import com.neteinstein.networth.core.designsystem.ui.components.shortMonthNames
 import com.neteinstein.networth.core.designsystem.ui.theme.NetWorthTheme
 import com.neteinstein.networth.core.domain.format.MoneyFormatter
@@ -99,6 +101,7 @@ fun ReviewScreen(
         onRemember = viewModel::onRemember,
         onAcceptAll = viewModel::onAcceptAll,
         onSave = viewModel::onSave,
+        onAddCategory = viewModel::onAddCategory,
     )
 }
 
@@ -111,6 +114,7 @@ fun ReviewContent(
     onRemember: (String, Boolean) -> Unit,
     onAcceptAll: () -> Unit,
     onSave: () -> Unit,
+    onAddCategory: (transactionId: String, name: String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -199,7 +203,7 @@ fun ReviewContent(
                     }
                 }
                 items(state.items, key = { it.item.transaction.id }) { ui ->
-                    ReviewItemCard(ui, state.categories, currency, onPick, onNote, onRemember, cards)
+                    ReviewItemCard(ui, state.categories, currency, onPick, onNote, onRemember, onAddCategory, cards)
                 }
             }
         }
@@ -215,8 +219,10 @@ private fun ReviewItemCard(
     onPick: (String, String) -> Unit,
     onNote: (String, String) -> Unit,
     onRemember: (String, Boolean) -> Unit,
+    onAddCategory: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var adding by remember { mutableStateOf(false) }
     val item = ui.item
     val tx = item.transaction
     SectionCard(modifier, spacing = 10) {
@@ -254,6 +260,16 @@ private fun ReviewItemCard(
             categories.filter { it.id !in item.choiceIds }.takeIf { it.isNotEmpty() }?.let { others ->
                 OtherCategories(others, ui.draft.categoryId, onPick = { onPick(tx.id, it) })
             }
+            CategoryChip(label = newCategoryLabel(), confirmed = false, suggested = false, onClick = { adding = true })
+        }
+        if (adding) {
+            NewCategoryDialog(
+                onAdd = { name ->
+                    adding = false
+                    onAddCategory(tx.id, name)
+                },
+                onDismiss = { adding = false },
+            )
         }
         if (item.needsNote) {
             OutlinedTextField(

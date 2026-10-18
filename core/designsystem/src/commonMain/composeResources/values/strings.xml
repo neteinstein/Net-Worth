@@ -89,4 +89,7 @@
     <string name="designsystem_category_bank_costs">Bank costs</string>
     <string name="designsystem_category_card_fees">Card fees</string>
     <string name="designsystem_category_interest">Interest</string>
+    <string name="designsystem_new_category">New category</string>
+    <string name="designsystem_new_subcategory">New subcategory</string>
+    <string name="designsystem_new_category_name">Name</string>
 </resources>

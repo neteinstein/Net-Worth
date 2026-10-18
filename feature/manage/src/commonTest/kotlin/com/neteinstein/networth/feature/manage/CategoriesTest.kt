@@ -5,13 +5,13 @@ import com.neteinstein.networth.core.domain.model.MerchantRule
 import com.neteinstein.networth.core.domain.model.RuleMatch
 import com.neteinstein.networth.core.domain.model.Transaction
 import com.neteinstein.networth.core.domain.repository.DatabaseState
+import com.neteinstein.networth.core.domain.usecase.AddCategoryUseCase
+import com.neteinstein.networth.core.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.core.domain.usecase.EditDatabaseUseCase
 import com.neteinstein.networth.core.domain.usecase.ObserveDatabaseUseCase
 import com.neteinstein.networth.core.testing.FakeDatabaseRepository
 import com.neteinstein.networth.core.testing.SequentialIds
 import com.neteinstein.networth.core.testing.designFamily
-import com.neteinstein.networth.feature.manage.domain.usecase.AddCategoryUseCase
-import com.neteinstein.networth.feature.manage.domain.usecase.AddSubcategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.DeleteCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.RemoveSubcategoryUseCase
@@ -64,7 +64,7 @@ class CategoriesTest {
         observeDatabase = ObserveDatabaseUseCase(repository),
         updateCategory = update,
         addCategory = AddCategoryUseCase(edit, ids),
-        addSubcategory = AddSubcategoryUseCase(update, ids),
+        addSubcategory = AddSubcategoryUseCase(edit, ids),
         removeSubcategory = RemoveSubcategoryUseCase(edit),
         mergeCategory = MergeCategoryUseCase(edit),
         deleteCategory = DeleteCategoryUseCase(edit),
