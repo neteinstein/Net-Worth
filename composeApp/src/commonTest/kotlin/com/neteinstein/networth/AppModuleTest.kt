@@ -21,6 +21,7 @@ import com.neteinstein.networth.feature.importer.domain.usecase.ParseStatementUs
 import com.neteinstein.networth.feature.importer.domain.usecase.SaveReviewUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.MergeCategoryUseCase
 import com.neteinstein.networth.feature.manage.domain.usecase.SaveAccountUseCase
+import com.neteinstein.networth.feature.manage.domain.usecase.SaveAssumptionsUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.CreateHouseholdUseCase
 import com.neteinstein.networth.feature.onboarding.domain.usecase.OpenSharedDatabaseUseCase
 import com.neteinstein.networth.feature.overview.domain.usecase.BuildOverviewUseCase
@@ -93,6 +94,7 @@ class AppModuleTest {
         assertNotNull(koin.get<UpdateTransactionUseCase>())
         assertNotNull(koin.get<BuildAlertsUseCase>())
         assertNotNull(koin.get<BuildFutureUseCase>())
+        assertNotNull(koin.get<SaveAssumptionsUseCase>())
         assertNotNull(koin.get<BuildForecastUseCase>())
         assertSame(koin.get<ActiveFilterRepository>(), koin.get<ActiveFilterRepository>())
         assertSame(koin.get<AuthRepository>(), koin.get<AuthRepository>())

@@ -108,6 +108,34 @@ class SpendingTest {
     }
 
     @Test
+    fun budgetsShowForAllAccountsScaledToThePeriod() {
+        val budgeted = db.copy(
+            categories = db.categories.map {
+                when (it.id) {
+                    History.groceries.id -> it.copy(monthlyBudgetMinor = 300_00)
+                    History.school.id -> it.copy(monthlyBudgetMinor = 400_00)
+                    else -> it
+                }
+            },
+        )
+        val month = build(budgeted, PeriodKind.MONTH, september, AccountScope.All)
+        val groceries = month.rows.first { it.categoryId == History.groceries.id }
+        assertEquals(300_00, groceries.budgetMinor)
+        assertEquals(10_00, groceries.overBudgetMinor)
+        val school = month.rows.first { it.categoryId == History.school.id }
+        assertEquals(-150_00, school.overBudgetMinor)
+        assertNull(month.rows.first { it.categoryId == null }.budgetMinor)
+
+        val year = build(budgeted, PeriodKind.YEAR, DateRange(LocalDate(2026, 1, 1), LocalDate(2026, 12, 31)), AccountScope.All)
+        assertEquals(3_600_00, year.rows.first { it.categoryId == History.groceries.id }.budgetMinor)
+
+        // Budgets are family-wide, so one account's rows don't carry them.
+        val pedro = build(budgeted, PeriodKind.MONTH, september, AccountScope.Single(History.pedro.id))
+        assertNull(pedro.rows.first { it.categoryId == History.groceries.id }.budgetMinor)
+        assertNull(pedro.rows.first { it.categoryId == History.groceries.id }.overBudgetMinor)
+    }
+
+    @Test
     fun oneAccountShowsItsShareAndSavingsShowMoneyInAndOut() {
         val pedro = build(db, PeriodKind.MONTH, september, AccountScope.Single(History.pedro.id))
         assertEquals(330_00, pedro.totalMinor)

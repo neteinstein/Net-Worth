@@ -36,6 +36,7 @@ import com.neteinstein.networth.core.domain.format.MoneyFormatter
 import com.neteinstein.networth.core.domain.format.MoneyParser
 import com.neteinstein.networth.core.domain.model.AccountType
 import com.neteinstein.networth.core.domain.model.AlertSettings
+import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.CurrencyCode
 import com.neteinstein.networth.core.domain.model.Member
 import com.neteinstein.networth.core.domain.model.MemberRole
@@ -51,6 +52,12 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_accoun
 import com.neteinstein.networth.feature.manage.generated.resources.manage_account_type
 import com.neteinstein.networth.feature.manage.generated.resources.manage_add_account
 import com.neteinstein.networth.feature.manage.generated.resources.manage_alert_rules
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumption_fund
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumption_income
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumption_prices
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumption_return
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumptions
+import com.neteinstein.networth.feature.manage.generated.resources.manage_assumptions_body
 import com.neteinstein.networth.feature.manage.generated.resources.manage_cancel
 import com.neteinstein.networth.feature.manage.generated.resources.manage_delete
 import com.neteinstein.networth.feature.manage.generated.resources.manage_edit_account
@@ -59,6 +66,7 @@ import com.neteinstein.networth.feature.manage.generated.resources.manage_new_su
 import com.neteinstein.networth.feature.manage.generated.resources.manage_save
 import com.neteinstein.networth.feature.manage.generated.resources.manage_spike_threshold
 import com.neteinstein.networth.feature.manage.ui.screens.AccountEditor
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
@@ -230,4 +238,77 @@ internal fun AlertRulesDialog(
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.manage_cancel)) } },
     )
+}
+
+/** Editor for the projection assumptions; ranges follow the design canvas's own controls. */
+@Composable
+internal fun AssumptionsDialog(
+    assumptions: Assumptions,
+    onSave: (Assumptions) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var rate by remember { mutableFloatStateOf(assumptions.returnRatePct.toFloat()) }
+    var income by remember { mutableFloatStateOf(assumptions.incomeGrowthPct.toFloat()) }
+    var prices by remember { mutableFloatStateOf(assumptions.priceRisePct.toFloat()) }
+    var months by remember { mutableFloatStateOf(assumptions.emergencyFundMonths.toFloat()) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(Res.string.manage_assumptions)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(
+                    stringResource(Res.string.manage_assumptions_body),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                AssumptionSlider(stringResource(Res.string.manage_assumption_return, percent(rate.toDouble())), rate, 0f..7f, 13) {
+                    rate =
+                        it
+                }
+                AssumptionSlider(stringResource(Res.string.manage_assumption_income, percent(income.toDouble())), income, 0f..6f, 11) {
+                    income =
+                        it
+                }
+                AssumptionSlider(stringResource(Res.string.manage_assumption_prices, percent(prices.toDouble())), prices, 0f..6f, 11) {
+                    prices =
+                        it
+                }
+                AssumptionSlider(
+                    pluralStringResource(Res.plurals.manage_assumption_fund, months.roundToInt(), months.roundToInt()),
+                    months,
+                    1f..12f,
+                    10,
+                ) { months = it }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onSave(Assumptions(halfSteps(rate), halfSteps(income), halfSteps(prices), months.roundToInt()))
+            }) { Text(stringResource(Res.string.manage_save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.manage_cancel)) } },
+    )
+}
+
+@Composable
+private fun AssumptionSlider(
+    label: String,
+    value: Float,
+    range: ClosedFloatingPointRange<Float>,
+    steps: Int,
+    onChange: (Float) -> Unit,
+) {
+    Column {
+        Text(label, style = MaterialTheme.typography.bodyMedium)
+        Slider(value = value, onValueChange = onChange, valueRange = range, steps = steps)
+    }
+}
+
+/** Snaps a slider value to the 0.5 % steps the assumptions use. */
+internal fun halfSteps(value: Float): Double = (value * 2).roundToInt() / 2.0
+
+/** 3.0 → "3", 2.5 → "2.5". */
+internal fun percent(value: Double): String {
+    val snapped = (value * 2).roundToInt() / 2.0
+    return if (snapped % 1.0 == 0.0) snapped.toLong().toString() else snapped.toString()
 }

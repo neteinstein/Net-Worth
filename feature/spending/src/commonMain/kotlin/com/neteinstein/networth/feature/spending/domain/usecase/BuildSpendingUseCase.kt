@@ -20,7 +20,12 @@ data class CategoryRow(
     /** The 12-month average scaled to the period's length, or null without history. */
     val averageMinor: Long?,
     val isSpike: Boolean,
+    /** The category's monthly budget scaled to the period; only for all accounts (budgets are family-wide). */
+    val budgetMinor: Long? = null,
 ) {
+    /** How far over budget (positive) or under it (negative), or null without a budget. */
+    val overBudgetMinor: Long? get() = budgetMinor?.let { amountMinor - it }
+
     /** Change against the average in percent (+46 means 46 % above), or null without history. */
     val deltaPercent: Int?
         get() = averageMinor?.takeIf { it > 0 }?.let { ((amountMinor - it) * 100 / it).toInt() }
@@ -102,7 +107,8 @@ class BuildSpendingUseCase {
                             average != null &&
                             average > 0 &&
                             (amount - average) * 100 >= threshold.toLong() * average
-                    CategoryRow(id, category?.name, category?.colorHex, amount, average, spike)
+                    val budget = category?.monthlyBudgetMinor?.takeIf { scope == AccountScope.All && it > 0 }?.let { (it * scale).toLong() }
+                    CategoryRow(id, category?.name, category?.colorHex, amount, average, spike, budget)
                 }.filter { it.amountMinor > 0 || (it.averageMinor ?: 0) > 0 }
                     .sortedWith(compareByDescending<CategoryRow> { it.amountMinor }.thenByDescending { it.averageMinor ?: 0 })
             }

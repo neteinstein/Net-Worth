@@ -16,32 +16,34 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [36])
 class ScreenshotTest {
+    private fun manageState() = ManageUiState(
+        loading = false,
+        accounts = listOf(
+            ManagedAccount(Account("a", "Pedro", AccountType.CURRENT, listOf("p"), bank = "novobanco"), 2_140_00, false, true),
+            ManagedAccount(Account("j", "Joint savings", AccountType.SAVINGS, listOf("p", "m")), 12_600_00, false, false),
+            ManagedAccount(Account("i", "Inês", AccountType.SAVINGS, listOf("i")), 2_300_00, true, false),
+            ManagedAccount(Account("h", "Mortgage", AccountType.MORTGAGE, listOf("p", "m")), 147_268_16, false, false),
+        ),
+        members = listOf(
+            Member("p", "Pedro", MemberRole.ADULT),
+            Member("m", "Maria", MemberRole.ADULT),
+            Member("i", "Inês", MemberRole.CHILD),
+        ),
+        categoryCount = 10,
+        subcategoryCount = 39,
+        categoryColors = listOf("#141B2D", "#2D55D6", "#D9652B", "#7D9BF2"),
+        rules = listOf(
+            RuleLine("r", "CONTINENTE*", "Groceries", "#2D55D6"),
+            RuleLine("s", "DECATHLON*", "Kids’ activities", "#F0A964"),
+        ),
+    )
+
     @Test
-    fun manage() = screenshot("manage") {
-        ManageContent(
-            ManageUiState(
-                loading = false,
-                accounts = listOf(
-                    ManagedAccount(Account("a", "Pedro", AccountType.CURRENT, listOf("p"), bank = "novobanco"), 2_140_00, false, true),
-                    ManagedAccount(Account("j", "Joint savings", AccountType.SAVINGS, listOf("p", "m")), 12_600_00, false, false),
-                    ManagedAccount(Account("i", "Inês", AccountType.SAVINGS, listOf("i")), 2_300_00, true, false),
-                    ManagedAccount(Account("h", "Mortgage", AccountType.MORTGAGE, listOf("p", "m")), 147_268_16, false, false),
-                ),
-                members = listOf(
-                    Member("p", "Pedro", MemberRole.ADULT),
-                    Member("m", "Maria", MemberRole.ADULT),
-                    Member("i", "Inês", MemberRole.CHILD),
-                ),
-                categoryCount = 10,
-                subcategoryCount = 39,
-                categoryColors = listOf("#141B2D", "#2D55D6", "#D9652B", "#7D9BF2"),
-                rules = listOf(
-                    RuleLine("r", "CONTINENTE*", "Groceries", "#2D55D6"),
-                    RuleLine("s", "DECATHLON*", "Kids’ activities", "#F0A964"),
-                ),
-            ),
-            ManageActions(),
-        )
+    fun manage() = screenshot("manage") { ManageContent(manageState(), ManageActions()) }
+
+    @Test
+    fun manageAssumptions() = screenshot("manage_assumptions") {
+        ManageContent(manageState(), ManageActions(), showAssumptionsAtStart = true)
     }
 
     @Test

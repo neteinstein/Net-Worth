@@ -38,4 +38,7 @@
     <string name="alerts_no_spikes">No spikes in %1$s — every category is within %2$d% of its average.</string>
     <string name="alerts_empty_title">No alerts yet</string>
     <string name="alerts_empty_body">Import a few months of statements and spending spikes, new subscriptions and trends will show up here.</string>
+    <!-- Budgets (not on the artboard; flagged in the PR) -->
+    <string name="alerts_over_budget_title">%1$s %2$s over budget</string>
+    <string name="alerts_over_budget_body">%1$s spent this month against a %2$s budget.</string>
 </resources>

@@ -2,6 +2,7 @@ package com.neteinstein.networth.feature.manage.domain.usecase
 
 import com.neteinstein.networth.core.domain.model.Account
 import com.neteinstein.networth.core.domain.model.AccountType
+import com.neteinstein.networth.core.domain.model.Assumptions
 import com.neteinstein.networth.core.domain.model.BalanceSnapshot
 import com.neteinstein.networth.core.domain.model.upsert
 import com.neteinstein.networth.core.domain.model.withTombstone
@@ -78,6 +79,28 @@ class SaveAlertSettingsUseCase(private val edit: EditDatabaseUseCase) {
             newSubscriptions = newSubscriptions,
         )
         database.copy(settings = database.settings.copy(alerts = alerts, updatedAt = now))
+    }
+}
+
+/**
+ * The projection assumptions behind Future and Year ahead, kept within the ranges the design offers
+ * (return 0–7 %, income growth and price rise 0–6 %, 1–24 months of emergency fund).
+ */
+class SaveAssumptionsUseCase(private val edit: EditDatabaseUseCase) {
+    suspend operator fun invoke(assumptions: Assumptions) = edit { database, now ->
+        val clamped = Assumptions(
+            returnRatePct = assumptions.returnRatePct.coerceIn(0.0, MAX_RETURN_PCT),
+            incomeGrowthPct = assumptions.incomeGrowthPct.coerceIn(0.0, MAX_GROWTH_PCT),
+            priceRisePct = assumptions.priceRisePct.coerceIn(0.0, MAX_GROWTH_PCT),
+            emergencyFundMonths = assumptions.emergencyFundMonths.coerceIn(1, MAX_FUND_MONTHS),
+        )
+        database.copy(settings = database.settings.copy(assumptions = clamped, updatedAt = now))
+    }
+
+    companion object {
+        const val MAX_RETURN_PCT = 7.0
+        const val MAX_GROWTH_PCT = 6.0
+        const val MAX_FUND_MONTHS = 24
     }
 }
 
