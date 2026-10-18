@@ -5,4 +5,6 @@
     <string name="nav_import">Import extract</string>
     <string name="nav_alerts">Alerts</string>
     <string name="nav_future">Future</string>
+    <!-- Top bar of the tab screens. -->
+    <string name="nav_settings">Settings</string>
 </resources>
