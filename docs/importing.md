@@ -22,6 +22,11 @@ iOS and the web behave the same and every step is unit-tested on the JVM.
 - **Banco Best "Extrato Integrado"** — sections from the `N.º Conta | Designação | Data Início | Data Fim` line
   under "Detalhe de movimentos"; `Saldo inicial` / `Saldo contabilístico`; NIB → IBAN; investment funds from
   "Detalhe dos ativos".
+- **ActivoBank "Extrato Combinado"** — one section per `CONTA <name> N. <number> MOEDA: EUR` +
+  `EXTRATO DE yyyy/mm/dd A yyyy/mm/dd`; rows carry `mm.dd` dates without the year (taken from the period, also
+  across the new year) and space-separated thousands (`3 076.12`); `SALDO INICIAL` / `SALDO FINAL`, with
+  `A TRANSPORTAR` / `TRANSPORTE` between pages; IBAN on page 1 (`#S#…#E#` markers dropped); "Agenda de ordens de
+  pagamento" → scheduled payments. Checked first, because its descriptions can name other banks.
 - **Generic** — rows that start with a date and end with amounts; first IBAN in the file.
 
 All profiles share `MovementTable`: a row starts with a date, its trailing amount cells are the movement and
@@ -29,8 +34,10 @@ running balance, wrapped description lines are joined by column position, and th
 change in balance** (or the Débito/Crédito column when there is no balance). A section whose movements don't
 add up from the opening to the closing balance is reported after the import.
 
-To support another bank: add a profile with synthetic fixture lines in `StatementProfilesTest` that copy the
-real layout with invented names, numbers and amounts. **Never commit a real statement.**
+To support another bank: add a profile with synthetic fixture lines in `BankStatementFixtures` that copy the
+real layout with invented names, numbers and amounts, assert what it reads in `StatementProfilesTest`, and add it
+to `BankPdfExamplesTest`, which writes each fixture out as an example PDF and imports it end to end.
+**Never commit a real statement.**
 
 ## Several files at once
 

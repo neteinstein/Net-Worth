@@ -9,7 +9,10 @@ import com.neteinstein.networth.feature.importer.domain.model.StatementFormat
 import com.neteinstein.networth.feature.importer.domain.parse.ParseException
 import com.neteinstein.networth.feature.importer.domain.parse.ParseFailure
 import com.neteinstein.networth.feature.importer.domain.parse.Values
+import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextCell
 import com.neteinstein.networth.feature.importer.domain.parse.pdf.PdfTextLine
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.daysUntil
 
 /** Turns the text lines of a bank's PDF statement into a [ParsedStatement]. */
 internal interface PdfStatementProfile {
@@ -22,7 +25,8 @@ internal interface PdfStatementProfile {
 }
 
 internal object PdfStatements {
-    val profiles: List<PdfStatementProfile> = listOf(NovobancoProfile, BancoBestProfile)
+    // ActivoBank comes first: its descriptions can name other banks ("PAG SERV … NOVO BANCO S.A.").
+    val profiles: List<PdfStatementProfile> = listOf(ActivoBankProfile, NovobancoProfile, BancoBestProfile)
 
     fun parse(
         fileName: String,
@@ -263,6 +267,169 @@ internal object BancoBestProfile : PdfStatementProfile {
             sections = sections.values.map { it.build() },
             holdings = holdings,
         )
+    }
+}
+
+/**
+ * ActivoBank "Extrato Combinado". Every page starts with `yy/mm/dd EXT. N. yyyy/nnn DEPOSITO A ORDEM: <number>`;
+ * page 1 has the IBAN and the agenda of payment orders (`yyyy/mm/dd | amount | EUR | destination | notes`). Each
+ * account starts with `CONTA <name> N. <number> MOEDA: EUR` and `EXTRATO DE yyyy/mm/dd A yyyy/mm/dd`. Rows are
+ * `mm.dd | mm.dd | Descritivo | Debito | Credito | Saldo` without the year, from `SALDO INICIAL` to `SALDO FINAL`,
+ * with `A TRANSPORTAR` / `TRANSPORTE` between pages; thousands are separated by a space ("3 076.12"). Some copies
+ * wrap values in `#S#…#E#` markers and draw rules with underscores; both are dropped.
+ */
+internal object ActivoBankProfile : PdfStatementProfile {
+    private val sectionHeader = Regex("^(.+?) N\\. ?(\\d{6,}) MOEDA: ?[A-Z]{3}", RegexOption.IGNORE_CASE)
+    private val period = Regex("EXTRATO DE (\\d{4}/\\d{2}/\\d{2}) A (\\d{4}/\\d{2}/\\d{2})", RegexOption.IGNORE_CASE)
+    private val primaryAccount = Regex("DEPOSITO A ORDEM: ?(\\d{6,})", RegexOption.IGNORE_CASE)
+    private val monthDay = Regex("^(\\d{1,2})\\.(\\d{2})$")
+    private val markers = Regex("#[SE]#")
+
+    override fun matches(lines: List<PdfTextLine>): Boolean =
+        lines.any { it.text.contains("ACTVPTPL", true) } ||
+            (lines.any { it.text.contains("EXTRATO COMBINADO", true) } && lines.any { it.text.contains("activobank", true) })
+
+    override fun parse(
+        fileName: String,
+        lines: List<PdfTextLine>,
+    ): ParsedStatement {
+        val clean = lines.mapNotNull(::clean)
+        val primary = clean.firstNotNullOfOrNull { primaryAccount.find(it.text) }?.groupValues?.get(1)
+        val iban = clean.firstNotNullOfOrNull { line ->
+            line.text.takeIf { it.contains("IBAN") }?.let { Values.iban(it.substringAfter("IBAN").substringAfter(':')) }
+        }
+
+        val sections = LinkedHashMap<String, MovementTable>()
+        val scheduled = ArrayList<ParsedScheduledPayment>()
+        var header: MatchResult? = null
+        var current: MovementTable? = null
+        var start: LocalDate? = null
+        var end: LocalDate? = null
+        var inAgenda = false
+
+        for (line in clean) {
+            val text = line.text
+            val upper = text.uppercase()
+            val section = sectionHeader.find(text)
+            if (section != null) {
+                header = section
+                current = null
+                inAgenda = false
+                continue
+            }
+            val dates = period.find(text)
+            val pending = header
+            if (dates != null && pending != null) {
+                start = Values.date(dates.groupValues[1])
+                end = Values.date(dates.groupValues[2])
+                val number = pending.groupValues[2]
+                val label = pending.groupValues[1].trim()
+                current =
+                    sections.getOrPut(number) {
+                        MovementTable(
+                            label = label,
+                            accountNumber = number,
+                            type = accountTypeFor(label),
+                            periodStart = start,
+                            periodEnd = end,
+                            iban = iban.takeIf { number == primary },
+                        )
+                    }
+                header = null
+                continue
+            }
+            when {
+                upper.startsWith("AGENDA DE ORDENS") -> {
+                    inAgenda = true
+                    continue
+                }
+                upper.startsWith("RESUMO DAS CONTAS") || upper.startsWith("PROGRAMAS DE BENEF") -> {
+                    inAgenda = false
+                    current = null
+                    continue
+                }
+            }
+            val table = current
+            if (table != null && !table.closed) {
+                table.accept(withYears(line, start, end))
+                continue
+            }
+            val cells = line.cells
+            if (inAgenda && cells.size >= 4) {
+                val due = Values.date(cells[0].text)
+                val amount = cells[1].takeIf { Values.isAmount(it.text) }?.let { Values.amountMinor(it.text) }
+                val description = (cells.getOrNull(4) ?: cells[3]).text
+                if (due != null && amount != null) scheduled += ParsedScheduledPayment(description, due, -amount, primary)
+            }
+        }
+        return ParsedStatement(
+            fileName = fileName,
+            format = StatementFormat.PDF,
+            bank = "ActivoBank",
+            sections = sections.values.map { it.build() },
+            scheduled = scheduled,
+        )
+    }
+
+    /** Drops the `#S#`/`#E#` markers and underscore rules; null when nothing is left. */
+    private fun clean(line: PdfTextLine): PdfTextLine? {
+        val cells =
+            line.cells
+                .map { it.copy(text = it.text.replace(markers, "").trim('_', ' ')) }
+                .filter { it.text.isNotEmpty() }
+        return if (cells.isEmpty()) null else line.copy(cells = cells)
+    }
+
+    /**
+     * Turns the leading `mm.dd` dates of a row into full dates inside the statement period, so the shared
+     * [MovementTable] can read it. A cell that holds both dates ("10.04 10.04") is split.
+     */
+    private fun withYears(
+        line: PdfTextLine,
+        start: LocalDate?,
+        end: LocalDate?,
+    ): PdfTextLine {
+        if (start == null || end == null) return line
+        val remaining = ArrayDeque(line.cells)
+        val converted = ArrayList<PdfTextCell>()
+        while (converted.size < 2 && remaining.isNotEmpty()) {
+            val cell = remaining.first()
+            val tokens = cell.text.split(' ')
+            val leading = tokens.takeWhile { monthDay.matches(it) }.take(2 - converted.size)
+            if (leading.isEmpty()) break
+            remaining.removeFirst()
+            val width = (cell.endX - cell.x) / maxOf(1, cell.text.length)
+            var x = cell.x
+            for (token in leading) {
+                val date = dateIn(token, start, end) ?: return line
+                converted += PdfTextCell(x, x + token.length * width, date.toString())
+                x += (token.length + 1) * width
+            }
+            val rest = tokens.drop(leading.size).joinToString(" ")
+            if (rest.isNotEmpty()) {
+                remaining.addFirst(PdfTextCell(x, cell.endX, rest))
+                break
+            }
+        }
+        return if (converted.isEmpty()) line else line.copy(cells = converted + remaining)
+    }
+
+    /** The date with this month and day closest to the period (value dates can fall just before it). */
+    private fun dateIn(
+        monthDay: String,
+        start: LocalDate,
+        end: LocalDate,
+    ): LocalDate? {
+        val (month, day) = monthDay.split('.').map { it.toInt() }
+        return (start.year - 1..end.year)
+            .mapNotNull { year -> runCatching { LocalDate(year, month, day) }.getOrNull() }
+            .minByOrNull { date ->
+                when {
+                    date < start -> date.daysUntil(start)
+                    date > end -> end.daysUntil(date)
+                    else -> 0
+                }
+            }
     }
 }
 
