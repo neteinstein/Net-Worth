@@ -116,18 +116,19 @@ private external fun jsRequestToken(clientId: String, scope: String, prompt: Str
  * Resolves to the picked file (or, with [folders], folder) id, or null when the picker is closed;
  * rejects when the picker reports an error, so the caller is never left waiting.
  *
- * Folders: My Drive opens at its root, so top-level folders can be picked as well as the ones inside
- * them; a second tab lists shared drives.
+ * Folders: a flat list of every folder the user can see (at any depth), where a click selects the
+ * folder and Select picks it; a second tab lists shared drives. Giving the view a parent turns it into
+ * a browser where a click only opens the folder, so nothing could be picked.
  */
 @JsFun(
     """(token, apiKey, appId, mimeTypes, folders) => new Promise((resolve, reject) => {
         if (!window.gapi) { reject(new Error('Google API loader not loaded')); return; }
-        gapi.load('picker', () => {
+        const fail = (e) => reject(e instanceof Error ? e : new Error(String(e)));
+        gapi.load('picker', { onerror: () => fail('Google Picker failed to load'), callback: () => { try {
             const folderView = () => new google.picker.DocsView(google.picker.ViewId.DOCS)
                 .setIncludeFolders(true)
                 .setSelectFolderEnabled(true)
-                .setMimeTypes('application/vnd.google-apps.folder')
-                .setMode(google.picker.DocsViewMode.LIST);
+                .setMimeTypes('application/vnd.google-apps.folder');
             const builder = new google.picker.PickerBuilder()
                 .setOAuthToken(token)
                 .setDeveloperKey(apiKey)
@@ -145,14 +146,15 @@ private external fun jsRequestToken(clientId: String, scope: String, prompt: Str
                 });
             if (folders) {
                 builder
-                    .addView(folderView().setParent('root'))
+                    .addView(folderView())
                     .addView(folderView().setEnableDrives(true))
-                    .enableFeature(google.picker.Feature.SUPPORT_DRIVES);
+                    .enableFeature(google.picker.Feature.SUPPORT_DRIVES)
+                    .setSelectableMimeTypes('application/vnd.google-apps.folder');
             } else {
                 builder.addView(new google.picker.DocsView(google.picker.ViewId.DOCS).setMimeTypes(mimeTypes).setMode(google.picker.DocsViewMode.LIST));
             }
             builder.build().setVisible(true);
-        });
+        } catch (e) { fail(e); } } });
     })""",
 )
 private external fun jsPick(token: String, apiKey: String, appId: String, mimeTypes: String, folders: Boolean): Promise<JsString?>
