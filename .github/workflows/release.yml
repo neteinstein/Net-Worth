@@ -37,7 +37,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       # Fail fast, before spending CI time, if the signing secrets aren't set up (see CI_CD.md).
       - name: Validate required secrets
@@ -166,7 +166,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Validate required secrets
         env:

@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: ktlint
         run: ./gradlew ktlintCheck --console=plain --stacktrace
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Assemble debug
         run: ./gradlew :androidApp:assembleGithubDebug --stacktrace
@@ -82,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Build minified release APK (github) and app bundle (playstore)
         run: ./gradlew :androidApp:assembleGithubRelease :androidApp:bundlePlaystoreRelease --stacktrace
@@ -108,7 +108,7 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Test
         run: ./gradlew testDebugUnitTest --continue --stacktrace
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Coverage report + 80 % gate
         run: ./gradlew :koverXmlReport :koverHtmlReport :koverVerify :koverLog --stacktrace
@@ -175,7 +175,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Wasm production distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
@@ -193,7 +193,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Kotlin/Native caches
         uses: actions/cache@v6
