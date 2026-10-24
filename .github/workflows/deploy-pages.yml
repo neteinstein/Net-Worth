@@ -37,7 +37,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Wasm production distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable

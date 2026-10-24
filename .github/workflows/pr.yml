@@ -46,7 +46,7 @@ jobs:
         run: ./gradlew verifyTranslations --console=plain --stacktrace
       - name: Android lint (app + all dependency modules)
         run: ./gradlew :androidApp:lintGithubDebug --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: lint-reports
@@ -65,7 +65,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Assemble debug
         run: ./gradlew :androidApp:assembleGithubDebug --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: android-debug-apk
           path: androidApp/build/outputs/apk/github/debug/*.apk
@@ -91,7 +91,7 @@ jobs:
       # The mapping is what a reviewer needs to see what R8 renamed or removed on this PR.
       - name: Upload R8 mapping
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: r8-mapping
           path: androidApp/build/outputs/mapping/*Release/
@@ -112,7 +112,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Test
         run: ./gradlew testDebugUnitTest --continue --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-test-results
@@ -120,7 +120,7 @@ jobs:
           retention-days: 7
       # Screenshot tests compare every screen with the PNGs in src/androidHostTest/screenshots. On a
       # mismatch Roborazzi writes *_compare.png (reference | diff | new) here: download and look.
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: screenshot-diffs
@@ -153,7 +153,7 @@ jobs:
             cat build/kover/coverage.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
@@ -179,7 +179,7 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Wasm production distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: web-dist
           path: composeApp/build/dist/wasmJs/productionExecutable
