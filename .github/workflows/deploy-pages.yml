@@ -33,7 +33,7 @@ jobs:
       NETWORTH_GOOGLE_API_KEY: ${{ secrets.NETWORTH_GOOGLE_API_KEY }}
       NETWORTH_GOOGLE_PROJECT_NUMBER: ${{ secrets.NETWORTH_GOOGLE_PROJECT_NUMBER }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - name: Wasm production distribution
         run: ./gradlew :composeApp:wasmJsBrowserDistribution --stacktrace
