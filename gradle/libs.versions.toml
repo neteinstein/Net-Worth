@@ -50,7 +50,7 @@ googleid = "1.2.1"
 play-services-auth = "22.0.0"
 
 # Firebase (Android-only)
-firebase-bom = "35.0.2"
+firebase-bom = "35.1.0"
 
 [libraries]
 # Compose Multiplatform
