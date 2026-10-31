@@ -21,7 +21,7 @@ playPublisher = "4.1.1"
 composeMaterial3 = "1.9.0"
 composeMaterialIcons = "1.7.3"
 jetbrains-lifecycle = "2.11.0"
-jetbrains-navigation3 = "1.1.2"
+jetbrains-navigation3 = "1.2.0"
 
 # KotlinX
 kotlinx-coroutines = "1.11.0"
