@@ -29,7 +29,7 @@ kotlinx-serialization = "1.11.0"
 kotlinx-datetime = "0.8.0"
 
 # Screenshot tests (JVM, Robolectric native graphics)
-roborazzi = "1.76.0"
+roborazzi = "1.77.0"
 robolectric = "4.17"
 junit = "4.13.2"
 
